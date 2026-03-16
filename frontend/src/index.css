@@ -1,0 +1,20 @@
+@import "tailwindcss";
+
+@theme {
+  --color-slate-50: #f8fafc;
+  --color-slate-100: #f1f5f9;
+  --color-slate-200: #e2e8f0;
+  --color-slate-900: #0f172a;
+  --color-slate-950: #020617;
+  --font-sans: 'Inter', system-ui, sans-serif;
+}
+
+@layer utilities {
+  .neon-glow {
+    text-shadow: 0 0 10px rgba(234, 88, 12, 0.7), 0 0 20px rgba(234, 88, 12, 0.5), 0 0 30px rgba(234, 88, 12, 0.3);
+  }
+}
+
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+}
