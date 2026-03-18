@@ -1,0 +1,159 @@
+/* Formulário de Ocorrência */
+.form-container {
+  background-color: white;
+  border-radius: 1rem;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05);
+  padding: 1.5rem;
+}
+@media (min-width: 1024px) {
+  .form-container {
+    padding: 2rem;
+  }
+}
+
+.form-header {
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #f1f5f9;
+}
+.form-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1e293b;
+}
+.form-subtitle {
+  color: #64748b;
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.occurrence-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.form-group label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #475569;
+}
+.form-group input[type="text"],
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid #cbd5e1;
+  background-color: #f8fafc;
+  color: #1e293b;
+  font-family: inherit;
+  transition: all 0.2s;
+  box-sizing: border-box;
+}
+.form-group input[type="text"]:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: #f97316;
+  background-color: white;
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
+}
+
+.form-group input[type="file"] {
+  font-size: 0.875rem;
+  color: #64748b;
+}
+.form-group input[type="file"]::file-selector-button {
+  background-color: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.5rem;
+  padding: 0.5rem 1rem;
+  color: #475569;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-right: 1rem;
+}
+.form-group input[type="file"]::file-selector-button:hover {
+  background-color: #e2e8f0;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 1rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #f1f5f9;
+}
+
+.btn-cancel {
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  background-color: white;
+  border: 1px solid #cbd5e1;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-cancel:hover {
+  background-color: #fff7ed;
+  color: #ea580c;
+  border-color: #fdba74;
+}
+
+.btn-submit {
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  background-color: #f97316;
+  border: 1px solid #ea580c;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-submit:hover {
+  background-color: #ea580c;
+  box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
+}
+
+/* Opções de Visibilidade (Radio buttons) */
+.visibility-options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 0.25rem;
+}
+@media (min-width: 640px) {
+  .visibility-options {
+    flex-direction: row;
+    gap: 1.5rem;
+  }
+}
+
+.visibility-option {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+.visibility-option span {
+  font-size: 0.875rem;
+  color: #1e293b;
+  font-weight: 500;
+}
+.visibility-option input[type="radio"] {
+  width: 1rem;
+  height: 1rem;
+  accent-color: #f97316;
+  cursor: pointer;
+  margin: 0;
+}

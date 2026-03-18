@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { 
+import {
   FileText,
   Settings,
   Bell,
@@ -18,10 +18,12 @@ import {
   Clock,
   CheckCircle2
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import './Dashboard.css';
 
 const Dashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const navigate = useNavigate();
 
   const stats = [
     { title: 'Ocorrências Abertas', value: '12', icon: AlertCircle, color: 'text-rose-500', bg: 'bg-rose-50' },
@@ -30,24 +32,24 @@ const Dashboard = () => {
   ];
 
   const recentActivities = [
-    { 
-      id: 1, 
+    {
+      id: 1,
       title: 'Vazamento no Bloco A, 3º andar',
       type: 'Ocorrência',
       time: '2h atrás',
       status: 'Aberto',
       statusColor: 'status-rose'
     },
-    { 
-      id: 2, 
+    {
+      id: 2,
       title: 'Barulho excessivo - Unidade 204',
       type: 'Reclamação',
       time: '4h atrás',
       status: 'Em Análise',
       statusColor: 'status-amber'
     },
-    { 
-      id: 3, 
+    {
+      id: 3,
       title: 'Elevador com defeito - Bloco B',
       type: 'Ocorrência',
       time: '1d atrás',
@@ -60,14 +62,14 @@ const Dashboard = () => {
     <div className="dashboard-layout">
       {/* Mobile Sidebar Overlay */}
       {sidebarOpen && (
-        <div 
+        <div
           className="sidebar-overlay"
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
       {/* Sidebar */}
-      <aside 
+      <aside
         className={`dashboard-sidebar ${sidebarOpen ? 'sidebar-open' : 'sidebar-closed'}`}
       >
         {/* Logo Area */}
@@ -79,7 +81,7 @@ const Dashboard = () => {
             <h1>Portal do</h1>
             <p className="dashboard-pm-subtitle">Morador</p>
           </div>
-          <button 
+          <button
             className="mobile-close-btn"
             onClick={() => setSidebarOpen(false)}
           >
@@ -89,15 +91,15 @@ const Dashboard = () => {
 
         {/* Navigation */}
         <div className="sidebar-nav-container">
-          
+
           <div>
             <p className="nav-section-title">Navegação</p>
             <nav className="nav-list">
-              <a href="#" className="nav-item nav-item-active">
+              <a href="#" className="nav-item nav-item-active" onClick={(e) => e.preventDefault()}>
                 <LayoutDashboard className="nav-icon" />
                 <span>Dashboard</span>
               </a>
-              <a href="#" className="nav-item nav-item-inactive">
+              <a href="#" className="nav-item nav-item-inactive" onClick={(e) => { e.preventDefault(); navigate('/ocorrencia'); }}>
                 <FileEdit className="nav-icon" />
                 <span>Registrar Ocorrência</span>
               </a>
@@ -145,7 +147,7 @@ const Dashboard = () => {
         {/* Header */}
         <header className="main-header">
           <div className="header-left">
-            <button 
+            <button
               className="mobile-menu-btn"
               onClick={() => setSidebarOpen(true)}
             >
@@ -156,7 +158,7 @@ const Dashboard = () => {
               <p className="header-subtitle">Bem-vindo de volta, Morador</p>
             </div>
           </div>
-          
+
           <div className="header-right">
             <button className="notification-btn">
               <Bell size={20} />
@@ -169,7 +171,7 @@ const Dashboard = () => {
         {/* Dashboard Content */}
         <div className="dashboard-content-scroll">
           <div className="dashboard-content-inner">
-            
+
             {/* Stats Grid */}
             <div className="stats-grid">
               {stats.map((stat, idx) => (
@@ -190,7 +192,7 @@ const Dashboard = () => {
             {/* Quick Actions */}
             <div className="quick-actions-grid">
               {/* Ocorrência Card */}
-              <a href="#" className="quick-action-card qa-orange-card">
+              <a href="#" className="quick-action-card qa-orange-card" onClick={(e) => { e.preventDefault(); navigate('/ocorrencia'); }}>
                 <div className="quick-action-left">
                   <div className="quick-action-icon-box qa-orange-box">
                     <FileEdit size={24} />
