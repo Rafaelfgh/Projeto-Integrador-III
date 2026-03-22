@@ -11,15 +11,41 @@ import {
   FileEdit,
   FileWarning,
   ClipboardList,
-  Building
+  Building,
+  Search
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import './Dashboard.css';
-import './Ocorrencia.css';
+import './FeedOcorrencias.css';
 
-const Ocorrencia = () => {
+const MinhasSolicitacoes = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const navigate = useNavigate();
+
+  const occurrences = [
+    {
+      id: 1,
+      status: 'Aberta',
+      statusClass: 'badge-aberta',
+      category: 'Hidráulica',
+      title: 'Vazamento no corredor do 3º andar',
+      date: '04/03/2026',
+      time: '09:15',
+      location: 'Bloco A 3º andar',
+      reporter: 'Morador 301'
+    },
+    {
+      id: 2,
+      status: 'Resolvida',
+      statusClass: 'badge-resolvida',
+      category: 'Barulho',
+      title: 'Barulho excessivo após as 22h',
+      date: '03/03/2026',
+      time: '22:37',
+      location: 'Bloco B 5º andar',
+      reporter: 'Morador 501'
+    }
+  ];
 
   return (
     <div className="dashboard-layout">
@@ -35,11 +61,8 @@ const Ocorrencia = () => {
       <aside 
         className={`dashboard-sidebar ${sidebarOpen ? 'sidebar-open' : 'sidebar-closed'}`}
       >
-        {/* Logo Area */}
         <div className="sidebar-header">
-          <span className="dashboard-pm-logo">
-            PM
-          </span>
+          <span className="dashboard-pm-logo">PM</span>
           <div className="sidebar-title-group">
             <h1>Portal do</h1>
             <p className="dashboard-pm-subtitle">Morador</p>
@@ -54,7 +77,6 @@ const Ocorrencia = () => {
 
         {/* Navigation */}
         <div className="sidebar-nav-container">
-          
           <div>
             <p className="nav-section-title">Navegação</p>
             <nav className="nav-list">
@@ -62,7 +84,7 @@ const Ocorrencia = () => {
                 <LayoutDashboard className="nav-icon" />
                 <span>Dashboard</span>
               </a>
-              <a href="#" className="nav-item nav-item-active" onClick={(e) => e.preventDefault()}>
+              <a href="#" className="nav-item nav-item-inactive" onClick={(e) => { e.preventDefault(); navigate('/ocorrencia'); }}>
                 <FileEdit className="nav-icon" />
                 <span>Registrar Ocorrência</span>
               </a>
@@ -74,7 +96,7 @@ const Ocorrencia = () => {
                 <FileText className="nav-icon" />
                 <span>Feed de Ocorrências</span>
               </a>
-              <a href="#" className="nav-item nav-item-inactive" onClick={(e) => { e.preventDefault(); navigate('/solicitacoes'); }}>
+              <a href="#" className="nav-item nav-item-active" onClick={(e) => e.preventDefault()}>
                 <ClipboardList className="nav-icon" />
                 <span>Minhas Solicitações</span>
               </a>
@@ -117,8 +139,8 @@ const Ocorrencia = () => {
               <Menu size={20} />
             </button>
             <div>
-              <h2 className="header-title">Registrar Ocorrência</h2>
-              <p className="header-subtitle">Nova Ocorrência</p>
+              <h2 className="header-title">Minhas Solicitações</h2>
+              <p className="header-subtitle">Acompanhe suas solicitações enviadas</p>
             </div>
           </div>
           
@@ -131,57 +153,45 @@ const Ocorrencia = () => {
           </div>
         </header>
 
-        {/* Ocorrencia Content */}
+        {/* Feed Content */}
         <div className="dashboard-content-scroll">
           <div className="dashboard-content-inner">
-            <div className="form-container">
-              <div className="form-header">
-                <h3 className="form-title">Registrar Ocorrência</h3>
-                <p className="form-subtitle">Preencha os detalhes abaixo para registrar uma nova ocorrência no condomínio.</p>
+            
+            {/* Filters */}
+            <div className="feed-filters" style={{ justifyContent: 'center' }}>
+              <div style={{ position: 'relative', width: '100%', maxWidth: '500px' }}>
+                <Search size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
+                <input 
+                  type="text" 
+                  className="search-input" 
+                  placeholder="Buscar Solicitações" 
+                  style={{ width: '100%', paddingLeft: '2.5rem', boxSizing: 'border-box' }}
+                />
               </div>
-              <form className="occurrence-form" onSubmit={(e) => { e.preventDefault(); alert('Ocorrência registrada com sucesso!'); navigate('/dashboard'); }}>
-                <div className="form-group">
-                  <label>Título da Ocorrência *</label>
-                  <input type="text" placeholder="Ex: Lâmpada queimada no corredor" required />
-                </div>
-                <div className="form-group">
-                  <label>Categoria *</label>
-                  <select required>
-                    <option value="">Selecione uma categoria</option>
-                    <option value="manutencao">Manutenção</option>
-                    <option value="limpeza">Limpeza</option>
-                    <option value="seguranca">Segurança</option>
-                    <option value="barulho">Barulho</option>
-                    <option value="outro">Outro</option>
-                  </select>
-                </div>
-                <div className="form-group">
-                  <label>Local / Bloco e Apartamento</label>
-                  <input type="text" placeholder="Ex: Bloco B, Corredor 3º andar" />
-                </div>
-                <div className="form-group">
-                  <label>Descrição Detalhada *</label>
-                  <textarea rows="4" placeholder="Descreva o que aconteceu..." required></textarea>
-                </div>
-                <div className="form-group">
-                  <label>Visibilidade *</label>
-                  <div className="visibility-options">
-                    <label className="visibility-option">
-                      <input type="radio" name="visibilidade" value="sindico" defaultChecked />
-                      <span>Enviar apenas ao síndico</span>
-                    </label>
-                    <label className="visibility-option">
-                      <input type="radio" name="visibilidade" value="mural" />
-                      <span>Tornar visível no mural</span>
-                    </label>
+            </div>
+
+            {/* List */}
+            <div className="feed-list">
+              {occurrences.map((occ) => (
+                <div key={occ.id} className="feed-card">
+                  <div className="feed-card-header">
+                    <span className={`feed-badge ${occ.statusClass}`}>{occ.status}</span>
+                    <span className="feed-badge badge-category">{occ.category}</span>
+                  </div>
+                  <h3 className="feed-title">{occ.title}</h3>
+                  <div className="feed-meta">
+                    <span>{occ.date}</span>
+                    <span className="meta-dot">•</span>
+                    <span>{occ.time}</span>
+                    <span className="meta-dot">•</span>
+                    <span>{occ.location}</span>
+                    <span className="meta-dot">•</span>
+                    <span>{occ.reporter}</span>
                   </div>
                 </div>
-                <div className="form-actions">
-                  <button type="button" className="btn-cancel" onClick={() => navigate('/dashboard')}>Cancelar</button>
-                  <button type="submit" className="btn-submit">Registrar Solicitação</button>
-                </div>
-              </form>
+              ))}
             </div>
+
           </div>
         </div>
       </main>
@@ -189,4 +199,4 @@ const Ocorrencia = () => {
   );
 };
 
-export default Ocorrencia;
+export default MinhasSolicitacoes;

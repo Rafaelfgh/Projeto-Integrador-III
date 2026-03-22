@@ -1,0 +1,356 @@
+/* Header custom sindico profile */
+.sindico-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background-color: #ef4444;
+  color: white;
+  font-size: 0.65rem;
+  font-weight: bold;
+  height: 16px;
+  width: 16px;
+  border-radius: 50%;
+  border: 2px solid white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sindico-profile {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding-left: 1.5rem;
+  border-left: 1px solid #e2e8f0;
+}
+
+.sindico-avatar {
+  background-color: #f97316;
+  color: white;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1.125rem;
+  box-shadow: 0 2px 4px rgba(249, 115, 22, 0.3);
+}
+
+.sindico-info {
+  display: none;
+  flex-direction: column;
+}
+
+@media (min-width: 640px) {
+  .sindico-info {
+    display: flex;
+  }
+}
+
+.sindico-name {
+  font-weight: 700;
+  color: #1e293b;
+  font-size: 0.875rem;
+}
+
+.sindico-role {
+  color: #94a3b8;
+  font-size: 0.75rem;
+}
+
+/* Card base */
+.ps-card {
+  background: white;
+  border-radius: 0.75rem;
+  border: 1px solid #e2e8f0;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+/* Filter Row */
+.ps-filter-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.ps-filter-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #475569;
+}
+
+.ps-filter-grid {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 1rem;
+}
+
+@media (min-width: 768px) {
+  .ps-filter-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .ps-filter-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.ps-select {
+  width: 100%;
+  padding: 0.625rem 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid #cbd5e1;
+  background-color: white;
+  color: #475569;
+  font-size: 0.875rem;
+  outline: none;
+  transition: border-color 0.2s;
+  box-sizing: border-box;
+}
+
+.ps-select:focus {
+  border-color: #f97316;
+}
+
+/* KPIs */
+.ps-kpis-grid {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 1.5rem;
+}
+
+@media (min-width: 640px) {
+  .ps-kpis-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .ps-kpis-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.ps-kpi-card {
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.kpi-red { background-color: #fef2f2; border: 1px solid #fee2e2; }
+.kpi-yellow { background-color: #fefce8; border: 1px solid #fef9c3; }
+.kpi-green { background-color: #f0fdf4; border: 1px solid #dcfce7; }
+.kpi-orange { background-color: #fff7ed; border: 1px solid #ffedd5; }
+
+.kpi-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.kpi-title {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #64748b;
+  margin-bottom: 0.5rem;
+  letter-spacing: 0.05em;
+}
+
+.kpi-red .kpi-value { color: #ef4444; }
+.kpi-yellow .kpi-value { color: #f59e0b; }
+.kpi-green .kpi-value { color: #10b981; }
+.kpi-orange .kpi-value { color: #f97316; }
+
+.kpi-value {
+  font-size: 2rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.kpi-icon-box {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.box-red { background-color: #fee2e2; color: #ef4444; }
+.box-yellow { background-color: #fef9c3; color: #f59e0b; }
+.box-green { background-color: #dcfce7; color: #10b981; }
+.box-orange { background-color: #ffedd5; color: #f97316; }
+
+/* Charts Layout */
+.ps-charts-grid {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 1.5rem;
+}
+
+.ps-bottom-grid {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 1.5rem;
+}
+
+@media (min-width: 1024px) {
+  .ps-charts-grid {
+    grid-template-columns: repeat(12, 1fr);
+  }
+  .ps-bottom-grid {
+    grid-template-columns: repeat(12, 1fr);
+  }
+}
+
+.ps-chart-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 0.25rem;
+}
+
+.ps-chart-subtitle {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  margin-bottom: 1.5rem;
+}
+
+.ps-chart-container {
+  height: 250px;
+  width: 100%;
+}
+
+.ps-chart-donut-container {
+  height: 250px;
+  width: 100%;
+  position: relative;
+}
+
+.donut-center-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  pointer-events: none;
+}
+
+.donut-total {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #1e293b;
+  line-height: 1;
+}
+
+.donut-label {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  margin-top: 0.25rem;
+}
+
+.ps-legend {
+  display: flex;
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  color: #475569;
+  font-weight: 500;
+}
+
+.legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+/* Table */
+.ps-table-container {
+  overflow-x: auto;
+}
+
+.ps-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.ps-table th {
+  text-align: left;
+  padding: 0.75rem 1.5rem;
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #94a3b8;
+  border-bottom: 1px solid #e2e8f0;
+  background-color: #fdfdfd;
+}
+
+.ps-table td {
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #f1f5f9;
+  vertical-align: middle;
+}
+
+.ps-table tr:last-child td {
+  border-bottom: none;
+}
+
+.ps-td-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.ps-td-subtitle {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  margin-top: 0.25rem;
+}
+
+.ps-cat {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.75rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.ps-cat-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  margin-right: 6px;
+}
+
+.ps-status-badge {
+  padding: 0.25rem 0.6rem;
+  border-radius: 1rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.ps-status-red { background-color: #fef2f2; color: #ef4444; border: 1px solid #fee2e2; }
+.ps-status-yellow { background-color: #fefce8; color: #f59e0b; border: 1px solid #fef9c3; }
+.ps-status-green { background-color: #f0fdf4; color: #10b981; border: 1px solid #dcfce7; }
+
+.ps-date, .ps-resp {
+  display: inline-flex;
+  align-items: center;
+  color: #64748b;
+  font-size: 0.75rem;
+}

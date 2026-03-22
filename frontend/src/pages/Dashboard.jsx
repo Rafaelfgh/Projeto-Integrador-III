@@ -103,15 +103,15 @@ const Dashboard = () => {
                 <FileEdit className="nav-icon" />
                 <span>Registrar Ocorrência</span>
               </a>
-              <a href="#" className="nav-item nav-item-inactive">
+              <a href="#" className="nav-item nav-item-inactive" onClick={(e) => { e.preventDefault(); navigate('/reclamacao'); }}>
                 <FileWarning className="nav-icon" />
                 <span>Registrar Reclamação</span>
               </a>
-              <a href="#" className="nav-item nav-item-inactive">
+              <a href="#" className="nav-item nav-item-inactive" onClick={(e) => { e.preventDefault(); navigate('/feed'); }}>
                 <FileText className="nav-icon" />
                 <span>Feed de Ocorrências</span>
               </a>
-              <a href="#" className="nav-item nav-item-inactive">
+              <a href="#" className="nav-item nav-item-inactive" onClick={(e) => { e.preventDefault(); navigate('/solicitacoes'); }}>
                 <ClipboardList className="nav-icon" />
                 <span>Minhas Solicitações</span>
               </a>
@@ -121,7 +121,7 @@ const Dashboard = () => {
           <div>
             <p className="nav-section-title">Administração</p>
             <nav className="nav-list">
-              <a href="#" className="nav-item nav-item-inactive">
+              <a href="#" className="nav-item nav-item-inactive" onClick={(e) => { e.preventDefault(); navigate('/painel'); }}>
                 <Building className="nav-icon" />
                 <span>Painel do Síndico</span>
               </a>
@@ -131,7 +131,7 @@ const Dashboard = () => {
 
         {/* User Footer */}
         <div className="sidebar-footer">
-          <a href="#" className="nav-item nav-item-inactive" style={{ fontSize: '0.875rem' }}>
+          <a href="#" className="nav-item nav-item-inactive" onClick={(e) => { e.preventDefault(); navigate('/perfil'); }} style={{ fontSize: '0.875rem' }}>
             <User className="nav-icon" />
             <span>Perfil</span>
           </a>
@@ -208,7 +208,7 @@ const Dashboard = () => {
               </a>
 
               {/* Reclamação Card */}
-              <a href="#" className="quick-action-card qa-amber-card">
+              <a href="#" className="quick-action-card qa-amber-card" onClick={(e) => { e.preventDefault(); navigate('/reclamacao'); }}>
                 <div className="quick-action-left">
                   <div className="quick-action-icon-box qa-amber-box">
                     <FileWarning size={24} />
@@ -228,7 +228,7 @@ const Dashboard = () => {
             <div className="recent-activities-section">
               <div className="recent-activities-header">
                 <h3 className="recent-activities-title">Atividades Recentes</h3>
-                <a href="#" className="recent-activities-link">
+                <a href="#" className="recent-activities-link" onClick={(e) => { e.preventDefault(); navigate('/feed'); }}>
                   Ver tudo <ArrowRight size={16} />
                 </a>
               </div>

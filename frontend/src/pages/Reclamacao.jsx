@@ -17,7 +17,7 @@ import { useNavigate } from 'react-router-dom';
 import './Dashboard.css';
 import './Ocorrencia.css';
 
-const Ocorrencia = () => {
+const Reclamacao = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const navigate = useNavigate();
 
@@ -62,11 +62,11 @@ const Ocorrencia = () => {
                 <LayoutDashboard className="nav-icon" />
                 <span>Dashboard</span>
               </a>
-              <a href="#" className="nav-item nav-item-active" onClick={(e) => e.preventDefault()}>
+              <a href="#" className="nav-item nav-item-inactive" onClick={(e) => { e.preventDefault(); navigate('/ocorrencia'); }}>
                 <FileEdit className="nav-icon" />
                 <span>Registrar Ocorrência</span>
               </a>
-              <a href="#" className="nav-item nav-item-inactive" onClick={(e) => { e.preventDefault(); navigate('/reclamacao'); }}>
+              <a href="#" className="nav-item nav-item-active" onClick={(e) => e.preventDefault()}>
                 <FileWarning className="nav-icon" />
                 <span>Registrar Reclamação</span>
               </a>
@@ -117,8 +117,8 @@ const Ocorrencia = () => {
               <Menu size={20} />
             </button>
             <div>
-              <h2 className="header-title">Registrar Ocorrência</h2>
-              <p className="header-subtitle">Nova Ocorrência</p>
+              <h2 className="header-title">Registrar Reclamação</h2>
+              <p className="header-subtitle">Reportar uma reclamação ou violação</p>
             </div>
           </div>
           
@@ -131,51 +131,59 @@ const Ocorrencia = () => {
           </div>
         </header>
 
-        {/* Ocorrencia Content */}
+        {/* Reclamacao Content */}
         <div className="dashboard-content-scroll">
           <div className="dashboard-content-inner">
             <div className="form-container">
               <div className="form-header">
-                <h3 className="form-title">Registrar Ocorrência</h3>
-                <p className="form-subtitle">Preencha os detalhes abaixo para registrar uma nova ocorrência no condomínio.</p>
+                <h3 className="form-title">Detalhes da Reclamação</h3>
               </div>
-              <form className="occurrence-form" onSubmit={(e) => { e.preventDefault(); alert('Ocorrência registrada com sucesso!'); navigate('/dashboard'); }}>
-                <div className="form-group">
-                  <label>Título da Ocorrência *</label>
-                  <input type="text" placeholder="Ex: Lâmpada queimada no corredor" required />
+              <form className="occurrence-form" onSubmit={(e) => { e.preventDefault(); alert('Reclamação registrada com sucesso!'); navigate('/dashboard'); }}>
+                
+                <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '1.5rem' }}>
+                  <div className="form-group">
+                    <label>Tipo de Violação</label>
+                    <select required defaultValue="">
+                      <option value="" disabled>Selecionar Tipo</option>
+                      <option value="barulho">Barulho</option>
+                      <option value="lixo">Descarte irregular de lixo</option>
+                      <option value="estacionamento">Vaga de estacionamento</option>
+                      <option value="pets">Problemas com Pets</option>
+                      <option value="outro">Outro</option>
+                    </select>
+                  </div>
+                  <div className="form-group">
+                    <label>Unidade Envolvida</label>
+                    <input type="text" placeholder="Ex:Unidade 204" />
+                  </div>
+                  <div className="form-group">
+                    <label>Data</label>
+                    <input type="date" required style={{ color: '#64748b' }} />
+                  </div>
+                  <div className="form-group">
+                    <label>Horário</label>
+                    <input type="time" required style={{ color: '#64748b' }} />
+                  </div>
                 </div>
+
                 <div className="form-group">
-                  <label>Categoria *</label>
-                  <select required>
-                    <option value="">Selecione uma categoria</option>
-                    <option value="manutencao">Manutenção</option>
-                    <option value="limpeza">Limpeza</option>
-                    <option value="seguranca">Segurança</option>
-                    <option value="barulho">Barulho</option>
-                    <option value="outro">Outro</option>
-                  </select>
+                  <label>Descrição Detalhada</label>
+                  <textarea rows="6" placeholder="Descreva a Reclamção com Detalhes" required></textarea>
                 </div>
+                
                 <div className="form-group">
-                  <label>Local / Bloco e Apartamento</label>
-                  <input type="text" placeholder="Ex: Bloco B, Corredor 3º andar" />
-                </div>
-                <div className="form-group">
-                  <label>Descrição Detalhada *</label>
-                  <textarea rows="4" placeholder="Descreva o que aconteceu..." required></textarea>
-                </div>
-                <div className="form-group">
-                  <label>Visibilidade *</label>
+                  <label>Visibilidade</label>
                   <div className="visibility-options">
-                    <label className="visibility-option">
-                      <input type="radio" name="visibilidade" value="sindico" defaultChecked />
-                      <span>Enviar apenas ao síndico</span>
-                    </label>
-                    <label className="visibility-option">
-                      <input type="radio" name="visibilidade" value="mural" />
-                      <span>Tornar visível no mural</span>
+                    <label className="visibility-option" style={{ display: 'flex', alignItems: 'flex-start', padding: '0.75rem', border: '1px solid #cbd5e1', borderRadius: '0.5rem', width: 'fit-content', gap: '0.75rem' }}>
+                      <input type="radio" name="visibilidade" value="sindico" defaultChecked style={{ marginTop: '0.125rem' }} />
+                      <div style={{ display: 'flex', flexDirection: 'column' }}>
+                        <span style={{ fontWeight: 600, color: '#1e293b' }}>Enviar apenas ao síndico</span>
+                        <span style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '0.125rem' }}>Somente o síndico terá acesso</span>
+                      </div>
                     </label>
                   </div>
                 </div>
+
                 <div className="form-actions">
                   <button type="button" className="btn-cancel" onClick={() => navigate('/dashboard')}>Cancelar</button>
                   <button type="submit" className="btn-submit">Registrar Solicitação</button>
@@ -189,4 +197,4 @@ const Ocorrencia = () => {
   );
 };
 
-export default Ocorrencia;
+export default Reclamacao;
