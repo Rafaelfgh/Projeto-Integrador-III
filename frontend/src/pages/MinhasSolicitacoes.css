@@ -1,0 +1,360 @@
+/* Ultra-Modern SaaS Layout for Minhas Solicitações - Cards/Grid View */
+.ms-container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding-bottom: 3rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+/* Header Action Row */
+.ms-header-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  background: white;
+  padding: 1.5rem 2rem;
+  border-radius: 1rem;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+}
+
+@media (min-width: 768px) {
+  .ms-header-actions {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+}
+
+.ms-search-wrapper {
+  position: relative;
+  flex: 1;
+  max-width: 450px;
+}
+
+.ms-search-icon {
+  position: absolute;
+  left: 1.25rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #94a3b8;
+}
+
+.ms-search-input {
+  width: 100%;
+  padding: 0.875rem 1.25rem 0.875rem 3rem;
+  border-radius: 0.75rem;
+  border: 1px solid #cbd5e1;
+  background-color: #f8fafc;
+  color: #1e293b;
+  font-size: 0.9375rem;
+  transition: all 0.2s;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.ms-search-input:focus {
+  background-color: white;
+  border-color: #f97316;
+  box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.15);
+}
+
+/* New Request Button */
+.btn-ms-new {
+  background-color: #f97316;
+  color: white;
+  padding: 0.875rem 1.75rem;
+  border-radius: 0.75rem;
+  font-weight: 700;
+  font-size: 0.9375rem;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  white-space: nowrap;
+}
+
+.btn-ms-new:hover {
+  background-color: #ea580c;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(234, 88, 12, 0.3);
+}
+
+/* Filters */
+.ms-filters {
+  display: flex;
+  gap: 0.75rem;
+  overflow-x: auto;
+  padding-bottom: 0.5rem;
+}
+
+.ms-filter-pill {
+  padding: 0.625rem 1.5rem;
+  border-radius: 2rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1.5px solid #e2e8f0;
+  background-color: white;
+  color: #64748b;
+  transition: all 0.2s;
+  white-space: nowrap;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+}
+
+.ms-filter-pill:hover {
+  background-color: #f8fafc;
+  border-color: #cbd5e1;
+  color: #1e293b;
+}
+
+.ms-filter-pill.active {
+  background-color: #fff7ed;
+  border-color: #f97316;
+  color: #ea580c;
+  box-shadow: 0 2px 4px rgba(249, 115, 22, 0.1);
+}
+
+/* SaaS Top-Tier Cards Grid */
+.ms-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.5rem;
+}
+
+/* Premium Card Design */
+.ms-premium-card {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 1.25rem;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02), 0 2px 4px -1px rgba(0,0,0,0.02);
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Hover Effect: Lift up + Orange Glow */
+.ms-premium-card:hover {
+  transform: translateY(-4px);
+  border-color: #fb923c;
+  box-shadow: 0 20px 25px -5px rgba(0,0,0,0.05), 0 8px 10px -6px rgba(234, 88, 12, 0.1);
+}
+
+/* Decorative top border */
+.ms-premium-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: transparent;
+  transition: all 0.3s;
+}
+
+.ms-premium-card:hover::before {
+  background: #f97316;
+}
+
+/* Card Header: Tag & Icon */
+.ms-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1.25rem;
+}
+
+/* Status Badges */
+.ms-status {
+  padding: 0.35rem 0.75rem;
+  border-radius: 2rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.ms-status-red { background-color: #fef2f2; color: #ef4444; border: 1px solid #fee2e2; }
+.ms-status-yellow { background-color: #fefce8; color: #d97706; border: 1px solid #fef9c3; }
+.ms-status-green { background-color: #f0fdf4; color: #16a34a; border: 1px solid #dcfce7; }
+
+/* Category Icon floating */
+.ms-card-icon-wrap {
+  width: 44px;
+  height: 44px;
+  border-radius: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ms-icon-blue { background-color: #e0f2fe; color: #0284c7; }
+.ms-icon-yellow { background-color: #fefce8; color: #ca8a04; }
+.ms-icon-red { background-color: #fee2e2; color: #dc2626; }
+.ms-icon-green { background-color: #dcfce7; color: #16a34a; }
+.ms-icon-purple { background-color: #f3e8ff; color: #9333ea; }
+
+/* Card Body */
+.ms-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  flex: 1;
+}
+
+.ms-card-title {
+  font-size: 1.125rem;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.ms-protocol-tag {
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+  font-size: 0.8125rem;
+  color: #64748b;
+  font-weight: 600;
+  background-color: #f1f5f9;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.375rem;
+  align-self: flex-start;
+  margin-top: 0.25rem;
+}
+
+/* Card Divider */
+.ms-card-divider {
+  height: 1px;
+  background-color: #e2e8f0;
+  margin-bottom: 1rem;
+}
+
+/* Card Footer: Date & Action */
+.ms-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.ms-card-date {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.8125rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.ms-card-action {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #f97316;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  transition: gap 0.2s;
+}
+
+.ms-premium-card:hover .ms-card-action {
+  gap: 0.5rem;
+  color: #ea580c;
+}
+
+/* Empty State */
+.ms-empty {
+  background: white;
+  border-radius: 1.25rem;
+  padding: 5rem 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+}
+
+.ms-empty-icon {
+  color: #cbd5e1;
+  margin-bottom: 1.5rem;
+}
+
+.ms-empty-title {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #1e293b;
+  margin-bottom: 0.5rem;
+}
+
+.ms-empty-desc {
+  font-size: 0.9375rem;
+  color: #64748b;
+  max-width: 350px;
+}
+
+/* New Request Dropdown */
+.ms-new-dropdown {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+  box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+  display: flex;
+  flex-direction: column;
+  min-width: 220px;
+  overflow: hidden;
+  z-index: 50;
+  animation: slideDown 0.2s ease-out forwards;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.ms-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.875rem 1.25rem;
+  background: white;
+  border: none;
+  border-bottom: 1px solid #f1f5f9;
+  color: #334155;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: left;
+}
+
+.ms-dropdown-item:last-child {
+  border-bottom: none;
+}
+
+.ms-dropdown-item:hover {
+  background: #f8fafc;
+  color: #f97316;
+}
+
+.ms-dropdown-item-icon {
+  color: #94a3b8;
+  transition: color 0.2s;
+}
+
+.ms-dropdown-item:hover .ms-dropdown-item-icon {
+  color: #f97316;
+}

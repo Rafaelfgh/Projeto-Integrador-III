@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { 
   FileText,
   Settings,
@@ -11,15 +11,79 @@ import {
   FileEdit,
   FileWarning,
   ClipboardList,
-  Building
+  Building,
+  UploadCloud,
+  Image as ImageIcon,
+  Film,
+  CheckCircle2,
+  Trash2,
+  AlertTriangle
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import NotificationMenu from '../components/NotificationMenu';
+import Sidebar from '../components/Sidebar';
 import './Dashboard.css';
-import './Ocorrencia.css';
+import './Ocorrencia.css'; // Usa o mesmo CSS SaaS de Ocorrência
 
 const Reclamacao = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [files, setFiles] = useState([]);
+  const [dragActive, setDragActive] = useState(false);
+  const [visibility, setVisibility] = useState('sindico');
+  const inputRef = useRef(null);
   const navigate = useNavigate();
+
+  // Zone Handlers
+  const handleDrag = function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true);
+    } else if (e.type === "dragleave") {
+      setDragActive(false);
+    }
+  };
+
+  const handleDrop = function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      handleFiles(e.dataTransfer.files);
+    }
+  };
+
+  const handleChange = function(e) {
+    e.preventDefault();
+    if (e.target.files && e.target.files[0]) {
+      handleFiles(e.target.files);
+    }
+  };
+
+  const handleFiles = (newFiles) => {
+    const fileArray = Array.from(newFiles).map(file => ({
+      file,
+      id: Math.random().toString(36).substring(7),
+      name: file.name,
+      size: (file.size / (1024 * 1024)).toFixed(2) + ' MB',
+      type: file.type
+    }));
+    setFiles(prev => [...prev, ...fileArray]);
+  };
+
+  const removeFile = (id) => {
+    setFiles(prev => prev.filter(f => f.id !== id));
+  };
+  
+  const onButtonClick = () => {
+    inputRef.current.click();
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    alert('Reclamação registrada com absoluto sigilo! Arquivos anexados: ' + files.length);
+    navigate('/dashboard');
+  };
 
   return (
     <div className="dashboard-layout">
@@ -31,83 +95,11 @@ const Reclamacao = () => {
         />
       )}
 
-      {/* Sidebar */}
-      <aside 
-        className={`dashboard-sidebar ${sidebarOpen ? 'sidebar-open' : 'sidebar-closed'}`}
-      >
-        {/* Logo Area */}
-        <div className="sidebar-header">
-          <span className="dashboard-pm-logo">
-            PM
-          </span>
-          <div className="sidebar-title-group">
-            <h1>Portal do</h1>
-            <p className="dashboard-pm-subtitle">Morador</p>
-          </div>
-          <button 
-            className="mobile-close-btn"
-            onClick={() => setSidebarOpen(false)}
-          >
-            <X size={20} />
-          </button>
-        </div>
-
-        {/* Navigation */}
-        <div className="sidebar-nav-container">
-          
-          <div>
-            <p className="nav-section-title">Navegação</p>
-            <nav className="nav-list">
-              <a href="#" className="nav-item nav-item-inactive" onClick={(e) => { e.preventDefault(); navigate('/dashboard'); }}>
-                <LayoutDashboard className="nav-icon" />
-                <span>Dashboard</span>
-              </a>
-              <a href="#" className="nav-item nav-item-inactive" onClick={(e) => { e.preventDefault(); navigate('/ocorrencia'); }}>
-                <FileEdit className="nav-icon" />
-                <span>Registrar Ocorrência</span>
-              </a>
-              <a href="#" className="nav-item nav-item-active" onClick={(e) => e.preventDefault()}>
-                <FileWarning className="nav-icon" />
-                <span>Registrar Reclamação</span>
-              </a>
-              <a href="#" className="nav-item nav-item-inactive" onClick={(e) => { e.preventDefault(); navigate('/feed'); }}>
-                <FileText className="nav-icon" />
-                <span>Feed de Ocorrências</span>
-              </a>
-              <a href="#" className="nav-item nav-item-inactive" onClick={(e) => { e.preventDefault(); navigate('/solicitacoes'); }}>
-                <ClipboardList className="nav-icon" />
-                <span>Minhas Solicitações</span>
-              </a>
-            </nav>
-          </div>
-
-          <div>
-            <p className="nav-section-title">Administração</p>
-            <nav className="nav-list">
-              <a href="#" className="nav-item nav-item-inactive" onClick={(e) => { e.preventDefault(); navigate('/painel'); }}>
-                <Building className="nav-icon" />
-                <span>Painel do Síndico</span>
-              </a>
-            </nav>
-          </div>
-        </div>
-
-        {/* User Footer */}
-        <div className="sidebar-footer">
-          <a href="#" className="nav-item nav-item-inactive" onClick={(e) => { e.preventDefault(); navigate('/perfil'); }} style={{ fontSize: '0.875rem' }}>
-            <User className="nav-icon" />
-            <span>Perfil</span>
-          </a>
-          <a href="/login" className="nav-item nav-item-logout" style={{ fontSize: '0.875rem' }}>
-            <LogOut className="nav-icon" />
-            <span>Sair</span>
-          </a>
-        </div>
-      </aside>
+      {/* Sidebar - Padrão SaaS */}
+      <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
 
       {/* Main Content */}
       <main className="main-content">
-        {/* Header */}
         <header className="main-header">
           <div className="header-left">
             <button 
@@ -116,79 +108,181 @@ const Reclamacao = () => {
             >
               <Menu size={20} />
             </button>
-            <div>
-              <h2 className="header-title">Registrar Reclamação</h2>
-              <p className="header-subtitle">Reportar uma reclamação ou violação</p>
+            <div className="header-breadcrumbs">
+               <h2 className="header-title">Reclamação Particular</h2>
+               <p className="header-subtitle">Reportar problemas e violações de regras</p>
             </div>
           </div>
           
           <div className="header-right">
-            <button className="notification-btn">
-              <Bell size={20} />
-              <span className="notification-badge"></span>
-            </button>
-            <div className="user-avatar"></div>
+            <NotificationMenu />
+            <div className="user-profile-dropdown" onClick={() => navigate('/perfil')} style={{ cursor: 'pointer' }}>
+              <div className="user-avatar">
+                 <span>M</span>
+              </div>
+            </div>
           </div>
         </header>
 
-        {/* Reclamacao Content */}
-        <div className="dashboard-content-scroll">
-          <div className="dashboard-content-inner">
-            <div className="form-container">
-              <div className="form-header">
-                <h3 className="form-title">Detalhes da Reclamação</h3>
+        {/* Scaffold de Conteúdo SaaS */}
+        <div className="dashboard-content-scroll form-page-bg">
+          <div className="dashboard-content-inner centered-form-layout">
+            
+            <div className="saas-card-container">
+              
+              <div className="form-alert-info" style={{ backgroundColor: '#fffbeb', borderColor: '#fde68a' }}>
+                 <AlertTriangle size={18} className="info-icon" style={{ color: '#d97706' }} />
+                 <div>
+                    <h4 style={{ color: '#92400e' }}>Aviso de Sigilo</h4>
+                    <p style={{ color: '#b45309' }}>Toda reclamação sobre vizinhos é tratada com <strong>total sigilo</strong>. Não exponha incidentes no Mural. O síndico analisará as evidências formadas antes de aplicar multas ou advertências.</p>
+                 </div>
               </div>
-              <form className="occurrence-form" onSubmit={(e) => { e.preventDefault(); alert('Reclamação registrada com sucesso!'); navigate('/dashboard'); }}>
+
+              <form className="saas-occurrence-form" onSubmit={handleSubmit}>
                 
-                <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '1.5rem' }}>
-                  <div className="form-group">
-                    <label>Tipo de Violação</label>
-                    <select required defaultValue="">
-                      <option value="" disabled>Selecionar Tipo</option>
-                      <option value="barulho">Barulho</option>
-                      <option value="lixo">Descarte irregular de lixo</option>
-                      <option value="estacionamento">Vaga de estacionamento</option>
-                      <option value="pets">Problemas com Pets</option>
-                      <option value="outro">Outro</option>
-                    </select>
+                {/* 1. Detalhes da Reclamação */}
+                <div className="form-section">
+                  <div className="section-header-block">
+                     <span className="section-step-badge" style={{ backgroundColor: '#fef3c7', color: '#d97706', borderColor: '#fde68a' }}>1</span>
+                     <h3 className="section-heading">Identificação do Problema</h3>
                   </div>
-                  <div className="form-group">
-                    <label>Unidade Envolvida</label>
-                    <input type="text" placeholder="Ex:Unidade 204" />
-                  </div>
-                  <div className="form-group">
-                    <label>Data</label>
-                    <input type="date" required style={{ color: '#64748b' }} />
-                  </div>
-                  <div className="form-group">
-                    <label>Horário</label>
-                    <input type="time" required style={{ color: '#64748b' }} />
+                  
+                  <div className="saas-grid">
+                    <div className="saas-input-group">
+                      <label>Tipo de Violação <span className="req">*</span></label>
+                      <select required className="saas-select">
+                        <option value="" disabled selected>Selecione o tipo de reclamação</option>
+                        <option value="barulho">🔊 Barulho Fora do Horário Permitido</option>
+                        <option value="lixo">🗑️ Descarte Irregular de Lixo</option>
+                        <option value="estacionamento">🚗 Uso Indevido de Vaga de Garagem</option>
+                        <option value="pets">🐕 Problemas com Pets</option>
+                        <option value="outro">Outro (especifique na descrição)</option>
+                      </select>
+                    </div>
+
+                    <div className="saas-input-group">
+                      <label>Unidade Envolvida <span className="req">*</span></label>
+                      <input type="text" placeholder="Ex: Apartamento 204" required />
+                    </div>
+
+                    <div className="saas-input-group">
+                      <label>Data Corrigida da Violação <span className="req">*</span></label>
+                      <input type="date" required style={{ color: '#475569' }} />
+                    </div>
+
+                    <div className="saas-input-group">
+                      <label>Horário do Incidente <span className="req">*</span></label>
+                      <input type="time" required style={{ color: '#475569' }} />
+                    </div>
                   </div>
                 </div>
 
-                <div className="form-group">
-                  <label>Descrição Detalhada</label>
-                  <textarea rows="6" placeholder="Descreva a Reclamção com Detalhes" required></textarea>
-                </div>
-                
-                <div className="form-group">
-                  <label>Visibilidade</label>
-                  <div className="visibility-options">
-                    <label className="visibility-option" style={{ display: 'flex', alignItems: 'flex-start', padding: '0.75rem', border: '1px solid #cbd5e1', borderRadius: '0.5rem', width: 'fit-content', gap: '0.75rem' }}>
-                      <input type="radio" name="visibilidade" value="sindico" defaultChecked style={{ marginTop: '0.125rem' }} />
-                      <div style={{ display: 'flex', flexDirection: 'column' }}>
-                        <span style={{ fontWeight: 600, color: '#1e293b' }}>Enviar apenas ao síndico</span>
-                        <span style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '0.125rem' }}>Somente o síndico terá acesso</span>
+                <div className="section-divider"></div>
+
+                {/* 2. Descrição e Evidências */}
+                <div className="form-section">
+                   <div className="section-header-block">
+                     <span className="section-step-badge" style={{ backgroundColor: '#fef3c7', color: '#d97706', borderColor: '#fde68a' }}>2</span>
+                     <h3 className="section-heading">Descrição e Evidências Confidenciais</h3>
+                   </div>
+                   
+                   <div className="saas-input-group full-width">
+                      <label>Descrição Detalhada <span className="req">*</span></label>
+                      <textarea rows="5" placeholder="Relate com precisão o que aconteceu, tempo de duração, se houve tentativa prévia de diálogo, etc..." required></textarea>
+                   </div>
+                   
+                   {/* Zona de Upload Drag & Drop SaaS */}
+                   <div className="saas-input-group full-width" style={{ marginTop: '0.5rem' }}>
+                      <label>Anexos (Provas: Aúdio, Vídeo, Fotos)</label>
+                      
+                      <div 
+                         className={`upload-drop-zone ${dragActive ? 'drag-active' : ''}`}
+                         onDragEnter={handleDrag}
+                         onDragOver={handleDrag}
+                         onDragLeave={handleDrag}
+                         onDrop={handleDrop}
+                         onClick={onButtonClick}
+                      >
+                         <input 
+                            ref={inputRef}
+                            type="file" 
+                            multiple 
+                            accept="image/*,video/*,audio/*" 
+                            onChange={handleChange} 
+                            style={{ display: 'none' }} 
+                         />
+                         
+                         <div className="upload-icon-circle">
+                           <UploadCloud size={28} />
+                         </div>
+                         <h4 className="upload-title">Clique para anexar ou arraste arquivos</h4>
+                         <p className="upload-subtitle">Grave vídeos curtos ou tire fotos. (Máx. 50MB)</p>
                       </div>
-                    </label>
-                  </div>
+
+                      {/* Lista de Arquivos Anexados */}
+                      {files.length > 0 && (
+                        <div className="attached-files-list">
+                          {files.map(file => (
+                            <div key={file.id} className="file-preview-card">
+                               <div className="file-icon-box">
+                                 {file.type.includes('image') ? <ImageIcon size={20} className="file-image-icon"/> : <Film size={20} className="file-video-icon"/>}
+                               </div>
+                               <div className="file-details">
+                                 <span className="file-name">{file.name}</span>
+                                 <span className="file-size">{file.size}</span>
+                               </div>
+                               <button 
+                                 type="button" 
+                                 className="file-remove-btn" 
+                                 onClick={() => removeFile(file.id)}
+                                 title="Remover anexo"
+                               >
+                                 <Trash2 size={16} />
+                               </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                   </div>
                 </div>
 
-                <div className="form-actions">
-                  <button type="button" className="btn-cancel" onClick={() => navigate('/dashboard')}>Cancelar</button>
-                  <button type="submit" className="btn-submit">Registrar Solicitação</button>
+                <div className="section-divider"></div>
+
+                {/* 3. Confirmação de Privacidade Exclusiva */}
+                <div className="form-section">
+                   <div className="section-header-block">
+                     <span className="section-step-badge" style={{ backgroundColor: '#fef3c7', color: '#d97706', borderColor: '#fde68a' }}>3</span>
+                     <h3 className="section-heading">Privacidade Restrita</h3>
+                   </div>
+
+                   <div className="visibility-cards-container" style={{ gridTemplateColumns: '1fr' }}>
+                      {/* Única opção p/ reclamação */}
+                      <label className={`visibility-card selected`}>
+                         <div className="visibility-card-content" style={{ borderColor: '#f97316', backgroundColor: '#fff7ed' }}>
+                            <span className="visibility-radio-custom" style={{ borderColor: '#f97316' }}>
+                               <span style={{ width: '0.5rem', height: '0.5rem', backgroundColor: '#f97316', borderRadius: '50%' }}></span>
+                            </span>
+                            <div className="visibility-text">
+                               <h5>Canal de Confiança - Apenas ao Síndico</h5>
+                               <p>Sua identidade e suas provas anexadas são mantidas sob estrito sigilo. O síndico vai processar a notificação diretamente com a outra parte sem expor você publicamente.</p>
+                            </div>
+                         </div>
+                      </label>
+                   </div>
                 </div>
+
+                {/* Ações (Cancel / Submit) */}
+                <div className="saas-form-footer">
+                  <button type="button" className="btn-cancel-saas" onClick={() => navigate('/dashboard')}>
+                    Cancelar
+                  </button>
+                  <button type="submit" className="btn-primary-saas">
+                    <CheckCircle2 size={18} style={{ marginRight: '6px' }}/> Registrar Reclamação
+                  </button>
+                </div>
+                
               </form>
+
             </div>
           </div>
         </div>

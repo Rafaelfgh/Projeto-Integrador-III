@@ -1,5 +1,5 @@
-/* Estrutura principal da tela de Login */
-.login-page {
+/* Estrutura principal da tela de Cadastro */
+.cadastro-page {
   display: flex;
   flex-direction: column;
   height: 100vh;
@@ -7,13 +7,13 @@
 }
 
 @media (min-width: 768px) {
-  .login-page {
+  .cadastro-page {
     flex-direction: row;
   }
 }
 
 /* Painel Esquerdo (Logo) */
-.login-left-panel {
+.cadastro-left-panel {
   flex: 1;
   background-color: var(--color-slate-950);
   display: flex;
@@ -25,7 +25,7 @@
   overflow: hidden;
 }
 
-.login-logo-container {
+.cadastro-logo-container {
   position: relative;
   display: flex;
   flex-direction: column;
@@ -33,7 +33,7 @@
   justify-content: center;
 }
 
-.login-logo-text {
+.cadastro-logo-text {
   font-size: 140px;
   line-height: 1;
   margin-bottom: 1rem;
@@ -44,7 +44,7 @@
   text-shadow: 0 0 30px rgba(234, 88, 12, 0.8), 0 0 60px rgba(234, 88, 12, 0.5), 0 0 100px rgba(234, 88, 12, 0.2);
 }
 
-.login-brand-name {
+.cadastro-brand-name {
   font-size: 1.5rem;
   font-weight: 700;
   letter-spacing: 0.1em;
@@ -55,13 +55,13 @@
 }
 
 @media (min-width: 640px) {
-  .login-brand-name {
+  .cadastro-brand-name {
     font-size: 1.875rem;
   }
 }
 
 /* Painel Direito (Formulário) */
-.login-right-panel {
+.cadastro-right-panel {
   flex: 1;
   background-color: #ffffff;
   display: flex;
@@ -69,31 +69,50 @@
   justify-content: center;
   padding: 2rem;
   position: relative;
+  overflow-y: auto;
 }
 
 @media (min-width: 1024px) {
-  .login-right-panel {
+  .cadastro-right-panel {
     padding: 4rem;
   }
 }
 
-.login-form-wrapper {
+.cadastro-form-wrapper {
   width: 100%;
   max-width: 28rem;
+  padding: 1rem 0;
 }
 
-.login-header {
-  margin-bottom: 2.5rem;
+.cadastro-header {
+  margin-bottom: 2rem;
   text-align: center;
+  position: relative;
 }
 
 @media (min-width: 768px) {
-  .login-header {
+  .cadastro-header {
     text-align: left;
   }
 }
 
-.login-title {
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.875rem;
+  color: #64748b;
+  text-decoration: none;
+  margin-bottom: 1rem;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+
+.back-link:hover {
+  color: var(--color-orange-500, #f97316);
+}
+
+.cadastro-title {
   font-size: 2.25rem;
   line-height: 2.5rem;
   font-weight: 700;
@@ -101,55 +120,15 @@
   margin-bottom: 0.5rem;
 }
 
-.login-subtitle {
+.cadastro-subtitle {
   color: #64748b; /* text-slate-500 */
 }
 
 /* Formulário e Inputs */
-.login-form {
+.cadastro-form {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
-}
-
-/* Role Selector */
-.login-role-selector {
-  display: flex;
-  gap: 1rem;
-  margin-bottom: 0.5rem;
-}
-
-.role-card {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  padding: 0.875rem;
-  border: 2px solid var(--color-slate-200);
-  border-radius: 0.75rem;
-  cursor: pointer;
-  transition: all 0.2s;
-  color: #64748b;
-  background-color: var(--color-slate-50);
-  font-weight: 600;
-  font-size: 0.875rem;
-}
-
-.role-card:hover {
-  border-color: var(--color-slate-300);
-  background-color: #ffffff;
-}
-
-.role-card.active {
-  border-color: var(--color-orange-500, #f97316);
-  background-color: #fff7ed;
-  color: #ea580c;
-  box-shadow: 0 4px 6px -1px rgba(234, 88, 12, 0.1);
-}
-
-.hidden-radio {
-  display: none;
+  gap: 1.25rem;
 }
 
 .input-group {
@@ -202,26 +181,7 @@
   color: var(--color-orange-500, #f97316);
 }
 
-/* Links e Botão */
-.forgot-password-container {
-  display: flex;
-  justify-content: flex-end;
-  padding-top: 0.25rem;
-}
-
-.text-link {
-  font-size: 0.875rem;
-  color: #ea580c; /* orange-600 */
-  transition: color 0.2s;
-  text-decoration: none;
-  font-weight: 500;
-}
-
-.text-link:hover {
-  color: var(--color-orange-500, #f97316);
-  text-decoration: underline;
-}
-
+/* Botão */
 .btn-primary {
   width: 100%;
   background-color: #ea580c; /* orange-600 */
@@ -244,9 +204,26 @@
   transform: scale(0.98);
 }
 
-.login-footer-text {
-  margin-top: 2rem;
+/* Mensagem de Sucesso */
+.cadastro-success-message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   text-align: center;
-  font-size: 0.875rem;
-  color: #64748b; /* slate-500 */
+  padding: 2rem 0;
+}
+
+.success-icon {
+  color: #22c55e; /* green-500 */
+  margin-bottom: 1.5rem;
+}
+
+.cadastro-success-message .cadastro-title {
+  font-size: 1.875rem;
+  margin-bottom: 1rem;
+}
+
+.cadastro-success-message .cadastro-subtitle {
+  line-height: 1.5;
+  font-size: 1.125rem;
 }

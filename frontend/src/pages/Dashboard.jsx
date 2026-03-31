@@ -16,19 +16,57 @@ import {
   Building,
   AlertCircle,
   Clock,
-  CheckCircle2
+  CheckCircle2,
+  Search,
+  MessageSquare,
+  TrendingUp,
+  TrendingDown,
+  ChevronRight
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import NotificationMenu from '../components/NotificationMenu';
+import Sidebar from '../components/Sidebar';
 import './Dashboard.css';
 
 const Dashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const navigate = useNavigate();
 
+  // SaaS-style stats com mini sparklines
   const stats = [
-    { title: 'Ocorrências Abertas', value: '12', icon: AlertCircle, color: 'text-rose-500', bg: 'bg-rose-50' },
-    { title: 'Em Análise', value: '5', icon: Clock, color: 'text-amber-500', bg: 'bg-amber-50' },
-    { title: 'Resolvidas', value: '28', icon: CheckCircle2, color: 'text-emerald-500', bg: 'bg-emerald-50' },
+    { 
+      title: 'Ocorrências Abertas', 
+      value: '12', 
+      icon: AlertCircle, 
+      color: 'text-rose-500', 
+      bg: 'bg-rose-50',
+      trend: '+2 este mês',
+      trendIcon: TrendingUp,
+      trendColor: 'text-rose-500',
+      sparkline: 'M0,25 C10,24 20,20 30,22 C40,15 50,25 60,18 C70,12 80,18 90,5 L100,5'
+    },
+    { 
+      title: 'Em Análise', 
+      value: '5', 
+      icon: Clock, 
+      color: 'text-amber-500', 
+      bg: 'bg-amber-50',
+      trend: '-1 esta semana',
+      trendIcon: TrendingDown,
+      trendColor: 'text-amber-500',
+      sparkline: 'M0,10 C15,12 25,8 40,15 C50,22 65,18 80,25 L100,28'
+    },
+    { 
+      title: 'Resolvidas', 
+      value: '28', 
+      icon: CheckCircle2, 
+      color: 'text-emerald-500', 
+      bg: 'bg-emerald-50',
+      trend: '+15% comparado ao mês passado',
+      trendIcon: TrendingUp,
+      trendColor: 'text-emerald-500',
+      sparkline: 'M0,28 C15,25 25,18 40,20 C50,15 65,8 80,10 L100,2'
+    },
   ];
 
   const recentActivities = [
@@ -38,7 +76,10 @@ const Dashboard = () => {
       type: 'Ocorrência',
       time: '2h atrás',
       status: 'Aberto',
-      statusColor: 'status-rose'
+      statusColor: 'status-rose',
+      icon: AlertCircle,
+      iconColor: 'text-rose-500',
+      iconBg: 'bg-rose-50'
     },
     {
       id: 2,
@@ -46,7 +87,10 @@ const Dashboard = () => {
       type: 'Reclamação',
       time: '4h atrás',
       status: 'Em Análise',
-      statusColor: 'status-amber'
+      statusColor: 'status-amber',
+      icon: MessageSquare,
+      iconColor: 'text-amber-500',
+      iconBg: 'bg-amber-50'
     },
     {
       id: 3,
@@ -54,9 +98,18 @@ const Dashboard = () => {
       type: 'Ocorrência',
       time: '1d atrás',
       status: 'Resolvida',
-      statusColor: 'status-emerald'
+      statusColor: 'status-emerald',
+      icon: CheckCircle2,
+      iconColor: 'text-emerald-500',
+      iconBg: 'bg-emerald-50'
     },
   ];
+
+  const currentDate = new Date().toLocaleDateString('pt-BR', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long'
+  });
 
   return (
     <div className="dashboard-layout">
@@ -68,83 +121,12 @@ const Dashboard = () => {
         />
       )}
 
-      {/* Sidebar */}
-      <aside
-        className={`dashboard-sidebar ${sidebarOpen ? 'sidebar-open' : 'sidebar-closed'}`}
-      >
-        {/* Logo Area */}
-        <div className="sidebar-header">
-          <span className="dashboard-pm-logo">
-            PM
-          </span>
-          <div className="sidebar-title-group">
-            <h1>Portal do</h1>
-            <p className="dashboard-pm-subtitle">Morador</p>
-          </div>
-          <button
-            className="mobile-close-btn"
-            onClick={() => setSidebarOpen(false)}
-          >
-            <X size={20} />
-          </button>
-        </div>
+      {/* Sidebar - SaaS Refined */}
+      <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
 
-        {/* Navigation */}
-        <div className="sidebar-nav-container">
-
-          <div>
-            <p className="nav-section-title">Navegação</p>
-            <nav className="nav-list">
-              <a href="#" className="nav-item nav-item-active" onClick={(e) => e.preventDefault()}>
-                <LayoutDashboard className="nav-icon" />
-                <span>Dashboard</span>
-              </a>
-              <a href="#" className="nav-item nav-item-inactive" onClick={(e) => { e.preventDefault(); navigate('/ocorrencia'); }}>
-                <FileEdit className="nav-icon" />
-                <span>Registrar Ocorrência</span>
-              </a>
-              <a href="#" className="nav-item nav-item-inactive" onClick={(e) => { e.preventDefault(); navigate('/reclamacao'); }}>
-                <FileWarning className="nav-icon" />
-                <span>Registrar Reclamação</span>
-              </a>
-              <a href="#" className="nav-item nav-item-inactive" onClick={(e) => { e.preventDefault(); navigate('/feed'); }}>
-                <FileText className="nav-icon" />
-                <span>Feed de Ocorrências</span>
-              </a>
-              <a href="#" className="nav-item nav-item-inactive" onClick={(e) => { e.preventDefault(); navigate('/solicitacoes'); }}>
-                <ClipboardList className="nav-icon" />
-                <span>Minhas Solicitações</span>
-              </a>
-            </nav>
-          </div>
-
-          <div>
-            <p className="nav-section-title">Administração</p>
-            <nav className="nav-list">
-              <a href="#" className="nav-item nav-item-inactive" onClick={(e) => { e.preventDefault(); navigate('/painel'); }}>
-                <Building className="nav-icon" />
-                <span>Painel do Síndico</span>
-              </a>
-            </nav>
-          </div>
-        </div>
-
-        {/* User Footer */}
-        <div className="sidebar-footer">
-          <a href="#" className="nav-item nav-item-inactive" onClick={(e) => { e.preventDefault(); navigate('/perfil'); }} style={{ fontSize: '0.875rem' }}>
-            <User className="nav-icon" />
-            <span>Perfil</span>
-          </a>
-          <a href="/login" className="nav-item nav-item-logout" style={{ fontSize: '0.875rem' }}>
-            <LogOut className="nav-icon" />
-            <span>Sair</span>
-          </a>
-        </div>
-      </aside>
-
-      {/* Main Content */}
+      {/* Main Content Areas */}
       <main className="main-content">
-        {/* Header */}
+        {/* Superior Header Moderno */}
         <header className="main-header">
           <div className="header-left">
             <button
@@ -153,104 +135,165 @@ const Dashboard = () => {
             >
               <Menu size={20} />
             </button>
-            <div>
-              <h2 className="header-title">Dashboard</h2>
-              <p className="header-subtitle">Bem-vindo de volta, Morador</p>
+            <div className="header-breadcrumbs">
+              <h2 className="header-title">Visão Geral</h2>
+              <p className="header-date">{currentDate.charAt(0).toUpperCase() + currentDate.slice(1)}</p>
             </div>
           </div>
 
           <div className="header-right">
-            <button className="notification-btn">
-              <Bell size={20} />
-              <span className="notification-badge"></span>
-            </button>
-            <div className="user-avatar"></div>
+            <div className="header-search">
+              <Search size={16} className="search-icon" />
+              <input type="text" placeholder="Buscar ocorrências..." className="search-input" />
+            </div>
+
+            <NotificationMenu />
+
+            <div className="user-profile-dropdown" onClick={() => navigate('/perfil')}>
+              <div className="user-avatar">
+                 <span>M</span>
+              </div>
+            </div>
           </div>
         </header>
 
-        {/* Dashboard Content */}
+        {/* Corpo do Dashboard */}
         <div className="dashboard-content-scroll">
           <div className="dashboard-content-inner">
-
-            {/* Stats Grid */}
+            
+            {/* Seção das Métricas (Stats Cards com Sparklines) */}
             <div className="stats-grid">
               {stats.map((stat, idx) => (
                 <div key={idx} className="stat-card">
-                  <div className="stat-card-inner">
-                    <div>
-                      <div className="stat-value">{stat.value}</div>
-                      <div className="stat-title">{stat.title}</div>
-                    </div>
+                  {/* Row superior: Título + Ícone */}
+                  <div className="stat-card-header">
+                    <span className="stat-title">{stat.title}</span>
                     <div className={`stat-icon-wrapper ${stat.bg}`}>
-                      <stat.icon className={`${stat.color}`} size={24} />
+                      <stat.icon className={`${stat.color}`} size={18} />
                     </div>
+                  </div>
+                  
+                  {/* Corpo: Valor + Sparkline Graph */}
+                  <div className="stat-card-body">
+                    <div className="stat-value">{stat.value}</div>
+                    
+                    <div className="stat-sparkline-container">
+                       <svg viewBox="0 0 100 30" preserveAspectRatio="none" className="sparkline-svg">
+                          <defs>
+                            <linearGradient id={`grad-${idx}`} x1="0%" y1="0%" x2="0%" y2="100%">
+                              <stop offset="0%" stopColor="currentColor" stopOpacity="0.2" className={stat.color} />
+                              <stop offset="100%" stopColor="currentColor" stopOpacity="0" className={stat.color} />
+                            </linearGradient>
+                          </defs>
+                          {/* Área preenchida (gradiente suave) */}
+                          <path 
+                             d={`${stat.sparkline} L100,30 L0,30 Z`} 
+                             fill={`url(#grad-${idx})`} 
+                             className={stat.color}
+                          />
+                          {/* Linha da Sparkline */}
+                          <path 
+                             d={stat.sparkline} 
+                             fill="none" 
+                             stroke="currentColor" 
+                             strokeWidth="2.5" 
+                             strokeLinecap="round" 
+                             strokeLinejoin="round" 
+                             className={stat.color}
+                          />
+                       </svg>
+                    </div>
+                  </div>
+
+                  {/* Footer: Trend analysis */}
+                  <div className="stat-card-footer">
+                     <div className={`stat-trend ${stat.trendColor}`}>
+                        <stat.trendIcon size={14} strokeWidth={2.5}/>
+                        <span>{stat.trend}</span>
+                     </div>
                   </div>
                 </div>
               ))}
             </div>
 
-            {/* Quick Actions */}
+            {/* Grid dos Atalhos Rápidos com Cards Interativos */}
             <div className="quick-actions-grid">
-              {/* Ocorrência Card */}
-              <a href="#" className="quick-action-card qa-orange-card" onClick={(e) => { e.preventDefault(); navigate('/ocorrencia'); }}>
-                <div className="quick-action-left">
-                  <div className="quick-action-icon-box qa-orange-box">
-                    <FileEdit size={24} />
+              <div className="quick-actions-header-wrapper">
+                 <h3 className="section-title">Ações Rápidas</h3>
+              </div>
+              <div className="qa-cards-wrapper">
+                {/* Ocorrência Card */}
+                <a href="#" className="quick-action-card qa-orange-card" onClick={(e) => { e.preventDefault(); navigate('/ocorrencia'); }}>
+                  <div className="qa-card-inner">
+                    <div className="quick-action-icon-box qa-orange-box">
+                      <FileEdit size={24} />
+                    </div>
+                    <div className="quick-action-text">
+                      <h3 className="quick-action-title">Nova Ocorrência</h3>
+                      <p className="quick-action-subtitle">Notifique problemas estruturais em áreas comuns</p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="quick-action-title">Registrar Ocorrência</h3>
-                    <p className="quick-action-subtitle">Abrir uma Nova Ocorrência</p>
+                  <div className="quick-action-arrow">
+                    <ChevronRight size={20} />
                   </div>
-                </div>
-                <div className="quick-action-arrow">
-                  <ArrowRight size={20} />
-                </div>
-              </a>
+                </a>
 
-              {/* Reclamação Card */}
-              <a href="#" className="quick-action-card qa-amber-card" onClick={(e) => { e.preventDefault(); navigate('/reclamacao'); }}>
-                <div className="quick-action-left">
-                  <div className="quick-action-icon-box qa-amber-box">
-                    <FileWarning size={24} />
+                {/* Reclamação Card */}
+                <a href="#" className="quick-action-card qa-amber-card" onClick={(e) => { e.preventDefault(); navigate('/reclamacao'); }}>
+                  <div className="qa-card-inner">
+                    <div className="quick-action-icon-box qa-amber-box">
+                      <FileWarning size={24} />
+                    </div>
+                    <div className="quick-action-text">
+                      <h3 className="quick-action-title">Nova Reclamação</h3>
+                      <p className="quick-action-subtitle">Reporte barulho e violações de regras</p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="quick-action-title">Registrar Reclamação</h3>
-                    <p className="quick-action-subtitle">Reportar uma Reclamação ou Violação</p>
+                  <div className="quick-action-arrow">
+                    <ChevronRight size={20} />
                   </div>
-                </div>
-                <div className="quick-action-arrow">
-                  <ArrowRight size={20} />
-                </div>
-              </a>
+                </a>
+              </div>
             </div>
 
-            {/* Recent Activities */}
+            {/* Atividades Recentes com Design Minimalista SaaS */}
             <div className="recent-activities-section">
               <div className="recent-activities-header">
-                <h3 className="recent-activities-title">Atividades Recentes</h3>
-                <a href="#" className="recent-activities-link" onClick={(e) => { e.preventDefault(); navigate('/feed'); }}>
-                  Ver tudo <ArrowRight size={16} />
-                </a>
+                <div>
+                   <h3 className="section-title">Atividades Recentes</h3>
+                   <p className="section-subtitle">Últimas atualizações no condomínio</p>
+                </div>
+                <button className="btn-secondary" onClick={() => navigate('/feed')}>
+                  Ver Relatório <ArrowRight size={16} />
+                </button>
               </div>
               <div className="recent-activities-list">
                 {recentActivities.map((activity) => (
                   <div key={activity.id} className="activity-item">
-                    <div className="activity-info">
-                      <div className="activity-dot-wrapper">
-                        <div className="activity-dot"></div>
-                      </div>
-                      <div>
-                        <p className="activity-name">{activity.title}</p>
-                        <div className="activity-meta">
-                          <span className="activity-type">{activity.type}</span>
-                          <span className="activity-separator"></span>
-                          <span>{activity.time}</span>
+                     
+                     <div className="activity-main">
+                        <div className={`activity-icon-rounded ${activity.iconBg}`}>
+                          <activity.icon className={activity.iconColor} size={18} />
                         </div>
-                      </div>
-                    </div>
-                    <div className={`activity-status-badge ${activity.statusColor}`}>
-                      {activity.status}
-                    </div>
+                        <div className="activity-details">
+                          <p className="activity-name">{activity.title}</p>
+                          <div className="activity-meta">
+                            <span className="activity-type-label">{activity.type}</span>
+                            <span className="activity-dot-separator">•</span>
+                            <span className="activity-time">{activity.time}</span>
+                          </div>
+                        </div>
+                     </div>
+
+                     <div className="activity-actions">
+                       <div className={`activity-status-badge ${activity.statusColor}`}>
+                         {activity.status}
+                       </div>
+                       <button className="activity-action-btn" title="Ver detalhes">
+                         <ChevronRight size={18} />
+                       </button>
+                     </div>
+
                   </div>
                 ))}
               </div>

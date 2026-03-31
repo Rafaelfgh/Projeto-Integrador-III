@@ -11,73 +11,110 @@ import {
   FileEdit,
   FileWarning,
   ClipboardList,
-  Building
+  Building,
+  Search,
+  Filter,
+  Clock,
+  ArrowUpCircle,
+  MessageSquare,
+  MapPin
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import NotificationMenu from '../components/NotificationMenu';
+import Sidebar from '../components/Sidebar';
 import './Dashboard.css';
 import './FeedOcorrencias.css';
 
+// Mock data structured for a SaaS ticket feed
+const feedData = [
+  { 
+    id: 1, 
+    userInitial: 'M', 
+    userName: 'Maria Santos', 
+    role: 'Bloco A, 302', 
+    timeAgo: 'Há 2 horas',
+    title: 'Limpeza do hall de entrada no Bloco A', 
+    description: 'A área comum do hall de entrada está necessitando de uma limpeza mais profunda, especialmente próximo aos elevadores onde há marcas de sujeira recorrentes.',
+    category: 'Limpeza', 
+    status: 'Aberta', 
+    upvotes: 12,
+    comments: 3
+  },
+  { 
+    id: 2, 
+    userInitial: 'A', 
+    userName: 'Anônimo', 
+    role: 'Condômino', 
+    timeAgo: 'Há 5 horas',
+    title: 'Veículo estacionado fora da vaga (Garagem subsolo)', 
+    description: 'Um veículo SUV preto está frequentemente estacionando ocupando parte da faixa de pedestres no subsolo 1, dificultando a manobra dos demais.',
+    category: 'Outros', 
+    status: 'Em Análise',
+    upvotes: 45,
+    comments: 8
+  },
+  { 
+    id: 3, 
+    userInitial: 'C', 
+    userName: 'Carlos Lima', 
+    role: 'Bloco C, 105', 
+    timeAgo: 'Ontem',
+    title: 'Oscilação de energia nos andares baixos do Bloco C', 
+    description: 'Estou notando que durante a noite as luzes oscilam de forma intermitente. Já conversei com o vizinho do 104 e ele relatou o mesmo problema.',
+    category: 'Elétrica', 
+    status: 'Resolvida',
+    upvotes: 21,
+    comments: 5
+  },
+  { 
+    id: 4, 
+    userInitial: 'R', 
+    userName: 'Roberto Silva', 
+    role: 'Síndico', 
+    timeAgo: 'Ontem',
+    title: 'Manutenção preventiva das bombas d\'água concluída', 
+    description: 'Informo a todos que a manutenção preventiva semestral das bombas hidráulicas de todos os blocos foi concluída com sucesso sem necessidade de corte no fornecimento.',
+    category: 'Hidráulica', 
+    status: 'Resolvida',
+    upvotes: 89,
+    comments: 12
+  },
+];
+
 const FeedOcorrencias = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('Todos os status');
+  const [categoryFilter, setCategoryFilter] = useState('Todas as categorias');
   const navigate = useNavigate();
 
-  const occurrences = [
-    {
-      id: 1,
-      status: 'Aberta',
-      statusClass: 'badge-aberta',
-      category: 'Hidráulica',
-      title: 'Vazamento no corredor do 3º andar',
-      date: '04/03/2026',
-      time: '09:15',
-      location: 'Bloco A 3º andar',
-      reporter: 'Morador 301'
-    },
-    {
-      id: 2,
-      status: 'Resolvida',
-      statusClass: 'badge-resolvida',
-      category: 'Barulho',
-      title: 'Barulho excessivo após as 22h',
-      date: '03/03/2026',
-      time: '22:37',
-      location: 'Bloco B 5º andar',
-      reporter: 'Morador 501'
-    },
-    {
-      id: 3,
-      status: 'Em Análise',
-      statusClass: 'badge-analise',
-      category: 'Elevador',
-      title: 'Elevador com porta travada',
-      date: '22/02/2026',
-      time: '20:15',
-      location: 'Bloco A -Térreo',
-      reporter: 'Morador 102'
-    },
-    {
-      id: 4,
-      status: 'Em Análise',
-      statusClass: 'badge-analise',
-      category: 'Portaria',
-      title: 'Reconhecimento facial estragado',
-      date: '12/02/2026',
-      time: '07:50',
-      location: 'Bloco C 9 andar',
-      reporter: 'Morador 906'
-    },
-    {
-      id: 5,
-      status: 'Aberta',
-      statusClass: 'badge-aberta',
-      category: 'Estacionamento',
-      title: 'Estacionamento irregular - Vaga 32B',
-      date: '07/02/2026',
-      time: '23:15',
-      location: 'Bloco B -Estacionamento',
-      reporter: 'Morador 102'
+  const getStatusClass = (status) => {
+    switch(status) {
+      case 'Aberta': return 'f-status-red';
+      case 'Em Análise': return 'f-status-yellow';
+      case 'Resolvida': return 'f-status-green';
+      default: return '';
     }
-  ];
+  };
+
+  const getCategoryClass = (cat) => {
+    switch(cat) {
+      case 'Hidráulica': return 'feed-tag-blue';
+      case 'Elétrica': return 'feed-tag-orange';
+      case 'Barulho': return 'feed-tag-red';
+      case 'Limpeza': return 'feed-tag-green';
+      default: return 'feed-tag-purple';
+    }
+  };
+
+  const filteredFeed = feedData.filter(ticket => {
+    const matchesSearch = ticket.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                          ticket.description.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = statusFilter === 'Todos os status' || ticket.status === statusFilter;
+    const matchesCat = categoryFilter === 'Todas as categorias' || ticket.category === categoryFilter;
+    
+    return matchesSearch && matchesStatus && matchesCat;
+  });
 
   return (
     <div className="dashboard-layout">
@@ -90,79 +127,12 @@ const FeedOcorrencias = () => {
       )}
 
       {/* Sidebar */}
-      <aside 
-        className={`dashboard-sidebar ${sidebarOpen ? 'sidebar-open' : 'sidebar-closed'}`}
-      >
-        <div className="sidebar-header">
-          <span className="dashboard-pm-logo">PM</span>
-          <div className="sidebar-title-group">
-            <h1>Portal do</h1>
-            <p className="dashboard-pm-subtitle">Morador</p>
-          </div>
-          <button 
-            className="mobile-close-btn"
-            onClick={() => setSidebarOpen(false)}
-          >
-            <X size={20} />
-          </button>
-        </div>
-
-        {/* Navigation */}
-        <div className="sidebar-nav-container">
-          <div>
-            <p className="nav-section-title">Navegação</p>
-            <nav className="nav-list">
-              <a href="#" className="nav-item nav-item-inactive" onClick={(e) => { e.preventDefault(); navigate('/dashboard'); }}>
-                <LayoutDashboard className="nav-icon" />
-                <span>Dashboard</span>
-              </a>
-              <a href="#" className="nav-item nav-item-inactive" onClick={(e) => { e.preventDefault(); navigate('/ocorrencia'); }}>
-                <FileEdit className="nav-icon" />
-                <span>Registrar Ocorrência</span>
-              </a>
-              <a href="#" className="nav-item nav-item-inactive" onClick={(e) => { e.preventDefault(); navigate('/reclamacao'); }}>
-                <FileWarning className="nav-icon" />
-                <span>Registrar Reclamação</span>
-              </a>
-              <a href="#" className="nav-item nav-item-active" onClick={(e) => e.preventDefault()}>
-                <FileText className="nav-icon" />
-                <span>Feed de Ocorrências</span>
-              </a>
-              <a href="#" className="nav-item nav-item-inactive" onClick={(e) => { e.preventDefault(); navigate('/solicitacoes'); }}>
-                <ClipboardList className="nav-icon" />
-                <span>Minhas Solicitações</span>
-              </a>
-            </nav>
-          </div>
-
-          <div>
-            <p className="nav-section-title">Administração</p>
-            <nav className="nav-list">
-              <a href="#" className="nav-item nav-item-inactive" onClick={(e) => { e.preventDefault(); navigate('/painel'); }}>
-                <Building className="nav-icon" />
-                <span>Painel do Síndico</span>
-              </a>
-            </nav>
-          </div>
-        </div>
-
-        {/* User Footer */}
-        <div className="sidebar-footer">
-          <a href="#" className="nav-item nav-item-inactive" onClick={(e) => { e.preventDefault(); navigate('/perfil'); }} style={{ fontSize: '0.875rem' }}>
-            <User className="nav-icon" />
-            <span>Perfil</span>
-          </a>
-          <a href="/login" className="nav-item nav-item-logout" style={{ fontSize: '0.875rem' }}>
-            <LogOut className="nav-icon" />
-            <span>Sair</span>
-          </a>
-        </div>
-      </aside>
+      <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
 
       {/* Main Content */}
       <main className="main-content">
         {/* Header */}
-        <header className="main-header">
+        <header className="main-header" style={{ borderBottom: 'none' }}>
           <div className="header-left">
             <button 
               className="mobile-menu-btn"
@@ -171,68 +141,127 @@ const FeedOcorrencias = () => {
               <Menu size={20} />
             </button>
             <div>
-              <h2 className="header-title">Feed de Ocorrências</h2>
-              <p className="header-subtitle">Acompanhe as ocorrências do condomínio</p>
+              <h2 className="header-title">Feed do Condomínio</h2>
+              <p className="header-subtitle">Acompanhe os chamados públicos e engaje com a comunidade</p>
             </div>
           </div>
-          
+
           <div className="header-right">
-            <button className="notification-btn">
-              <Bell size={20} />
-              <span className="notification-badge"></span>
-            </button>
-            <div className="user-avatar"></div>
+            <div className="header-search" style={{ marginRight: '1rem' }}>
+              <Search size={16} className="search-icon" />
+              <input type="text" placeholder="Buscar no feed..." className="search-input" />
+            </div>
+
+            <NotificationMenu />
+
+            <div className="user-profile-dropdown" onClick={() => navigate('/perfil')} style={{ cursor: 'pointer' }}>
+              <div className="user-avatar">
+                 <span>M</span>
+              </div>
+            </div>
           </div>
         </header>
 
-        {/* Feed Content */}
-        <div className="dashboard-content-scroll">
-          <div className="dashboard-content-inner">
+        {/* Content Box */}
+        <div className="dashboard-content-scroll" style={{ backgroundColor: '#f8fafc' }}>
+          <div className="feed-container">
             
-            {/* Filters */}
-            <div className="feed-filters">
-              <input 
-                type="text" 
-                className="search-input" 
-                placeholder="Buscar Ocorrências..." 
-              />
-              <select className="filter-select" defaultValue="">
-                <option value="" disabled>Status</option>
-                <option value="todas">Todas</option>
-                <option value="aberta">Aberta</option>
-                <option value="resolvida">Resolvida</option>
-                <option value="analise">Em Análise</option>
-              </select>
-              <select className="filter-select" defaultValue="">
-                <option value="" disabled>Categoria</option>
-                <option value="todas">Todas</option>
-                <option value="hidraulica">Hidráulica</option>
-                <option value="barulho">Barulho</option>
-                <option value="elevador">Elevador</option>
-              </select>
+            {/* Filter Hub */}
+            <div className="feed-filter-box">
+              <div className="feed-filter-top">
+                <div className="feed-search-wrapper">
+                  <Search size={18} className="feed-search-icon" />
+                  <input 
+                    type="text" 
+                    className="feed-search-input" 
+                    placeholder="Pesquisar no mural..." 
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                </div>
+                <div className="feed-filter-dropdowns">
+                  <select 
+                    className="feed-select" 
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                  >
+                    <option>Todos os status</option>
+                    <option>Aberta</option>
+                    <option>Em Análise</option>
+                    <option>Resolvida</option>
+                  </select>
+                  <select 
+                    className="feed-select"
+                    value={categoryFilter}
+                    onChange={(e) => setCategoryFilter(e.target.value)}
+                  >
+                    <option>Todas as categorias</option>
+                    <option>Hidráulica</option>
+                    <option>Elétrica</option>
+                    <option>Barulho</option>
+                    <option>Limpeza</option>
+                    <option>Outros</option>
+                  </select>
+                </div>
+              </div>
             </div>
 
-            {/* List */}
-            <div className="feed-list">
-              {occurrences.map((occ) => (
-                <div key={occ.id} className="feed-card">
-                  <div className="feed-card-header">
-                    <span className={`feed-badge ${occ.statusClass}`}>{occ.status}</span>
-                    <span className="feed-badge badge-category">{occ.category}</span>
+            {/* Ticket List */}
+            {filteredFeed.length > 0 ? (
+              <div className="feed-ticket-list">
+                {filteredFeed.map(ticket => (
+                  <div key={ticket.id} className="feed-ticket">
+                    {/* Header */}
+                    <div className="feed-ticket-header">
+                      <div className="feed-user-info">
+                        <div className="feed-user-avatar">{ticket.userInitial}</div>
+                        <div className="feed-user-meta">
+                          <span className="feed-user-name">{ticket.userName}</span>
+                          <span className="feed-post-time">
+                            <Clock size={12} /> {ticket.timeAgo} • <MapPin size={12} style={{marginLeft: 2}}/> {ticket.role}
+                          </span>
+                        </div>
+                      </div>
+                      <div className={`feed-ticket-status ${getStatusClass(ticket.status)}`}>
+                        <div className="status-dot"></div>
+                        {ticket.status}
+                      </div>
+                    </div>
+
+                    {/* Body */}
+                    <div className="feed-ticket-body">
+                      <h4 className="feed-ticket-title">{ticket.title}</h4>
+                      <p className="feed-ticket-desc">{ticket.description}</p>
+                    </div>
+
+                    {/* Footer Actions */}
+                    <div className="feed-ticket-footer">
+                      <div className="feed-tags">
+                        <span className={`feed-tag ${getCategoryClass(ticket.category)}`}>
+                          {ticket.category}
+                        </span>
+                      </div>
+                      <div className="feed-actions">
+                        <button className="btn-feed-action btn-feed-primary">
+                          <ArrowUpCircle size={16} /> 
+                          Apoiar ({ticket.upvotes})
+                        </button>
+                        <button className="btn-feed-action">
+                          <MessageSquare size={16} /> 
+                          Comentar ({ticket.comments})
+                        </button>
+                      </div>
+                    </div>
                   </div>
-                  <h3 className="feed-title">{occ.title}</h3>
-                  <div className="feed-meta">
-                    <span>{occ.date}</span>
-                    <span className="meta-dot">•</span>
-                    <span>{occ.time}</span>
-                    <span className="meta-dot">•</span>
-                    <span>{occ.location}</span>
-                    <span className="meta-dot">•</span>
-                    <span>{occ.reporter}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <div className="feed-empty">
+                <Filter size={48} color="#cbd5e1" style={{ marginBottom: '1rem' }} />
+                <h4 style={{ fontSize: '1.125rem', color: '#475569', marginBottom: '0.5rem' }}>Nenhum relato encontrado</h4>
+                <p style={{ color: '#94a3b8', fontSize: '0.875rem' }}>Tente alterar os filtros de busca para visualizar mais informações.</p>
+              </div>
+            )}
 
           </div>
         </div>

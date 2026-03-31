@@ -12,40 +12,76 @@ import {
   FileWarning,
   ClipboardList,
   Building,
-  Search
+  Search,
+  Plus,
+  Droplet,
+  Zap,
+  Volume2,
+  Trash2,
+  CalendarDays,
+  ArrowRight,
+  FolderOpen
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import NotificationMenu from '../components/NotificationMenu';
+import Sidebar from '../components/Sidebar';
 import './Dashboard.css';
-import './FeedOcorrencias.css';
+import './MinhasSolicitacoes.css';
+
+const mockRequests = [
+  { id: 1, protocol: 'REQ-2026-089', title: 'Infiltração grave no teto da sala e corredor', category: 'Hidráulica', status: 'Em Análise', date: '15/03/2026', time: '14:30' },
+  { id: 2, protocol: 'REQ-2026-075', title: 'Morador do 402 com som alto durante toda madrugada', category: 'Barulho', status: 'Aberta', date: '12/03/2026', time: '22:45' },
+  { id: 3, protocol: 'REQ-2026-041', title: 'Lâmpada do corredor do 3º andar queimada', category: 'Elétrica', status: 'Resolvida', date: '05/03/2026', time: '09:15' },
+  { id: 4, protocol: 'REQ-2026-036', title: 'Vazamento contínuo na pia da cozinha', category: 'Hidráulica', status: 'Resolvida', date: '01/03/2026', time: '11:00' },
+  { id: 5, protocol: 'REQ-2026-012', title: 'Lixo deixado no hall de entrada fora do horário', category: 'Limpeza', status: 'Resolvida', date: '20/02/2026', time: '08:00' },
+  { id: 6, protocol: 'REQ-2026-005', title: 'Portão da garagem do subsolo travando', category: 'Outros', status: 'Resolvida', date: '10/02/2026', time: '18:20' },
+];
 
 const MinhasSolicitacoes = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [activeFilter, setActiveFilter] = useState('Todos');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [showNewDropdown, setShowNewDropdown] = useState(false);
   const navigate = useNavigate();
 
-  const occurrences = [
-    {
-      id: 1,
-      status: 'Aberta',
-      statusClass: 'badge-aberta',
-      category: 'Hidráulica',
-      title: 'Vazamento no corredor do 3º andar',
-      date: '04/03/2026',
-      time: '09:15',
-      location: 'Bloco A 3º andar',
-      reporter: 'Morador 301'
-    },
-    {
-      id: 2,
-      status: 'Resolvida',
-      statusClass: 'badge-resolvida',
-      category: 'Barulho',
-      title: 'Barulho excessivo após as 22h',
-      date: '03/03/2026',
-      time: '22:37',
-      location: 'Bloco B 5º andar',
-      reporter: 'Morador 501'
+  // Close dropdown when clicking outside
+  React.useEffect(() => {
+    const handleClickOutside = () => setShowNewDropdown(false);
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, []);
+
+  const getCategoryTheme = (cat) => {
+    switch(cat) {
+      case 'Hidráulica': return { icon: <Droplet size={20} strokeWidth={2.5}/>, class: 'ms-icon-blue' };
+      case 'Elétrica': return { icon: <Zap size={20} strokeWidth={2.5}/>, class: 'ms-icon-yellow' };
+      case 'Barulho': return { icon: <Volume2 size={20} strokeWidth={2.5}/>, class: 'ms-icon-red' };
+      case 'Limpeza': return { icon: <Trash2 size={20} strokeWidth={2.5}/>, class: 'ms-icon-green' };
+      default: return { icon: <FileText size={20} strokeWidth={2.5}/>, class: 'ms-icon-purple' };
     }
-  ];
+  };
+
+  const getStatusClass = (status) => {
+    switch(status) {
+      case 'Aberta': return 'ms-status-red';
+      case 'Em Análise': return 'ms-status-yellow';
+      case 'Resolvida': return 'ms-status-green';
+      default: return '';
+    }
+  };
+
+  const filteredRequests = mockRequests.filter(req => {
+    const matchesSearch = req.protocol.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                          req.title.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    if (!matchesSearch) return false;
+    
+    if (activeFilter === 'Todos') return true;
+    if (activeFilter === 'Abertas') return req.status === 'Aberta';
+    if (activeFilter === 'Em Análise') return req.status === 'Em Análise';
+    if (activeFilter === 'Resolvidas') return req.status === 'Resolvida';
+    return true;
+  });
 
   return (
     <div className="dashboard-layout">
@@ -58,79 +94,12 @@ const MinhasSolicitacoes = () => {
       )}
 
       {/* Sidebar */}
-      <aside 
-        className={`dashboard-sidebar ${sidebarOpen ? 'sidebar-open' : 'sidebar-closed'}`}
-      >
-        <div className="sidebar-header">
-          <span className="dashboard-pm-logo">PM</span>
-          <div className="sidebar-title-group">
-            <h1>Portal do</h1>
-            <p className="dashboard-pm-subtitle">Morador</p>
-          </div>
-          <button 
-            className="mobile-close-btn"
-            onClick={() => setSidebarOpen(false)}
-          >
-            <X size={20} />
-          </button>
-        </div>
-
-        {/* Navigation */}
-        <div className="sidebar-nav-container">
-          <div>
-            <p className="nav-section-title">Navegação</p>
-            <nav className="nav-list">
-              <a href="#" className="nav-item nav-item-inactive" onClick={(e) => { e.preventDefault(); navigate('/dashboard'); }}>
-                <LayoutDashboard className="nav-icon" />
-                <span>Dashboard</span>
-              </a>
-              <a href="#" className="nav-item nav-item-inactive" onClick={(e) => { e.preventDefault(); navigate('/ocorrencia'); }}>
-                <FileEdit className="nav-icon" />
-                <span>Registrar Ocorrência</span>
-              </a>
-              <a href="#" className="nav-item nav-item-inactive" onClick={(e) => { e.preventDefault(); navigate('/reclamacao'); }}>
-                <FileWarning className="nav-icon" />
-                <span>Registrar Reclamação</span>
-              </a>
-              <a href="#" className="nav-item nav-item-inactive" onClick={(e) => { e.preventDefault(); navigate('/feed'); }}>
-                <FileText className="nav-icon" />
-                <span>Feed de Ocorrências</span>
-              </a>
-              <a href="#" className="nav-item nav-item-active" onClick={(e) => e.preventDefault()}>
-                <ClipboardList className="nav-icon" />
-                <span>Minhas Solicitações</span>
-              </a>
-            </nav>
-          </div>
-
-          <div>
-            <p className="nav-section-title">Administração</p>
-            <nav className="nav-list">
-              <a href="#" className="nav-item nav-item-inactive" onClick={(e) => { e.preventDefault(); navigate('/painel'); }}>
-                <Building className="nav-icon" />
-                <span>Painel do Síndico</span>
-              </a>
-            </nav>
-          </div>
-        </div>
-
-        {/* User Footer */}
-        <div className="sidebar-footer">
-          <a href="#" className="nav-item nav-item-inactive" onClick={(e) => { e.preventDefault(); navigate('/perfil'); }} style={{ fontSize: '0.875rem' }}>
-            <User className="nav-icon" />
-            <span>Perfil</span>
-          </a>
-          <a href="/login" className="nav-item nav-item-logout" style={{ fontSize: '0.875rem' }}>
-            <LogOut className="nav-icon" />
-            <span>Sair</span>
-          </a>
-        </div>
-      </aside>
+      <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
 
       {/* Main Content */}
       <main className="main-content">
         {/* Header */}
-        <header className="main-header">
+        <header className="main-header" style={{ borderBottom: 'none' }}>
           <div className="header-left">
             <button 
               className="mobile-menu-btn"
@@ -140,57 +109,116 @@ const MinhasSolicitacoes = () => {
             </button>
             <div>
               <h2 className="header-title">Minhas Solicitações</h2>
-              <p className="header-subtitle">Acompanhe suas solicitações enviadas</p>
+              <p className="header-subtitle">Acompanhe o status e histórico dos seus chamados</p>
             </div>
           </div>
           
           <div className="header-right">
-            <button className="notification-btn">
-              <Bell size={20} />
-              <span className="notification-badge"></span>
-            </button>
-            <div className="user-avatar"></div>
+            <NotificationMenu />
+            <div className="user-profile-dropdown" onClick={() => navigate('/perfil')} style={{ cursor: 'pointer' }}>
+              <div className="user-avatar">
+                 <span>M</span>
+              </div>
+            </div>
           </div>
         </header>
 
-        {/* Feed Content */}
-        <div className="dashboard-content-scroll">
-          <div className="dashboard-content-inner">
+        {/* List Content */}
+        <div className="dashboard-content-scroll" style={{ backgroundColor: '#f8fafc' }}>
+          <div className="ms-container">
             
-            {/* Filters */}
-            <div className="feed-filters" style={{ justifyContent: 'center' }}>
-              <div style={{ position: 'relative', width: '100%', maxWidth: '500px' }}>
-                <Search size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
+            {/* Actions Bar */}
+            <div className="ms-header-actions">
+              <div className="ms-search-wrapper">
+                <Search size={18} className="ms-search-icon" />
                 <input 
                   type="text" 
-                  className="search-input" 
-                  placeholder="Buscar Solicitações" 
-                  style={{ width: '100%', paddingLeft: '2.5rem', boxSizing: 'border-box' }}
+                  className="ms-search-input" 
+                  placeholder="Pesquisar protocolo ou título..." 
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
                 />
+              </div>
+              
+              <div style={{ position: 'relative' }} onClick={(e) => e.stopPropagation()}>
+                <button className="btn-ms-new" onClick={() => setShowNewDropdown(!showNewDropdown)}>
+                  <Plus size={18} strokeWidth={2.5}/> Nova Solicitação
+                </button>
+                {showNewDropdown && (
+                  <div className="ms-new-dropdown">
+                    <button className="ms-dropdown-item" onClick={() => navigate('/ocorrencia')}>
+                      <FileEdit size={16} className="ms-dropdown-item-icon" /> Registrar Ocorrência
+                    </button>
+                    <button className="ms-dropdown-item" onClick={() => navigate('/reclamacao')}>
+                      <FileWarning size={16} className="ms-dropdown-item-icon" /> Registrar Reclamação
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
 
-            {/* List */}
-            <div className="feed-list">
-              {occurrences.map((occ) => (
-                <div key={occ.id} className="feed-card">
-                  <div className="feed-card-header">
-                    <span className={`feed-badge ${occ.statusClass}`}>{occ.status}</span>
-                    <span className="feed-badge badge-category">{occ.category}</span>
-                  </div>
-                  <h3 className="feed-title">{occ.title}</h3>
-                  <div className="feed-meta">
-                    <span>{occ.date}</span>
-                    <span className="meta-dot">•</span>
-                    <span>{occ.time}</span>
-                    <span className="meta-dot">•</span>
-                    <span>{occ.location}</span>
-                    <span className="meta-dot">•</span>
-                    <span>{occ.reporter}</span>
-                  </div>
-                </div>
+            {/* Pill Filters */}
+            <div className="ms-filters">
+              {['Todos', 'Abertas', 'Em Análise', 'Resolvidas'].map(filter => (
+                <button 
+                  key={filter}
+                  className={`ms-filter-pill ${activeFilter === filter ? 'active' : ''}`}
+                  onClick={() => setActiveFilter(filter)}
+                >
+                  {filter}
+                </button>
               ))}
             </div>
+
+            {/* Premium SaaS Cards Grid */}
+            {filteredRequests.length > 0 ? (
+              <div className="ms-cards-grid">
+                {filteredRequests.map(req => {
+                  const theme = getCategoryTheme(req.category);
+                  return (
+                    <div key={req.id} className="ms-premium-card">
+                      {/* Card Header */}
+                      <div className="ms-card-header">
+                        <span className={`ms-status ${getStatusClass(req.status)}`}>
+                          {req.status === 'Resolvida' && <div style={{width: 6, height: 6, borderRadius: '50%', backgroundColor: '#16a34a'}}></div>}
+                          {req.status === 'Em Análise' && <div style={{width: 6, height: 6, borderRadius: '50%', backgroundColor: '#d97706'}}></div>}
+                          {req.status === 'Aberta' && <div style={{width: 6, height: 6, borderRadius: '50%', backgroundColor: '#ef4444'}}></div>}
+                          {req.status}
+                        </span>
+                        <div className={`ms-card-icon-wrap ${theme.class}`}>
+                          {theme.icon}
+                        </div>
+                      </div>
+
+                      {/* Card Body */}
+                      <div className="ms-card-body">
+                        <span className="ms-protocol-tag">{req.protocol}</span>
+                        <h4 className="ms-card-title">{req.title}</h4>
+                      </div>
+
+                      <div className="ms-card-divider"></div>
+
+                      {/* Card Footer */}
+                      <div className="ms-card-footer">
+                        <div className="ms-card-date">
+                          <CalendarDays size={14} />
+                          {req.date}
+                        </div>
+                        <div className="ms-card-action">
+                          Acompanhar <ArrowRight size={16} />
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="ms-empty">
+                <FolderOpen size={48} className="ms-empty-icon" />
+                <h4 className="ms-empty-title">Nenhum protocolo encontrado</h4>
+                <p className="ms-empty-desc">Sua busca ou filtro não retornou nenhum registro. Tente usar outros termos.</p>
+              </div>
+            )}
 
           </div>
         </div>

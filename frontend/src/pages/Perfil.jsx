@@ -19,6 +19,8 @@ import {
   Save
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import NotificationMenu from '../components/NotificationMenu';
+import Sidebar from '../components/Sidebar';
 import './Dashboard.css';
 import './Perfil.css';
 
@@ -38,74 +40,7 @@ const Perfil = () => {
       )}
 
       {/* Sidebar */}
-      <aside 
-        className={`dashboard-sidebar ${sidebarOpen ? 'sidebar-open' : 'sidebar-closed'}`}
-      >
-        <div className="sidebar-header">
-          <span className="dashboard-pm-logo">PM</span>
-          <div className="sidebar-title-group">
-            <h1>Portal do</h1>
-            <p className="dashboard-pm-subtitle">Morador</p>
-          </div>
-          <button 
-            className="mobile-close-btn"
-            onClick={() => setSidebarOpen(false)}
-          >
-            <X size={20} />
-          </button>
-        </div>
-
-        {/* Navigation */}
-        <div className="sidebar-nav-container">
-          <div>
-            <p className="nav-section-title">Navegação</p>
-            <nav className="nav-list">
-              <a href="#" className="nav-item nav-item-inactive" onClick={(e) => { e.preventDefault(); navigate('/dashboard'); }}>
-                <LayoutDashboard className="nav-icon" />
-                <span>Dashboard</span>
-              </a>
-              <a href="#" className="nav-item nav-item-inactive" onClick={(e) => { e.preventDefault(); navigate('/ocorrencia'); }}>
-                <FileEdit className="nav-icon" />
-                <span>Registrar Ocorrência</span>
-              </a>
-              <a href="#" className="nav-item nav-item-inactive" onClick={(e) => { e.preventDefault(); navigate('/reclamacao'); }}>
-                <FileWarning className="nav-icon" />
-                <span>Registrar Reclamação</span>
-              </a>
-              <a href="#" className="nav-item nav-item-inactive" onClick={(e) => { e.preventDefault(); navigate('/feed'); }}>
-                <FileText className="nav-icon" />
-                <span>Feed de Ocorrências</span>
-              </a>
-              <a href="#" className="nav-item nav-item-inactive" onClick={(e) => { e.preventDefault(); navigate('/solicitacoes'); }}>
-                <ClipboardList className="nav-icon" />
-                <span>Minhas Solicitações</span>
-              </a>
-            </nav>
-          </div>
-
-          <div>
-            <p className="nav-section-title">Administração</p>
-            <nav className="nav-list">
-              <a href="#" className="nav-item nav-item-inactive" onClick={(e) => { e.preventDefault(); navigate('/painel'); }}>
-                <Building className="nav-icon" />
-                <span>Painel do Síndico</span>
-              </a>
-            </nav>
-          </div>
-        </div>
-
-        {/* User Footer */}
-        <div className="sidebar-footer">
-          <a href="#" className="nav-item nav-item-active" onClick={(e) => e.preventDefault()} style={{ fontSize: '0.875rem' }}>
-            <User className="nav-icon" />
-            <span>Perfil</span>
-          </a>
-          <a href="/login" className="nav-item nav-item-logout" style={{ fontSize: '0.875rem' }}>
-            <LogOut className="nav-icon" />
-            <span>Sair</span>
-          </a>
-        </div>
-      </aside>
+      <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
 
       {/* Main Content */}
       <main className="main-content">
@@ -125,10 +60,12 @@ const Perfil = () => {
           </div>
           
           <div className="header-right">
-            <button className="notification-btn">
-              <Bell size={20} />
-              <span className="notification-badge"></span>
-            </button>
+            <NotificationMenu />
+            <div className="user-profile-dropdown" onClick={() => navigate('/perfil')} style={{ cursor: 'pointer' }}>
+              <div className="user-avatar">
+                 <span>M</span>
+              </div>
+            </div>
           </div>
         </header>
 
