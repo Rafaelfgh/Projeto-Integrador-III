@@ -6,7 +6,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import NotificationMenu from '../components/NotificationMenu';
 import { useAuth } from '../contexts/AuthContext';
-import './GerenciamentoUsuarios.css';
+import './PainelAdmin.css';
 
 const PainelAdmin = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);

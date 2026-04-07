@@ -1,0 +1,471 @@
+/* PainelAdmin.css - Advanced SaaS Aesthetics */
+
+.gu-header-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding: 0 0.5rem;
+}
+
+.section-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #0f172a;
+  letter-spacing: -0.01em;
+}
+
+/* Stats Cards with Premium Glass/Shadow effect */
+.gu-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+  margin-bottom: 2.5rem;
+}
+
+@media (min-width: 768px) {
+  .gu-stats-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.gu-stat-card {
+  background-color: #ffffff;
+  border-radius: 16px;
+  padding: 1.75rem;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.03), 0 0 3px rgba(0,0,0,0.02);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  backdrop-filter: blur(8px);
+}
+
+.gu-stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+}
+
+.gu-stat-label {
+  color: #64748b;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.gu-stat-value {
+  color: #0f172a;
+  font-size: 2.25rem;
+  font-weight: 800;
+  line-height: 1;
+  font-feature-settings: "tnum";
+}
+
+.text-emerald { color: #059669; }
+.text-rose { color: #e11d48; }
+.text-slate { color: #64748b; }
+
+.gu-actions-group {
+  display: flex;
+  gap: 1rem;
+}
+
+/* Premium Table */
+.gu-table-container {
+  background-color: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.03);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  overflow: hidden;
+  width: 100%;
+}
+
+.gu-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  text-align: left;
+}
+
+.gu-table th {
+  background-color: #f8fafc;
+  padding: 1.25rem 1.5rem;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #475569;
+  font-weight: 700;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.gu-table td {
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid #f1f5f9;
+  vertical-align: middle;
+  background-color: #ffffff;
+  transition: background-color 0.15s;
+}
+
+.gu-table tr:hover td {
+  background-color: #f8fafc;
+}
+
+.gu-table tr:last-child td {
+  border-bottom: none;
+}
+
+/* User Info Cells */
+.gu-user-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.gu-avatar-mini {
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #ffedd5 0%, #fed7aa 100%);
+  color: #c2410c;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1.1rem;
+  box-shadow: inset 0 2px 4px rgba(255,255,255,0.5);
+}
+
+.bg-gray {
+  background: #f1f5f9;
+  color: #64748b;
+  box-shadow: none;
+}
+
+.gu-row-blocked td {
+  opacity: 0.5;
+  filter: grayscale(1);
+}
+
+.gu-user-name {
+  font-weight: 700;
+  color: #1e293b;
+  font-size: 0.95rem;
+  margin-bottom: 0.15rem;
+}
+
+.gu-user-email {
+  color: #64748b;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.gu-td-text {
+  color: #475569;
+  font-size: 0.9rem;
+  font-weight: 500;
+  font-family: monospace;
+}
+
+/* Select and Badges */
+.gu-role-select {
+  padding: 0.4rem 1rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  border: 1px solid transparent;
+  outline: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 1em;
+  padding-right: 2.25rem;
+  transition: all 0.2s;
+}
+
+.gu-role-select:hover {
+  filter: brightness(0.95);
+}
+
+.badge-admin { background-color: #f1f5f9; color: #334155; border-color: #cbd5e1; }
+.badge-sindico { background-color: #eff6ff; color: #1d4ed8; border-color: #bfdbfe; }
+.badge-funcionario { background-color: #fef3c7; color: #b45309; border-color: #fde68a; }
+.badge-morador { background-color: #f3f4f6; color: #4b5563; border-color: #e5e7eb; }
+
+.gu-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.8rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.badge-ativo {
+  background-color: #dcfce7;
+  color: #15803d;
+  box-shadow: inset 0 0 0 1px #bbf7d0;
+}
+
+.badge-pendente {
+  background-color: #fef2f2;
+  color: #b91c1c;
+  box-shadow: inset 0 0 0 1px #fecaca;
+}
+
+.badge-bloqueado {
+  background-color: #f1f5f9;
+  color: #64748b;
+  box-shadow: inset 0 0 0 1px #cbd5e1;
+}
+
+/* Actions */
+.gu-actions-td {
+  text-align: right;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.gu-approve-btn {
+  background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 2px 4px rgba(234, 88, 12, 0.2);
+}
+
+.gu-approve-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px rgba(234, 88, 12, 0.3);
+}
+
+.gu-block-btn {
+  background-color: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+  padding: 0.45rem 0.85rem;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.gu-block-btn:hover {
+  background-color: #fee2e2;
+  color: #b91c1c;
+}
+
+.gu-unblock-btn {
+  background-color: #f8fafc;
+  color: #475569;
+  border: 1px solid #e2e8f0;
+  padding: 0.45rem 0.85rem;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.gu-unblock-btn:hover {
+  background-color: #f1f5f9;
+}
+
+.gu-icon-btn {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  color: #64748b;
+  cursor: pointer;
+  padding: 0.4rem;
+  border-radius: 8px;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.gu-icon-btn:hover {
+  background-color: #f8fafc;
+  color: #0f172a;
+  border-color: #cbd5e1;
+  transform: translateY(-1px);
+}
+
+/* Modals Modernizados */
+.gu-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.gu-modal {
+  background-color: #ffffff;
+  border-radius: 20px;
+  width: 100%;
+  max-width: 32rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.gu-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid #f1f5f9;
+  background-color: #f8fafc;
+}
+
+.gu-modal-header h2 {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0;
+}
+
+.gu-modal-header button {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.gu-modal-header button:hover {
+  background-color: #f1f5f9;
+  color: #0f172a;
+}
+
+.gu-modal-form {
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.gu-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.gu-form-group label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #475569;
+}
+
+.gu-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  border: 1px solid #cbd5e1;
+  font-size: 0.95rem;
+  color: #1e293b;
+  outline: none;
+  transition: all 0.2s;
+  background-color: #f8fafc;
+}
+
+.gu-input:focus {
+  border-color: #ea580c;
+  background-color: #ffffff;
+  box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.1);
+}
+
+.gu-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.gu-modal-footer .btn-secondary {
+  padding: 0.75rem 1.5rem;
+  background-color: #f1f5f9;
+  color: #475569;
+  border: none;
+  border-radius: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.gu-modal-footer .btn-secondary:hover {
+  background-color: #e2e8f0;
+  color: #0f172a;
+}
+
+.gu-modal-footer .btn-primary {
+  width: auto;
+  padding: 0.75rem 1.5rem;
+  border-radius: 10px;
+}
+
+/* Auditoria & Params Customizations */
+.gu-audit-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.gu-audit-item {
+  border-left: 3px solid #0d9488;
+  padding-left: 1.5rem !important;
+  margin-left: 0.5rem;
+  position: relative;
+}
+
+.gu-audit-item::before {
+  content: '';
+  position: absolute;
+  left: -6px;
+  top: 1.25rem;
+  width: 9px;
+  height: 9px;
+  background-color: #0d9488;
+  border-radius: 50%;
+  box-shadow: 0 0 0 3px #ccfbf1;
+}
+
+.gu-audit-action {
+  font-family: monospace;
+  background: #f0fdfa;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+}
