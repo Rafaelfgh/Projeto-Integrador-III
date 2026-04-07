@@ -7,16 +7,30 @@ import {
   Activity, 
   ClipboardList, 
   Building,
-  Settings,
+  BarChart,
   LogOut,
-  Users
+  Settings,
+  Users,
+  PenTool,
+  Shield,
+  UserPlus,
+  Package,
+  Clock,
+  ShieldCheck
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 
 const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { currentUser, logout } = useAuth();
   const currentPath = location.pathname;
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
 
   return (
     <aside className={`dashboard-sidebar ${sidebarOpen ? 'sidebar-open' : 'sidebar-closed'}`}>
@@ -32,62 +46,138 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
           <X size={20} />
         </button>
       </div>
-
+      
       <div className="sidebar-nav-container">
-        <div className="nav-group">
-          <p className="nav-section-title">Menu Principal</p>
-          <nav className="nav-list">
-            <a href="#" className={`nav-item ${currentPath === '/dashboard' ? 'nav-item-active' : 'nav-item-inactive'}`} onClick={(e) => { e.preventDefault(); navigate('/dashboard'); setSidebarOpen(false); }}>
-              <LayoutDashboard className="nav-icon" />
-              <span>Dashboard</span>
-            </a>
-            <a href="#" className={`nav-item ${currentPath === '/ocorrencia' ? 'nav-item-active' : 'nav-item-inactive'}`} onClick={(e) => { e.preventDefault(); navigate('/ocorrencia'); setSidebarOpen(false); }}>
-              <FileEdit className="nav-icon" />
-              <span>Nova Ocorrência</span>
-            </a>
-            <a href="#" className={`nav-item ${currentPath === '/reclamacao' ? 'nav-item-active' : 'nav-item-inactive'}`} onClick={(e) => { e.preventDefault(); navigate('/reclamacao'); setSidebarOpen(false); }}>
-              <FileWarning className="nav-icon" />
-              <span>Nova Reclamação</span>
-            </a>
-            <a href="#" className={`nav-item ${currentPath === '/feed' ? 'nav-item-active' : 'nav-item-inactive'}`} onClick={(e) => { e.preventDefault(); navigate('/feed'); setSidebarOpen(false); }}>
-              <Activity className="nav-icon" />
-              <span>Feed de Atividades</span>
-            </a>
-            <a href="#" className={`nav-item ${currentPath === '/solicitacoes' ? 'nav-item-active' : 'nav-item-inactive'}`} onClick={(e) => { e.preventDefault(); navigate('/solicitacoes'); setSidebarOpen(false); }}>
-              <ClipboardList className="nav-icon" />
-              <span>Minhas Solicitações</span>
-            </a>
-          </nav>
-        </div>
+        
+        {/* SECTION: WORKSPACE (Morador, Sindico) */}
+        {(currentUser?.role === 'MORADOR' || currentUser?.role === 'SINDICO') && (
+          <div className="nav-group">
+            <p className="nav-section-title">Workspace</p>
+            <nav className="nav-list">
+              <a href="#" className={`nav-item ${currentPath === '/dashboard' ? 'nav-item-active' : 'nav-item-inactive'}`} onClick={(e) => { e.preventDefault(); navigate('/dashboard'); setSidebarOpen(false); }}>
+                <LayoutDashboard className="nav-icon" />
+                <span>Visão Geral</span>
+              </a>
+              <a href="#" className={`nav-item ${currentPath === '/feed' ? 'nav-item-active' : 'nav-item-inactive'}`} onClick={(e) => { e.preventDefault(); navigate('/feed'); setSidebarOpen(false); }}>
+                <Activity className="nav-icon" />
+                <span>Feed de Atividades</span>
+              </a>
+              <a href="#" className={`nav-item ${currentPath === '/solicitacoes' ? 'nav-item-active' : 'nav-item-inactive'}`} onClick={(e) => { e.preventDefault(); navigate('/solicitacoes'); setSidebarOpen(false); }}>
+                <ClipboardList className="nav-icon" />
+                <span>Minhas Solicitações</span>
+              </a>
+            </nav>
+          </div>
+        )}
 
-        <div className="nav-group">
-          <p className="nav-section-title">Administrativo</p>
-          <nav className="nav-list">
-            <a href="#" className={`nav-item ${currentPath === '/painel' ? 'nav-item-active' : 'nav-item-inactive'}`} onClick={(e) => { e.preventDefault(); navigate('/painel'); setSidebarOpen(false); }}>
-              <Building className="nav-icon" />
-              <span>Painel do Síndico</span>
-            </a>
-            <a href="#" className={`nav-item ${currentPath === '/gerenciamento-usuarios' ? 'nav-item-active' : 'nav-item-inactive'}`} onClick={(e) => { e.preventDefault(); navigate('/gerenciamento-usuarios'); setSidebarOpen(false); }}>
-              <Users className="nav-icon" />
-              <span>Gerenciar Usuários</span>
-            </a>
-          </nav>
-        </div>
+        {/* SECTION: SERVIÇOS (Morador, Sindico) */}
+        {(currentUser?.role === 'MORADOR' || currentUser?.role === 'SINDICO') && (
+          <div className="nav-group">
+            <p className="nav-section-title">Serviços e Apoio</p>
+            <nav className="nav-list">
+              <a href="#" className={`nav-item ${currentPath === '/ocorrencia' ? 'nav-item-active' : 'nav-item-inactive'}`} onClick={(e) => { e.preventDefault(); navigate('/ocorrencia'); setSidebarOpen(false); }}>
+                <FileEdit className="nav-icon" />
+                <span>Nova Ocorrência</span>
+              </a>
+              <a href="#" className={`nav-item ${currentPath === '/reclamacao' ? 'nav-item-active' : 'nav-item-inactive'}`} onClick={(e) => { e.preventDefault(); navigate('/reclamacao'); setSidebarOpen(false); }}>
+                <FileWarning className="nav-icon" />
+                <span>Nova Reclamação</span>
+              </a>
+            </nav>
+          </div>
+        )}
+
+        {/* SECTION: PORTARIA COMPLETA (Apenas Porteiro) */}
+        {(currentUser?.role === 'PORTEIRO') && (
+           <div className="nav-group">
+            <p className="nav-section-title">Painel da Portaria</p>
+            <nav className="nav-list">
+              <a href="#" className={`nav-item ${currentPath === '/painel-portaria' && !location.search ? 'nav-item-active' : 'nav-item-inactive'}`} onClick={(e) => { e.preventDefault(); navigate('/painel-portaria'); setSidebarOpen(false); }}>
+                  <LayoutDashboard className="nav-icon" />
+                  <span>Visão Geral</span>
+              </a>
+              <a href="#" className={`nav-item ${location.search === '?tab=visitantes' ? 'nav-item-active' : 'nav-item-inactive'}`} onClick={(e) => { e.preventDefault(); navigate('/painel-portaria?tab=visitantes'); setSidebarOpen(false); }}>
+                  <Users className="nav-icon" />
+                  <span>Visitantes</span>
+              </a>
+              <a href="#" className={`nav-item ${location.search === '?tab=encomendas' ? 'nav-item-active' : 'nav-item-inactive'}`} onClick={(e) => { e.preventDefault(); navigate('/painel-portaria?tab=encomendas'); setSidebarOpen(false); }}>
+                  <Package className="nav-icon" />
+                  <span>Encomendas</span>
+              </a>
+              <a href="#" className={`nav-item ${location.search === '?tab=autorizados' ? 'nav-item-active' : 'nav-item-inactive'}`} onClick={(e) => { e.preventDefault(); navigate('/painel-portaria?tab=autorizados'); setSidebarOpen(false); }}>
+                  <ShieldCheck className="nav-icon" />
+                  <span>Autorizados</span>
+              </a>
+              <a href="#" className={`nav-item ${location.search === '?tab=historico' ? 'nav-item-active' : 'nav-item-inactive'}`} onClick={(e) => { e.preventDefault(); navigate('/painel-portaria?tab=historico'); setSidebarOpen(false); }}>
+                  <Clock className="nav-icon" />
+                  <span>Histórico Geral</span>
+              </a>
+            </nav>
+          </div>
+        )}
+
+        {/* SECTION: OPERAÇÕES (Funcionario, Admin) */}
+        {(currentUser?.role === 'FUNCIONARIO' || currentUser?.role === 'ADMIN') && (
+           <div className="nav-group">
+            <p className="nav-section-title">Operações</p>
+            <nav className="nav-list">
+              {(currentUser?.role === 'ADMIN') && (
+                <a href="#" className={`nav-item ${currentPath === '/painel-portaria' ? 'nav-item-active' : 'nav-item-inactive'}`} onClick={(e) => { e.preventDefault(); navigate('/painel-portaria'); setSidebarOpen(false); }}>
+                  <Shield className="nav-icon" />
+                  <span>Controle de Acessos</span>
+                </a>
+              )}
+              {(currentUser?.role === 'FUNCIONARIO') && (
+                <a href="#" className={`nav-item ${currentPath === '/painel-funcionario' ? 'nav-item-active' : 'nav-item-inactive'}`} onClick={(e) => { e.preventDefault(); navigate('/painel-funcionario'); setSidebarOpen(false); }}>
+                  <PenTool className="nav-icon" />
+                  <span>Minhas Tarefas Técnicas</span>
+                </a>
+              )}
+            </nav>
+          </div>
+        )}
+
+        {/* SECTION: ADMINISTRAÇÃO (Sindico, Admin) */}
+        {(currentUser?.role === 'SINDICO' || currentUser?.role === 'ADMIN') && (
+          <div className="nav-group">
+            <p className="nav-section-title">Administração</p>
+            <nav className="nav-list">
+              {currentUser?.role === 'SINDICO' && (
+                <a href="#" className={`nav-item ${currentPath === '/painel' ? 'nav-item-active' : 'nav-item-inactive'}`} onClick={(e) => { e.preventDefault(); navigate('/painel'); setSidebarOpen(false); }}>
+                  <Building className="nav-icon" />
+                  <span>Visão Geral do Condomínio</span>
+                </a>
+              )}
+              {currentUser?.role === 'ADMIN' && (
+                <a href="#" className={`nav-item ${currentPath === '/gerenciamento-usuarios' ? 'nav-item-active' : 'nav-item-inactive'}`} onClick={(e) => { e.preventDefault(); navigate('/gerenciamento-usuarios'); setSidebarOpen(false); }}>
+                  <Users className="nav-icon" />
+                  <span>Usuários & Permissões</span>
+                </a>
+              )}
+              <a href="#" className={`nav-item ${currentPath === '/painel-funcionario' ? 'nav-item-active' : 'nav-item-inactive'}`} onClick={(e) => { e.preventDefault(); navigate('/painel-funcionario'); setSidebarOpen(false); }}>
+                <PenTool className="nav-icon" />
+                <span>Gestão de Manutenção</span>
+              </a>
+            </nav>
+          </div>
+        )}
       </div>
 
       <div className="sidebar-footer">
         <div className="sidebar-user-info">
-           <div className="sidebar-avatar-mini">M</div>
+           <div className="sidebar-avatar-mini">{currentUser?.name?.charAt(0) || 'U'}</div>
            <div className="sidebar-user-details">
-              <span className="sidebar-user-name">João Marcos</span>
-              <span className="sidebar-user-role">Morador • Apto 102</span>
+              <span className="sidebar-user-name">{currentUser?.name || 'Usuário'}</span>
+              <span className="sidebar-user-role">
+                {currentUser?.role === 'MORADOR' ? `Morador ${currentUser?.apto ? '• Apto ' + currentUser.apto : ''}` : currentUser?.role}
+              </span>
            </div>
         </div>
         <div className="sidebar-footer-actions">
            <button className="sidebar-icon-btn" onClick={() => navigate('/perfil')} title="Configurações">
              <Settings size={18} />
            </button>
-           <button className="sidebar-icon-btn text-rose" onClick={() => navigate('/login')} title="Sair">
+           <button className="sidebar-icon-btn text-rose" onClick={handleLogout} title="Sair">
              <LogOut size={18} />
            </button>
         </div>

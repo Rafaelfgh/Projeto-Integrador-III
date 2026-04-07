@@ -1,0 +1,130 @@
+.primeiro-acesso-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background-color: var(--color-slate-50);
+  font-family: var(--font-primary);
+  padding: 1rem;
+}
+
+.pa-panel-container {
+  background-color: var(--color-white);
+  padding: 3rem 2.5rem;
+  border-radius: var(--radius-xl);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
+  width: 100%;
+  max-width: 480px;
+  border: 1px solid var(--color-slate-100);
+}
+
+.pa-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.pa-logo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  background-color: var(--color-primary);
+  border-radius: var(--radius-lg);
+  margin-bottom: 1rem;
+}
+
+.pa-logo-text {
+  color: var(--color-white);
+  font-weight: 700;
+  font-size: 1.25rem;
+  letter-spacing: -0.5px;
+}
+
+.pa-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-slate-900);
+  margin-bottom: 0.5rem;
+  letter-spacing: -0.5px;
+}
+
+.pa-subtitle {
+  color: var(--color-slate-500);
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.pa-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.pa-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.pa-input-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-slate-700);
+}
+
+.pa-input-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.pa-input {
+  width: 100%;
+  padding: 0.75rem 1rem 0.75rem 2.5rem;
+  border: 1px solid var(--color-slate-200);
+  border-radius: var(--radius-md);
+  font-size: 0.95rem;
+  color: var(--color-slate-800);
+  background-color: var(--color-white);
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.pa-input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
+}
+
+.pa-input::placeholder {
+  color: var(--color-slate-400);
+}
+
+.pa-input-icon {
+  position: absolute;
+  left: 0.875rem;
+  color: var(--color-slate-400);
+}
+
+.pa-input:focus + .pa-input-icon {
+  color: var(--color-primary);
+}
+
+.pa-btn-submit {
+  width: 100%;
+  padding: 0.875rem;
+  margin-top: 1rem;
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.pa-success-state {
+  text-align: center;
+  padding: 2rem 0;
+}
+
+.pa-success-icon {
+  color: #10b981;
+  margin-bottom: 1rem;
+}

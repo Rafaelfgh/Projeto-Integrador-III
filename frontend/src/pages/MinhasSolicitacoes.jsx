@@ -25,16 +25,17 @@ import {
 import { useNavigate } from 'react-router-dom';
 import NotificationMenu from '../components/NotificationMenu';
 import Sidebar from '../components/Sidebar';
+import { useAuth } from '../contexts/AuthContext';
 import './Dashboard.css';
 import './MinhasSolicitacoes.css';
 
 const mockRequests = [
-  { id: 1, protocol: 'REQ-2026-089', title: 'Infiltração grave no teto da sala e corredor', category: 'Hidráulica', status: 'Em Análise', date: '15/03/2026', time: '14:30' },
-  { id: 2, protocol: 'REQ-2026-075', title: 'Morador do 402 com som alto durante toda madrugada', category: 'Barulho', status: 'Aberta', date: '12/03/2026', time: '22:45' },
-  { id: 3, protocol: 'REQ-2026-041', title: 'Lâmpada do corredor do 3º andar queimada', category: 'Elétrica', status: 'Resolvida', date: '05/03/2026', time: '09:15' },
-  { id: 4, protocol: 'REQ-2026-036', title: 'Vazamento contínuo na pia da cozinha', category: 'Hidráulica', status: 'Resolvida', date: '01/03/2026', time: '11:00' },
-  { id: 5, protocol: 'REQ-2026-012', title: 'Lixo deixado no hall de entrada fora do horário', category: 'Limpeza', status: 'Resolvida', date: '20/02/2026', time: '08:00' },
-  { id: 6, protocol: 'REQ-2026-005', title: 'Portão da garagem do subsolo travando', category: 'Outros', status: 'Resolvida', date: '10/02/2026', time: '18:20' },
+  { id: 1, protocol: 'REQ-2026-089', title: 'Infiltração grave no teto da sala e corredor', category: 'Hidráulica', status: 'Em Análise', date: '15/03/2026', time: '14:30', author: 'João Morador' },
+  { id: 2, protocol: 'REQ-2026-075', title: 'Morador do 402 com som alto durante toda madrugada', category: 'Barulho', status: 'Aberta', date: '12/03/2026', time: '22:45', author: 'Maria Funcionária' },
+  { id: 3, protocol: 'REQ-2026-041', title: 'Lâmpada do corredor do 3º andar queimada', category: 'Elétrica', status: 'Resolvida', date: '05/03/2026', time: '09:15', author: 'João Morador' },
+  { id: 4, protocol: 'REQ-2026-036', title: 'Vazamento contínuo na pia da cozinha', category: 'Hidráulica', status: 'Resolvida', date: '01/03/2026', time: '11:00', author: 'Outro Morador' },
+  { id: 5, protocol: 'REQ-2026-012', title: 'Lixo deixado no hall de entrada fora do horário', category: 'Limpeza', status: 'Resolvida', date: '20/02/2026', time: '08:00', author: 'Outro Morador' },
+  { id: 6, protocol: 'REQ-2026-005', title: 'Portão da garagem do subsolo travando', category: 'Outros', status: 'Resolvida', date: '10/02/2026', time: '18:20', author: 'João Morador' },
 ];
 
 const MinhasSolicitacoes = () => {
@@ -43,6 +44,7 @@ const MinhasSolicitacoes = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showNewDropdown, setShowNewDropdown] = useState(false);
   const navigate = useNavigate();
+  const { currentUser } = useAuth();
 
   // Close dropdown when clicking outside
   React.useEffect(() => {
@@ -71,6 +73,11 @@ const MinhasSolicitacoes = () => {
   };
 
   const filteredRequests = mockRequests.filter(req => {
+    // Isolamento de dados (Row Level Security - Mock)
+    if (currentUser?.role === 'MORADOR' && req.author !== currentUser?.name) {
+      return false;
+    }
+
     const matchesSearch = req.protocol.toLowerCase().includes(searchTerm.toLowerCase()) || 
                           req.title.toLowerCase().includes(searchTerm.toLowerCase());
     

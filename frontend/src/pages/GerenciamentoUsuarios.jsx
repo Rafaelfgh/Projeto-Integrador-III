@@ -1,18 +1,17 @@
 import React, { useState } from 'react';
 import {
-  Menu, Search, UserCheck, Shield, User, Building, MoreVertical, Check, X, Users, UserPlus, FileText, Ban, Edit2
+  Menu, Search, UserCheck, Shield, User, Building, MoreVertical, Check, X, Users, UserPlus, FileText, Ban, Edit2, Key
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import NotificationMenu from '../components/NotificationMenu';
+import { useAuth } from '../contexts/AuthContext';
 import './GerenciamentoUsuarios.css';
 
 const GerenciamentoUsuarios = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const navigate = useNavigate();
-
-  // Mock de Usuário Logado (Administrador Autenticado)
-  const currentUser = { id: 3, name: 'Carlos Admin', role: 'ADMIN' };
+  const { currentUser } = useAuth();
 
   // Mock data for users
   const [users, setUsers] = useState([
@@ -33,7 +32,7 @@ const GerenciamentoUsuarios = () => {
   const [showAuditModal, setShowAuditModal] = useState(false);
 
   // Forms states
-  const [newUser, setNewUser] = useState({ name: '', email: '', cpf: '', password: '', role: 'SINDICO' });
+  const [newUser, setNewUser] = useState({ name: '', email: '', cpf: '', role: 'MORADOR', condominium: '', bloco: '', apartment: '' });
   const [userToEdit, setUserToEdit] = useState(null);
 
   // User Stats
@@ -88,7 +87,21 @@ const GerenciamentoUsuarios = () => {
     setUsers([...users, createdUser]);
     addAuditLog(`Criação de Usuário (${newUser.role})`, newUser.name);
     setShowCreateModal(false);
-    setNewUser({ name: '', email: '', cpf: '', password: '', role: 'SINDICO' });
+    
+    // Simula o disparo de e-mail com as credenciais
+    setTimeout(() => {
+        alert(`O usuário ${newUser.name} foi criado.\nUm e-mail contendo a senha provisória e o link de acesso foi disparado para ${newUser.email}!`);
+        addAuditLog('Envio de Link de Acesso Inicial', newUser.name);
+    }, 300);
+
+    setNewUser({ name: '', email: '', cpf: '', role: 'MORADOR', condominium: '', bloco: '', apartment: '' });
+  };
+
+  const handleResetPassword = (user) => {
+    if (window.confirm(`Tem certeza que deseja redefinir a senha de ${user.name}? \nIsso enviará um novo link de acesso seguro para ${user.email}.`)) {
+       alert(`Link de acesso seguro e nova senha provisória gerados e enviados para o e-mail: ${user.email}`);
+       addAuditLog('Envio de Reset de Senha', user.name);
+    }
   };
 
   const openEditModal = (user) => {
@@ -244,7 +257,9 @@ const GerenciamentoUsuarios = () => {
                            </button>
                          )}
                          
-                         <button className="gu-icon-btn" onClick={() => openEditModal(user)} title="Editar Usuário"><Edit2 size={18}/></button>
+                         <button className="gu-icon-btn" onClick={() => openEditModal(user)} title="Editar Perfil"><Edit2 size={18}/></button>
+
+                         <button className="gu-icon-btn" style={{ marginLeft: '4px' }} onClick={() => handleResetPassword(user)} title="Gerar nova senha / Enviar Acesso"><Key size={18}/></button>
                       </td>
                     </tr>
                   ))}
@@ -274,17 +289,41 @@ const GerenciamentoUsuarios = () => {
                       <input type="text" value={newUser.cpf} onChange={e => setNewUser({...newUser, cpf: e.target.value})} required className="gu-input"/>
                     </div>
                     <div className="gu-form-group">
-                      <label>Senha Provisória</label>
-                      <input type="password" value={newUser.password} onChange={e => setNewUser({...newUser, password: e.target.value})} required className="gu-input"/>
-                    </div>
-                    <div className="gu-form-group">
                       <label>Papel</label>
                       <select value={newUser.role} onChange={e => setNewUser({...newUser, role: e.target.value})} className="gu-input">
-                         <option value="SINDICO">Síndico</option>
-                         <option value="FUNCIONARIO">Funcionário</option>
                          <option value="MORADOR">Morador</option>
+                         <option value="FUNCIONARIO">Funcionário</option>
+                         <option value="SINDICO">Síndico</option>
                          <option value="ADMIN">Admin</option>
                       </select>
+                    </div>
+                    
+                    <div className="gu-form-group">
+                      <label>Condomínio</label>
+                      <select value={newUser.condominium} onChange={e => setNewUser({...newUser, condominium: e.target.value})} className="gu-input" required>
+                         <option value="" disabled>Selecione um Condomínio...</option>
+                         <option value="Condomínio Bela Vista">Condomínio Bela Vista</option>
+                         <option value="Residencial Florescer">Residencial Florescer</option>
+                         <option value="Edifício Central Park">Edifício Central Park</option>
+                      </select>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '1rem' }}>
+                      <div className="gu-form-group" style={{ flex: 1 }}>
+                        <label>Bloco</label>
+                        <input type="text" value={newUser.bloco} onChange={e => setNewUser({...newUser, bloco: e.target.value})} placeholder="Ex: A" className="gu-input" />
+                      </div>
+                      <div className="gu-form-group" style={{ flex: 1 }}>
+                        <label>Apto / Unidade</label>
+                        <input type="text" value={newUser.apartment} onChange={e => setNewUser({...newUser, apartment: e.target.value})} placeholder="Ex: 101" className="gu-input" required />
+                      </div>
+                    </div>
+
+                    <div className="gu-form-group">
+                      <label>Credenciais de Acesso</label>
+                      <div style={{ padding: '0.75rem', backgroundColor: '#f0fdfa', border: '1px solid #ccfbf1', borderRadius: '6px', fontSize: '0.85rem', color: '#0f766e' }}>
+                         O sistema gerará automaticamente uma senha provisória segura e enviará o link de Primeiro Acesso para <strong>{newUser.email || 'o e-mail informado'}</strong>.
+                      </div>
                     </div>
                     <div className="gu-modal-footer">
                       <button type="button" className="btn-secondary" onClick={() => setShowCreateModal(false)}>Cancelar</button>

@@ -1,0 +1,370 @@
+/* PainelPorteiro.css */
+
+.portaria-container {
+    padding: 2rem;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.portaria-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 2rem;
+}
+
+.portaria-title h1 {
+    font-size: 1.8rem;
+    color: var(--color-slate-900);
+    margin-bottom: 0.5rem;
+}
+
+.portaria-subtitle {
+    color: var(--color-slate-500);
+    font-size: 1rem;
+}
+
+.portaria-clock {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--color-orange-500);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Quick Actions */
+.portaria-quick-actions {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2.5rem;
+}
+
+.btn-qa {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.25rem;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-qa-primary {
+    background-color: var(--color-orange-500);
+    color: white;
+}
+
+.btn-qa-primary:hover {
+    background-color: var(--color-orange-600);
+}
+
+.btn-qa-secondary {
+    background-color: white;
+    color: var(--color-slate-700);
+    border: 1px solid var(--color-slate-200);
+}
+
+.btn-qa-secondary:hover {
+    background-color: var(--color-slate-50);
+    border-color: var(--color-slate-300);
+}
+
+.btn-qa-outline {
+    background-color: transparent;
+    color: var(--color-slate-600);
+    border: 1px dashed var(--color-slate-300);
+}
+
+.btn-qa-outline:hover {
+    border-color: var(--color-slate-400);
+    color: var(--color-slate-800);
+}
+
+/* Navigation Tabs */
+.portaria-tabs {
+    display: flex;
+    gap: 0.5rem;
+    border-bottom: 1px solid var(--color-slate-200);
+    margin-bottom: 2rem;
+    overflow-x: auto;
+}
+
+.portaria-tab-btn {
+    padding: 0.75rem 1.25rem;
+    background: none;
+    border: none;
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--color-slate-500);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.portaria-tab-btn:hover {
+    color: var(--color-slate-700);
+}
+
+.portaria-tab-btn.active {
+    color: var(--color-orange-500);
+    border-bottom-color: var(--color-orange-500);
+}
+
+/* Tab Content */
+.portaria-content-area {
+    animation: fadeIn 0.3s ease;
+}
+
+/* Metrics Grid (Visão Geral) */
+.portaria-metrics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2.5rem;
+}
+
+.portaria-metric-card {
+    background: white;
+    border: 1px solid var(--color-slate-200);
+    border-radius: 12px;
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+}
+
+.pm-icon-wrapper {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.pm-icon-green { background-color: #dcfce7; color: #16a34a; }
+.pm-icon-orange { background-color: #ffedd5; color: #ea580c; }
+.pm-icon-blue { background-color: #dbeafe; color: #2563eb; }
+
+.portaria-metric-info h3 {
+    font-size: 1.8rem;
+    color: var(--color-slate-900);
+    line-height: 1.1;
+}
+
+.portaria-metric-info p {
+    color: var(--color-slate-500);
+    font-size: 0.9rem;
+    margin-top: 0.25rem;
+}
+
+/* Tables */
+.portaria-table-container {
+    background: white;
+    border: 1px solid var(--color-slate-200);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.portaria-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.portaria-table th, .portaria-table td {
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 1px solid var(--color-slate-100);
+    font-size: 0.95rem;
+}
+
+.portaria-table th {
+    background-color: var(--color-slate-50);
+    color: var(--color-slate-500);
+    font-weight: 500;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.portaria-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.portaria-table tbody tr:hover {
+    background-color: var(--color-slate-50);
+}
+
+/* Badges */
+.pm-badge {
+    padding: 4px 10px;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.pm-badge-green { background: #dcfce7; color: #166534; }
+.pm-badge-yellow { background: #fef9c3; color: #854d0e; }
+.pm-badge-red { background: #fee2e2; color: #991b1b; }
+.pm-badge-slate { background: #f1f5f9; color: #475569; }
+
+/* Table Actions */
+.btn-action-small {
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    border: none;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-resolve { background: #e0e7ff; color: #4338ca; }
+.btn-resolve:hover { background: #c7d2fe; }
+
+.btn-danger-outline { background: transparent; border: 1px solid #fecaca; color: #dc2626; }
+.btn-danger-outline:hover { background: #fef2f2; border-color: #f87171; }
+
+.pm-resident-cell {
+    display: flex;
+    flex-direction: column;
+}
+.pm-resident-name { font-weight: 500; color: var(--color-slate-800); }
+.pm-resident-apto { font-size: 0.8rem; color: var(--color-slate-500); }
+
+/* Timeline Histórico */
+.pm-timeline {
+    position: relative;
+    padding-left: 20px;
+}
+.pm-timeline::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 5px;
+    bottom: 5px;
+    width: 2px;
+    background: var(--color-slate-200);
+}
+.pm-timeline-item {
+    position: relative;
+    padding-bottom: 1.5rem;
+    padding-left: 1.5rem;
+}
+.pm-timeline-dot {
+    position: absolute;
+    left: -25px;
+    top: 2px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--color-orange-500);
+    border: 3px solid white;
+}
+.pm-timeline-time {
+    font-size: 0.8rem;
+    color: var(--color-slate-500);
+    margin-bottom: 0.25rem;
+}
+.pm-timeline-content {
+    background: white;
+    border: 1px solid var(--color-slate-200);
+    padding: 1rem;
+    border-radius: 8px;
+    color: var(--color-slate-700);
+}
+
+/* Modals Customizados para Portaria */
+.modal-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    animation: fadeIn 0.2s ease;
+}
+
+.modal-container {
+    background: white;
+    width: 90%;
+    max-width: 600px;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+.modal-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--color-slate-200);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h2 {
+    font-size: 1.25rem;
+    color: var(--color-slate-900);
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    color: var(--color-slate-400);
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.modal-close:hover {
+    color: var(--color-slate-700);
+}
+
+.modal-body {
+    padding: 1.5rem;
+}
+
+.input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.input-group label {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--color-slate-700);
+}
+
+.custom-input {
+    border: 1px solid var(--color-slate-300);
+    border-radius: 6px;
+    padding: 0.75rem 1rem;
+    font-size: 0.95rem;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.custom-input:focus {
+    border-color: var(--color-orange-500);
+    box-shadow: 0 0 0 2px rgba(234, 88, 12, 0.1);
+}
+
+.modal-footer {
+    padding: 1.5rem;
+    background: var(--color-slate-50);
+    border-top: 1px solid var(--color-slate-200);
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+}

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Mail, Lock, User, Building } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
 import './Login.css';
 
 const CONDOMINIOS_MOCK = [
@@ -11,22 +12,55 @@ const CONDOMINIOS_MOCK = [
 
 const Login = () => {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [condominium, setCondominium] = useState('');
 
   const handleLogin = (e) => {
     e.preventDefault();
-    if (!condominium) {
-      alert("Por favor, informe a qual condomínio você pertence antes de entrar.");
+    
+    // Simula a verificação de primeiro acesso
+    if (email.includes('novo') || password === 'senha123') {
+      navigate('/primeiro-acesso');
       return;
     }
+
+    let userRole = 'MORADOR';
+    let userName = 'João Morador';
     
-    // Simulate login redirect depending on the user/condominium configuration
-    if (email.includes('admin') || email.includes('sindico')) {
+    if (email.includes('admin')) {
+      userRole = 'ADMIN';
+      userName = 'Carlos Admin';
+    } else if (email.includes('sindico')) {
+      userRole = 'SINDICO';
+      userName = 'Roberto Síndico';
+    } else if (email.includes('func')) {
+      userRole = 'FUNCIONARIO';
+      userName = 'Maria Funcionária';
+    } else if (email.includes('port')) {
+      userRole = 'PORTEIRO';
+      userName = 'Antônio Porteiro';
+    }
+    
+    login({
+        id: Date.now(),
+        name: userName,
+        email: email,
+        role: userRole,
+        apto: userRole === 'MORADOR' ? '102' : undefined
+    });
+
+    // Simulate login redirect depending on role
+    if (userRole === 'ADMIN') {
+      navigate('/gerenciamento-usuarios');
+    } else if (userRole === 'SINDICO') {
       navigate('/painel');
+    } else if (userRole === 'FUNCIONARIO') {
+      navigate('/painel-funcionario');
+    } else if (userRole === 'PORTEIRO') {
+      navigate('/painel-portaria');
     } else {
-      navigate('/dashboard');
+      navigate('/solicitacoes');
     }
   };
 
@@ -53,27 +87,6 @@ const Login = () => {
           </div>
 
           <form onSubmit={handleLogin} className="login-form">
-
-            <div className="input-group">
-              <label className="input-label" htmlFor="condominium">
-                Condomínio
-              </label>
-              <div className="input-container">
-                <select 
-                  id="condominium" 
-                  value={condominium} 
-                  onChange={(e) => setCondominium(e.target.value)} 
-                  className="custom-input" 
-                  required
-                >
-                  <option value="" disabled>Selecione seu Condomínio...</option>
-                  {CONDOMINIOS_MOCK.map(c => (
-                    <option key={c.id} value={c.name}>{c.name}</option>
-                  ))}
-                </select>
-                <Building className="input-icon" />
-              </div>
-            </div>
             
             <div className="input-group">
               <label className="input-label" htmlFor="email">
@@ -121,12 +134,6 @@ const Login = () => {
             </button>
           </form>
 
-          <p className="login-footer-text">
-            Não tem uma conta?{' '}
-            <Link to="/cadastro" className="text-link">
-              Criar conta
-            </Link>
-          </p>
           <div style={{ textAlign: 'center', marginTop: '1rem', borderTop: '1px solid #e2e8f0', paddingTop: '1rem' }}>
             <Link to="/cadastro-admin" className="text-link" style={{ color: '#64748b', fontSize: '0.8rem', fontWeight: 500 }}>
               Sou Administrador e quero registrar meu Condomínio
