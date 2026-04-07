@@ -39,7 +39,7 @@ const CadastroAdmin = () => {
     e.preventDefault();
     // Mock: create Condominium and Auto-Login as ADMIN
     // Redireciona para o painel de Gerenciamento de Usuários
-    navigate('/gerenciamento-usuarios');
+    navigate('/painel-admin');
   };
 
   return (

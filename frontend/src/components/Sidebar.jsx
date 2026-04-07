@@ -116,47 +116,60 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
           </div>
         )}
 
-        {/* SECTION: OPERAÇÕES (Funcionario, Admin) */}
-        {(currentUser?.role === 'FUNCIONARIO' || currentUser?.role === 'ADMIN') && (
+        {/* SECTION: OPERAÇÕES (Funcionario) */}
+        {(currentUser?.role === 'FUNCIONARIO') && (
            <div className="nav-group">
             <p className="nav-section-title">Operações</p>
             <nav className="nav-list">
-              {(currentUser?.role === 'ADMIN') && (
-                <a href="#" className={`nav-item ${currentPath === '/painel-portaria' ? 'nav-item-active' : 'nav-item-inactive'}`} onClick={(e) => { e.preventDefault(); navigate('/painel-portaria'); setSidebarOpen(false); }}>
-                  <Shield className="nav-icon" />
-                  <span>Controle de Acessos</span>
-                </a>
-              )}
-              {(currentUser?.role === 'FUNCIONARIO') && (
                 <a href="#" className={`nav-item ${currentPath === '/painel-funcionario' ? 'nav-item-active' : 'nav-item-inactive'}`} onClick={(e) => { e.preventDefault(); navigate('/painel-funcionario'); setSidebarOpen(false); }}>
                   <PenTool className="nav-icon" />
                   <span>Minhas Tarefas Técnicas</span>
                 </a>
-              )}
             </nav>
           </div>
         )}
 
-        {/* SECTION: ADMINISTRAÇÃO (Sindico, Admin) */}
-        {(currentUser?.role === 'SINDICO' || currentUser?.role === 'ADMIN') && (
+        {/* SECTION: ADMINISTRAÇÃO (Sindico) */}
+        {(currentUser?.role === 'SINDICO') && (
           <div className="nav-group">
             <p className="nav-section-title">Administração</p>
             <nav className="nav-list">
-              {currentUser?.role === 'SINDICO' && (
                 <a href="#" className={`nav-item ${currentPath === '/painel' ? 'nav-item-active' : 'nav-item-inactive'}`} onClick={(e) => { e.preventDefault(); navigate('/painel'); setSidebarOpen(false); }}>
                   <Building className="nav-icon" />
                   <span>Visão Geral do Condomínio</span>
                 </a>
-              )}
-              {currentUser?.role === 'ADMIN' && (
-                <a href="#" className={`nav-item ${currentPath === '/gerenciamento-usuarios' ? 'nav-item-active' : 'nav-item-inactive'}`} onClick={(e) => { e.preventDefault(); navigate('/gerenciamento-usuarios'); setSidebarOpen(false); }}>
-                  <Users className="nav-icon" />
-                  <span>Usuários & Permissões</span>
+                <a href="#" className={`nav-item ${currentPath === '/painel-funcionario' ? 'nav-item-active' : 'nav-item-inactive'}`} onClick={(e) => { e.preventDefault(); navigate('/painel-funcionario'); setSidebarOpen(false); }}>
+                  <PenTool className="nav-icon" />
+                  <span>Gestão de Manutenção</span>
                 </a>
-              )}
-              <a href="#" className={`nav-item ${currentPath === '/painel-funcionario' ? 'nav-item-active' : 'nav-item-inactive'}`} onClick={(e) => { e.preventDefault(); navigate('/painel-funcionario'); setSidebarOpen(false); }}>
-                <PenTool className="nav-icon" />
-                <span>Gestão de Manutenção</span>
+            </nav>
+          </div>
+        )}
+
+        {/* SECTION: GOVERNANÇA GLOBAL (Apenas Admin) */}
+        {(currentUser?.role === 'ADMIN') && (
+          <div className="nav-group">
+            <p className="nav-section-title">Painel de Governança</p>
+            <nav className="nav-list">
+              <a href="#" className={`nav-item ${currentPath === '/painel-admin' && (!location.search || location.search === '?tab=overview') ? 'nav-item-active' : 'nav-item-inactive'}`} onClick={(e) => { e.preventDefault(); navigate('/painel-admin?tab=overview'); setSidebarOpen(false); }}>
+                  <LayoutDashboard className="nav-icon" />
+                  <span>Visão Geral do Sistema</span>
+              </a>
+              <a href="#" className={`nav-item ${currentPath === '/painel-admin' && location.search === '?tab=usuarios' ? 'nav-item-active' : 'nav-item-inactive'}`} onClick={(e) => { e.preventDefault(); navigate('/painel-admin?tab=usuarios'); setSidebarOpen(false); }}>
+                  <Users className="nav-icon" />
+                  <span>Gestão de Perfis & Acesso</span>
+              </a>
+              <a href="#" className={`nav-item ${currentPath === '/painel-admin' && location.search === '?tab=estrutura' ? 'nav-item-active' : 'nav-item-inactive'}`} onClick={(e) => { e.preventDefault(); navigate('/painel-admin?tab=estrutura'); setSidebarOpen(false); }}>
+                  <Building className="nav-icon" />
+                  <span>Estrutura de Condomínios</span>
+              </a>
+              <a href="#" className={`nav-item ${currentPath === '/painel-admin' && location.search === '?tab=auditoria' ? 'nav-item-active' : 'nav-item-inactive'}`} onClick={(e) => { e.preventDefault(); navigate('/painel-admin?tab=auditoria'); setSidebarOpen(false); }}>
+                  <Clock className="nav-icon" />
+                  <span>Auditoria & Relatórios</span>
+              </a>
+              <a href="#" className={`nav-item ${currentPath === '/painel-admin' && location.search === '?tab=parametros' ? 'nav-item-active' : 'nav-item-inactive'}`} onClick={(e) => { e.preventDefault(); navigate('/painel-admin?tab=parametros'); setSidebarOpen(false); }}>
+                  <Settings className="nav-icon" />
+                  <span>Parâmetros Globais</span>
               </a>
             </nav>
           </div>

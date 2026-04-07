@@ -4,7 +4,6 @@ import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import PrimeiroAcesso from './pages/PrimeiroAcesso';
 import CadastroAdmin from './pages/CadastroAdmin';
-import GerenciamentoUsuarios from './pages/GerenciamentoUsuarios';
 import Ocorrencia from './pages/Ocorrencia';
 import Reclamacao from './pages/Reclamacao';
 import FeedOcorrencias from './pages/FeedOcorrencias';
@@ -12,6 +11,7 @@ import MinhasSolicitacoes from './pages/MinhasSolicitacoes';
 import PainelSindico from './pages/PainelSindico';
 import PainelFuncionario from './pages/PainelFuncionario';
 import PainelPorteiro from './pages/PainelPorteiro';
+import PainelAdmin from './pages/PainelAdmin';
 import Perfil from './pages/Perfil';
 import ProtectedRoute from './components/ProtectedRoute';
 import { AuthProvider } from './contexts/AuthContext';
@@ -38,12 +38,12 @@ function App() {
           </Route>
           
           {/* Painel de Manutenção/Funcionário */}
-          <Route element={<ProtectedRoute allowedRoles={['FUNCIONARIO', 'SINDICO', 'ADMIN']} />}>
+          <Route element={<ProtectedRoute allowedRoles={['FUNCIONARIO', 'SINDICO']} />}>
              <Route path="/painel-funcionario" element={<PainelFuncionario />} />
           </Route>
           
           {/* Painel da Portaria */}
-          <Route element={<ProtectedRoute allowedRoles={['PORTEIRO', 'ADMIN']} />}>
+          <Route element={<ProtectedRoute allowedRoles={['PORTEIRO']} />}>
              <Route path="/painel-portaria" element={<PainelPorteiro />} />
           </Route>
           
@@ -52,9 +52,9 @@ function App() {
             <Route path="/painel" element={<PainelSindico />} />
           </Route>
           
-          {/* Painel do Administrador Geral */}
+          {/* Painel de Governança Global (Admin) */}
           <Route element={<ProtectedRoute allowedRoles={['ADMIN']} />}>
-            <Route path="/gerenciamento-usuarios" element={<GerenciamentoUsuarios />} />
+            <Route path="/painel-admin" element={<PainelAdmin />} />
           </Route>
           
           {/* Rota Comum a todos os logados */}

@@ -52,7 +52,7 @@ const Login = () => {
 
     // Simulate login redirect depending on role
     if (userRole === 'ADMIN') {
-      navigate('/gerenciamento-usuarios');
+      navigate('/painel-admin');
     } else if (userRole === 'SINDICO') {
       navigate('/painel');
     } else if (userRole === 'FUNCIONARIO') {
