@@ -947,3 +947,263 @@
 
 .text-red { color: #ef4444; }
 .text-red:hover { background-color: #fef2f2 !important; color: #dc2626 !important; }
+
+/* Kanban Pipeline Styles for Painel Sindico */
+.ps-kanban-board {
+  display: flex;
+  gap: 1.25rem;
+  overflow-x: auto;
+  padding-bottom: 1rem;
+  min-height: calc(100vh - 250px);
+}
+
+.ps-kanban-column {
+  flex: 0 0 320px;
+  background-color: #f8fafc;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  max-height: 100%;
+}
+
+.ps-kanban-header {
+  padding: 1rem;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.ps-kanban-title {
+  font-weight: 700;
+  color: #1e293b;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.ps-kanban-count {
+  background-color: #e2e8f0;
+  color: #475569;
+  font-size: 0.75rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 9999px;
+  font-weight: bold;
+}
+
+.ps-kanban-body {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.ps-kanban-card {
+  background: white;
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  border: 1px solid #e2e8f0;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.ps-kanban-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+}
+
+.ps-kanban-card-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.ps-kanban-card-title {
+  font-weight: 600;
+  color: #0f172a;
+  font-size: 0.9rem;
+  margin-bottom: 0.25rem;
+  line-height: 1.3;
+}
+
+.ps-kanban-card-meta {
+  font-size: 0.8rem;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.75rem;
+}
+
+.ps-kanban-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid #f1f5f9;
+  padding-top: 0.75rem;
+}
+
+.ps-kanban-time {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+/* Badges for Priorities */
+.badge-priority {
+  font-size: 0.7rem;
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.badge-priority.critical { background: #fee2e2; color: #ef4444; }
+.badge-priority.moderate { background: #fef3c7; color: #d97706; }
+.badge-priority.low { background: #e0f2fe; color: #0284c7; }
+
+/* Status column colors */
+.bg-status-gray { border-top: 4px solid #94a3b8; }
+.bg-status-blue { border-top: 4px solid #3b82f6; }
+.bg-status-amber { border-top: 4px solid #f59e0b; }
+.bg-status-purple { border-top: 4px solid #8b5cf6; }
+.bg-status-green { border-top: 4px solid #10b981; }
+.bg-status-dark { border-top: 4px solid #334155; }
+
+/* Detalhe da Ocorrência */
+.ocorrencia-detail-layout {
+  display: grid;
+  grid-template-columns: 3fr 1fr;
+  gap: 1.5rem;
+}
+
+@media (max-width: 1024px) {
+  .ocorrencia-detail-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.ps-timeline {
+  position: relative;
+  margin-left: 1rem;
+  padding-left: 2rem;
+  border-left: 2px solid #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.ps-timeline-item {
+  position: relative;
+}
+
+.ps-timeline-marker {
+  position: absolute;
+  left: -2.6rem;
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 50%;
+  background: #e2e8f0;
+  border: 4px solid white;
+}
+
+.ps-timeline-marker.done { background: #10b981; }
+.ps-timeline-marker.active { 
+  background: #3b82f6; 
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2); 
+}
+
+.ps-timeline-content h4 {
+  margin: 0 0 0.25rem 0;
+  font-size: 0.95rem;
+  color: #1e293b;
+}
+
+.ps-timeline-content p {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+.ps-timeline-time {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  margin-top: 0.25rem;
+}
+
+.ps-chat-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.ps-chat-bubble {
+  display: flex;
+  gap: 1rem;
+  max-width: 80%;
+}
+
+.ps-chat-bubble.out {
+  align-self: flex-end;
+  flex-direction: row-reverse;
+}
+
+.ps-chat-message {
+  background: #f1f5f9;
+  padding: 1rem;
+  border-radius: 12px;
+  border-top-left-radius: 0;
+  position: relative;
+  width: 100%;
+}
+
+.ps-chat-bubble.out .ps-chat-message {
+  background: #e0f2fe;
+  border-radius: 12px;
+  border-top-right-radius: 0;
+}
+
+.ps-chat-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.ps-chat-header span {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #334155;
+}
+
+.ps-chat-header .chat-time {
+  font-size: 0.7rem;
+  color: #94a3b8;
+  font-weight: normal;
+}
+
+.ps-chat-text {
+  font-size: 0.9rem;
+  color: #1e293b;
+  line-height: 1.4;
+}
+
+.ps-chat-input-area {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.ps-chat-input-area input {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 20px;
+  outline: none;
+}

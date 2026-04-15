@@ -23,9 +23,16 @@ import {
   CreditCard,
   Calendar,
   Award,
-  Star
+  Star,
+  Plus,
+  MoreVertical,
+  Send,
+  Check,
+  MessageSquare,
+  Activity,
+  ArrowLeft
 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
 import NotificationMenu from '../components/NotificationMenu';
 import Sidebar from '../components/Sidebar';
@@ -68,6 +75,27 @@ const recentOccurrences = [
   { id: 7, title: 'Festa com som alto', subtitle: 'Bloco A', category: 'Barulho', status: 'Resolvida', date: '14/03/2026', responsible: 'Ana Costa' },
 ];
 
+const ocorrenciasKanban = {
+  recebida: [
+    { id: '048', title: 'Infiltração teto — Apt 501', category: 'Hidráulica', local: 'Apt 501', priority: 'critical', time: '12h' }
+  ],
+  analise: [
+    { id: '049', title: 'Barulho noturno — Apt 303', category: 'Barulho', local: 'Apt 303', priority: 'low', time: '1d' }
+  ],
+  aguardando: [
+    { id: '050', title: 'Conserto portão garagem', category: 'Manutenção', local: 'Área Comum', priority: 'moderate', time: '4h', assignee: 'João Silva', avatar: 'J' }
+  ],
+  execucao: [
+    { id: '047', title: 'Vazamento no banheiro', category: 'Hidráulica', local: 'Apt 204', priority: 'critical', time: 'Em andamento', assignee: 'Carlos Lima', avatar: 'C', active: true }
+  ],
+  concluida: [
+    { id: '046', title: 'Troca lâmpadas corredor B', category: 'Elétrica', local: 'Bloco B', priority: 'low', time: '2d', validationNeeded: true }
+  ],
+  finalizada: [
+    { id: '045', title: 'Reparo elevador Bloco B', category: 'Manutenção', local: 'Bloco B', priority: 'critical', time: '3d', approved: true }
+  ]
+};
+
 const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
     return (
@@ -91,6 +119,10 @@ const PainelSindico = () => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const profileRef = useRef(null);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const queryParams = new URLSearchParams(location.search);
+  const activeTab = queryParams.get('tab') || 'overview';
 
   // Fecha o dropdown ao clicar fora
   useEffect(() => {
@@ -226,6 +258,8 @@ const PainelSindico = () => {
         <div className="dashboard-content-scroll" style={{ backgroundColor: '#fdfdfd' }}>
           <div className="dashboard-content-inner" style={{ maxWidth: '1400px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
 
+            {activeTab === 'overview' && (
+              <>
             {/* Filter Row */}
             <div className="ps-card">
               <div className="ps-filter-header">
@@ -468,7 +502,288 @@ const PainelSindico = () => {
               </div>
 
             </div>
+              </>
+            )}
 
+            {activeTab === 'fluxo-ocorrencias' && (
+              <div className="ps-card" style={{ padding: '0', background: 'transparent', border: 'none', boxShadow: 'none' }}>
+                 <div className="ps-kanban-board">
+                    {/* Recebida */}
+                    <div className="ps-kanban-column bg-status-gray">
+                       <div className="ps-kanban-header">
+                          <h3 className="ps-kanban-title">Recebida <span className="ps-kanban-count">1</span></h3>
+                          <button style={{background:'none',border:'none',cursor:'pointer'}}><MoreVertical size={16} color="#64748b" /></button>
+                       </div>
+                       <div className="ps-kanban-body">
+                          {ocorrenciasKanban.recebida.map(item => (
+                             <div key={item.id} className="ps-kanban-card" onClick={() => navigate('/painel?tab=ocorrencia-detalhe&id=' + item.id)}>
+                                <div className="ps-kanban-card-header">
+                                   <span className={`badge-priority ${item.priority}`}>{item.priority === 'critical' ? 'Crítico' : 'Baixo'}</span>
+                                   <span className="ps-kanban-time"><Clock size={12}/> {item.time}</span>
+                                </div>
+                                <h4 className="ps-kanban-card-title">{item.title}</h4>
+                                <div className="ps-kanban-card-meta">
+                                   <MapPin size={12}/> {item.local}
+                                </div>
+                                <div className="ps-kanban-card-footer">
+                                   <span className="ps-cat"><span className="ps-cat-dot" style={{backgroundColor: '#7dd3fc'}}></span>{item.category}</span>
+                                </div>
+                             </div>
+                          ))}
+                       </div>
+                    </div>
+
+                    {/* Em Análise */}
+                    <div className="ps-kanban-column bg-status-blue">
+                       <div className="ps-kanban-header">
+                          <h3 className="ps-kanban-title">Em Análise <span className="ps-kanban-count">1</span></h3>
+                          <button style={{background:'none',border:'none',cursor:'pointer'}}><MoreVertical size={16} color="#64748b" /></button>
+                       </div>
+                       <div className="ps-kanban-body">
+                          {ocorrenciasKanban.analise.map(item => (
+                             <div key={item.id} className="ps-kanban-card" onClick={() => navigate('/painel?tab=ocorrencia-detalhe&id=' + item.id)}>
+                                <div className="ps-kanban-card-header">
+                                   <span className={`badge-priority ${item.priority}`}>Baixo</span>
+                                   <span className="ps-kanban-time"><Clock size={12}/> {item.time}</span>
+                                </div>
+                                <h4 className="ps-kanban-card-title">{item.title}</h4>
+                                <div className="ps-kanban-card-meta">
+                                   <MapPin size={12}/> {item.local}
+                                </div>
+                                <div className="ps-kanban-card-footer">
+                                   <span className="ps-cat"><span className="ps-cat-dot" style={{backgroundColor: '#fca5a5'}}></span>{item.category}</span>
+                                </div>
+                             </div>
+                          ))}
+                       </div>
+                    </div>
+
+                    {/* Aguardando Execução */}
+                    <div className="ps-kanban-column bg-status-amber">
+                       <div className="ps-kanban-header">
+                          <h3 className="ps-kanban-title">Aguardando Exec. <span className="ps-kanban-count">1</span></h3>
+                          <button style={{background:'none',border:'none',cursor:'pointer'}}><MoreVertical size={16} color="#64748b" /></button>
+                       </div>
+                       <div className="ps-kanban-body">
+                          {ocorrenciasKanban.aguardando.map(item => (
+                             <div key={item.id} className="ps-kanban-card" onClick={() => navigate('/painel?tab=ocorrencia-detalhe&id=' + item.id)}>
+                                <div className="ps-kanban-card-header">
+                                   <span className={`badge-priority ${item.priority}`}>Moderado</span>
+                                   <span className="ps-kanban-time"><Clock size={12}/> {item.time}</span>
+                                </div>
+                                <h4 className="ps-kanban-card-title">{item.title}</h4>
+                                <div className="ps-kanban-card-meta">
+                                   <MapPin size={12}/> {item.local}
+                                </div>
+                                <div className="ps-kanban-card-footer">
+                                   <div style={{display:'flex', alignItems:'center', gap:'4px', fontSize:'0.75rem', color:'#475569'}}>
+                                     <div style={{width:'20px',height:'20px',borderRadius:'50%',backgroundColor:'#cbd5e1',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.6rem',fontWeight:'bold',color:'#334155'}}>{item.avatar}</div>
+                                     {item.assignee}
+                                   </div>
+                                </div>
+                             </div>
+                          ))}
+                       </div>
+                    </div>
+
+                    {/* Em Execução */}
+                    <div className="ps-kanban-column bg-status-purple">
+                       <div className="ps-kanban-header">
+                          <h3 className="ps-kanban-title">Em Execução <span className="ps-kanban-count">1</span></h3>
+                          <button style={{background:'none',border:'none',cursor:'pointer'}}><MoreVertical size={16} color="#64748b" /></button>
+                       </div>
+                       <div className="ps-kanban-body">
+                          {ocorrenciasKanban.execucao.map(item => (
+                             <div key={item.id} className="ps-kanban-card" style={{borderLeft: '3px solid #8b5cf6'}} onClick={() => navigate('/painel?tab=ocorrencia-detalhe&id=' + item.id)}>
+                                <div className="ps-kanban-card-header">
+                                   <span className={`badge-priority ${item.priority}`}>Crítico</span>
+                                   <span className="ps-kanban-time" style={{color:'#8b5cf6', fontWeight:'600'}}><Activity size={12}/> {item.time}</span>
+                                </div>
+                                <h4 className="ps-kanban-card-title">{item.title}</h4>
+                                <div className="ps-kanban-card-meta">
+                                   <MapPin size={12}/> {item.local}
+                                </div>
+                                <div className="ps-kanban-card-footer">
+                                   <div style={{display:'flex', alignItems:'center', gap:'4px', fontSize:'0.75rem', color:'#475569'}}>
+                                     <div style={{width:'20px',height:'20px',borderRadius:'50%',backgroundColor:'#8b5cf6',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.6rem',fontWeight:'bold',color:'white'}}>{item.avatar}</div>
+                                     {item.assignee}
+                                   </div>
+                                </div>
+                             </div>
+                          ))}
+                       </div>
+                    </div>
+
+                    {/* Concluída */}
+                    <div className="ps-kanban-column bg-status-green">
+                       <div className="ps-kanban-header">
+                          <h3 className="ps-kanban-title">Concluída <span className="ps-kanban-count">1</span></h3>
+                          <button style={{background:'none',border:'none',cursor:'pointer'}}><MoreVertical size={16} color="#64748b" /></button>
+                       </div>
+                       <div className="ps-kanban-body">
+                          {ocorrenciasKanban.concluida.map(item => (
+                             <div key={item.id} className="ps-kanban-card" onClick={() => navigate('/painel?tab=ocorrencia-detalhe&id=' + item.id)}>
+                                <div className="ps-kanban-card-header">
+                                   <span className={`badge-priority ${item.priority}`}>Baixo</span>
+                                   <span className="ps-kanban-time"><Clock size={12}/> {item.time}</span>
+                                </div>
+                                <h4 className="ps-kanban-card-title">{item.title}</h4>
+                                <div className="ps-kanban-card-meta">
+                                   <MapPin size={12}/> {item.local}
+                                </div>
+                                <div className="ps-kanban-card-footer">
+                                   <span style={{fontSize:'0.7rem', color:'#f59e0b', fontWeight:'600', display:'flex', alignItems:'center', gap:'4px'}}><Clock size={12}/> Aguardando Validação</span>
+                                </div>
+                             </div>
+                          ))}
+                       </div>
+                    </div>
+
+                    {/* Finalizada */}
+                    <div className="ps-kanban-column bg-status-dark">
+                       <div className="ps-kanban-header">
+                          <h3 className="ps-kanban-title">Finalizada <span className="ps-kanban-count">1</span></h3>
+                          <button style={{background:'none',border:'none',cursor:'pointer'}}><MoreVertical size={16} color="#64748b" /></button>
+                       </div>
+                       <div className="ps-kanban-body">
+                          {ocorrenciasKanban.finalizada.map(item => (
+                             <div key={item.id} className="ps-kanban-card" style={{opacity: 0.7}} onClick={() => navigate('/painel?tab=ocorrencia-detalhe&id=' + item.id)}>
+                                <div className="ps-kanban-card-header">
+                                   <span className={`badge-priority ${item.priority}`}>Crítico</span>
+                                   <span className="ps-kanban-time"><Check size={12}/> {item.time}</span>
+                                </div>
+                                <h4 className="ps-kanban-card-title">{item.title}</h4>
+                                <div className="ps-kanban-card-meta">
+                                   <MapPin size={12}/> {item.local}
+                                </div>
+                                <div className="ps-kanban-card-footer">
+                                   <span style={{fontSize:'0.7rem', color:'#10b981', fontWeight:'600', display:'flex', alignItems:'center', gap:'4px'}}><CheckCircle2 size={12}/> Aprovado</span>
+                                </div>
+                             </div>
+                          ))}
+                       </div>
+                    </div>
+                 </div>
+              </div>
+            )}
+
+            {activeTab === 'ocorrencia-detalhe' && (
+              <div className="ps-card" style={{ padding: '0', background: 'transparent', border: 'none', boxShadow: 'none' }}>
+                
+                {/* Detalhe Header */}
+                <div style={{ display:'flex', alignItems:'center', gap:'1rem', marginBottom:'1.5rem', background:'white', padding:'1rem 1.5rem', borderRadius:'8px', border:'1px solid #e2e8f0' }}>
+                   <button onClick={() => navigate('/painel?tab=fluxo-ocorrencias')} style={{display:'flex', alignItems:'center', gap:'0.5rem', background:'none', border:'none', color:'#475569', fontWeight:'600', cursor:'pointer'}}><ArrowLeft size={16}/> Voltar</button>
+                   <div style={{width:'1px', height:'24px', backgroundColor:'#e2e8f0'}}></div>
+                   <h2 style={{margin:0, fontSize:'1.1rem', color:'#0f172a', fontWeight:'700'}}>Ocorrência #047 — Vazamento no banheiro</h2>
+                   <div style={{marginLeft:'auto', display:'flex', gap:'0.5rem'}}>
+                     <button style={{padding:'0.5rem 1rem', background:'#f1f5f9', color:'#475569', border:'1px solid #e2e8f0', borderRadius:'6px', fontWeight:'600', fontSize:'0.8rem', cursor:'pointer'}}>Devolver p/ ajuste</button>
+                     <button style={{padding:'0.5rem 1rem', background:'#10b981', color:'white', border:'none', borderRadius:'6px', fontWeight:'600', fontSize:'0.8rem', cursor:'pointer'}}>Validar Conclusão</button>
+                   </div>
+                </div>
+
+                <div className="ocorrencia-detail-layout">
+                   {/* Left Col: Timeline and Chat */}
+                   <div style={{ display:'flex', flexDirection:'column', gap:'1.5rem' }}>
+                      <div className="ps-card">
+                         <h3 style={{fontSize:'0.9rem', color:'#64748b', textTransform:'uppercase', letterSpacing:'0.05em', marginBottom:'1.5rem'}}>Linha do Tempo</h3>
+                         <div className="ps-timeline">
+                            <div className="ps-timeline-item">
+                               <div className="ps-timeline-marker done"><Check color="white" size={12} style={{margin:'2px'}}/></div>
+                               <div className="ps-timeline-content">
+                                  <h4>Recebida</h4>
+                                  <p>Morador reportou vazamento no teto do banheiro.</p>
+                                  <div className="ps-timeline-time">17/03/2026 às 08:30</div>
+                               </div>
+                            </div>
+                            <div className="ps-timeline-item">
+                               <div className="ps-timeline-marker done"><Check color="white" size={12} style={{margin:'2px'}}/></div>
+                               <div className="ps-timeline-content">
+                                  <h4>Em Análise</h4>
+                                  <p>Síndico avaliou e categorizou como crítico (necessita corte de água).</p>
+                                  <div className="ps-timeline-time">17/03/2026 às 09:15</div>
+                               </div>
+                            </div>
+                            <div className="ps-timeline-item">
+                               <div className="ps-timeline-marker active"></div>
+                               <div className="ps-timeline-content">
+                                  <h4>Aguardando Execução</h4>
+                                  <p>Tarefa atribuída para Carlos Lima (Manutenção).</p>
+                                  <div className="ps-timeline-time">17/03/2026 às 09:30</div>
+                               </div>
+                            </div>
+                            <div className="ps-timeline-item">
+                               <div className="ps-timeline-marker"></div>
+                               <div className="ps-timeline-content">
+                                  <h4 style={{color:'#94a3b8'}}>Em Execução</h4>
+                                  <p style={{color:'#cbd5e1'}}>Pendente</p>
+                               </div>
+                            </div>
+                         </div>
+                      </div>
+
+                      <div className="ps-card">
+                         <h3 style={{fontSize:'0.9rem', color:'#64748b', textTransform:'uppercase', letterSpacing:'0.05em', marginBottom:'1.5rem'}}>Mensagens</h3>
+                         <div className="ps-chat-section">
+                            <div className="ps-chat-bubble">
+                               <div style={{width:'32px',height:'32px',borderRadius:'50%',backgroundColor:'#cbd5e1',display:'flex',justifyContent:'center',alignItems:'center'}}>A</div>
+                               <div className="ps-chat-message">
+                                  <div className="ps-chat-header"><span>Ana Souza</span> <span className="badge-priority low">Morador</span> <span className="chat-time">Hoje, 08:30</span></div>
+                                  <div className="ps-chat-text">Bom dia, o teto do meu banheiro está vazando muita água, acho que vem do apartamento de cima!</div>
+                               </div>
+                            </div>
+                            <div className="ps-chat-bubble out">
+                               <div style={{width:'32px',height:'32px',borderRadius:'50%',backgroundColor:'#f97316',display:'flex',justifyContent:'center',alignItems:'center',color:'white'}}>RS</div>
+                               <div className="ps-chat-message">
+                                  <div className="ps-chat-header"><span>Roberto Silva</span> <span className="badge-priority moderate">Síndico</span> <span className="chat-time">Hoje, 09:18</span></div>
+                                  <div className="ps-chat-text">Ana, já notifiquei a manutenção. Estamos mandando o Carlos aí agora. Por favor, afaste eletrônicos do local.</div>
+                               </div>
+                            </div>
+                         </div>
+                         <div className="ps-chat-input-area">
+                            <input type="text" placeholder="Escreva um comentário..." />
+                            <button style={{width:'40px',height:'40px',borderRadius:'50%',backgroundColor:'#4f46e5',border:'none',color:'white',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer'}}><Send size={16}/></button>
+                         </div>
+                      </div>
+                   </div>
+
+                   {/* Right Col: Info Card */}
+                   <div className="ps-card" style={{height:'fit-content'}}>
+                      <h3 style={{fontSize:'0.9rem', color:'#64748b', textTransform:'uppercase', letterSpacing:'0.05em', marginBottom:'1.5rem'}}>Informações</h3>
+                      
+                      <div style={{display:'flex', flexDirection:'column', gap:'1.25rem'}}>
+                         <div>
+                            <span style={{display:'block', fontSize:'0.75rem', color:'#94a3b8', marginBottom:'0.25rem'}}>STATUS ATUAL</span>
+                            <span className="ps-status-badge ps-status-yellow">Aguardando Execução</span>
+                         </div>
+                         <div>
+                            <span style={{display:'block', fontSize:'0.75rem', color:'#94a3b8', marginBottom:'0.25rem'}}>CATEGORIA</span>
+                            <span className="ps-cat"><span className="ps-cat-dot" style={{backgroundColor: '#7dd3fc'}}></span>Hidráulica</span>
+                         </div>
+                         <div>
+                            <span style={{display:'block', fontSize:'0.75rem', color:'#94a3b8', marginBottom:'0.25rem'}}>LOCAL</span>
+                            <span style={{fontWeight:'600', color:'#334155', fontSize:'0.9rem'}}>Apt 204</span>
+                         </div>
+                         <div>
+                            <span style={{display:'block', fontSize:'0.75rem', color:'#94a3b8', marginBottom:'0.25rem'}}>PRIORIDADE</span>
+                            <span className="badge-priority critical">Crítica</span>
+                         </div>
+                         <div>
+                            <span style={{display:'block', fontSize:'0.75rem', color:'#94a3b8', marginBottom:'0.25rem'}}>ATRIBUÍDO A</span>
+                            <div style={{display:'flex', alignItems:'center', gap:'0.5rem', background:'#f8fafc', padding:'0.5rem', borderRadius:'6px', border:'1px solid #e2e8f0'}}>
+                               <div style={{width:'24px',height:'24px',borderRadius:'50%',backgroundColor:'#8b5cf6',color:'white',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.7rem',fontWeight:'bold'}}>C</div>
+                               <span style={{fontSize:'0.85rem', fontWeight:'600', color:'#1e293b'}}>Carlos Lima</span>
+                            </div>
+                         </div>
+                         <div>
+                            <span style={{display:'block', fontSize:'0.75rem', color:'#94a3b8', marginBottom:'0.25rem'}}>SLA (TEMPO LIMITE)</span>
+                            <span style={{display:'flex', alignItems:'center', gap:'0.25rem', color:'#ef4444', fontWeight:'600', fontSize:'0.85rem'}}><Clock size={14}/> 4h restantes</span>
+                         </div>
+                      </div>
+                   </div>
+                </div>
+
+              </div>
+            )}
           </div>
         </div>
       </main>

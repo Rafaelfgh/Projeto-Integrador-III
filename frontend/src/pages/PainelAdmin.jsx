@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import {
-  Menu, Search, UserCheck, Shield, User, Building, MoreVertical, Check, X, Users, UserPlus, FileText, Ban, Edit2, Key, LayoutDashboard, Clock, Settings, AlertTriangle
+  Menu, Search, UserCheck, Shield, User, Building, MoreVertical, Check, X, Users, UserPlus, FileText, Ban, Edit2, Key, LayoutDashboard, Clock, Settings, AlertTriangle, Eye, TrendingUp, TrendingDown, DollarSign, AlertCircle
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
@@ -115,12 +115,24 @@ const PainelAdmin = () => {
     setUserToEdit(null);
   };
 
+  const handleViewAs = (user) => {
+    if (window.confirm(`Entrar no modo supervisão como ${user.name} (${user.role})? Você terá acesso ao painel equivalente a este usuário.`)) {
+      addAuditLog(`Modo Supervisão ativado`, user.name);
+      alert(`Redirecionando para o painel de ${user.role}... (Simulação)`);
+      // Simulação do redirecionamento de acordo com o papel
+      let route = '/';
+      if (user.role === 'SINDICO') route = '/painel-sindico';
+      else if (user.role === 'FUNCIONARIO') route = '/painel-funcionario';
+      else if (user.role === 'MORADOR') route = '/dashboard';
+      navigate(route);
+    }
+  };
+
   const getRoleBadgeClass = (role) => {
     switch(role) {
       case 'ADMIN': return 'badge-admin';
       case 'SINDICO': return 'badge-sindico';
       case 'FUNCIONARIO': return 'badge-funcionario';
-      case 'PORTEIRO': return 'badge-funcionario';
       default: return 'badge-morador';
     }
   };
@@ -148,6 +160,9 @@ const PainelAdmin = () => {
             </div>
           </div>
           <div className="header-right">
+            <button className="btn-primary" style={{marginRight: '1rem', padding: '0.4rem 1rem', fontSize: '0.85rem'}} onClick={() => navigate('/novo-condominio')}>
+               + Novo Condomínio
+            </button>
             <NotificationMenu />
             <div className="user-profile-dropdown" onClick={() => navigate('/perfil')}>
               <div className="user-avatar"><span>{currentUser?.name?.charAt(0) || 'A'}</span></div>
@@ -163,13 +178,19 @@ const PainelAdmin = () => {
                 <h3 style={{ fontSize: '1.25rem', color: '#1e293b', fontWeight: 'bold' }}>Visão Geral do Sistema</h3>
                 
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem' }}>
+                    <div className="gu-financial-card">
+                        <div className="gu-fin-label">MRR Consolidado (Mês)</div>
+                        <div className="gu-fin-value">R$ 14.500</div>
+                        <div className="gu-fin-trend"><TrendingUp size={14}/> +12% anual</div>
+                    </div>
+                    <div className="gu-financial-card" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #020617 100%)' }}>
+                        <div className="gu-fin-label">Taxa de Inadimplência</div>
+                        <div className="gu-fin-value text-rose">8.4%</div>
+                        <div className="gu-fin-trend negative"><TrendingDown size={14}/> +1.2% req. atenção</div>
+                    </div>
                     <div className="gu-stat-card" style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '12px' }}>
                         <div className="gu-stat-label">Usuários Cadastrados</div>
                         <div className="gu-stat-value">{totalUsers}</div>
-                    </div>
-                    <div className="gu-stat-card" style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '12px' }}>
-                        <div className="gu-stat-label">Ocorrências Globais (Mês)</div>
-                        <div className="gu-stat-value text-emerald">143</div>
                     </div>
                     <div className="gu-stat-card" style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '12px' }}>
                         <div className="gu-stat-label">Condomínios Ativos</div>
@@ -177,12 +198,37 @@ const PainelAdmin = () => {
                     </div>
                 </div>
 
-                <div style={{ padding: '1.5rem', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '12px', marginTop: '1rem' }}>
-                    <h4 style={{ fontSize: '1rem', color: '#1e293b', fontWeight: 600, marginBottom: '1rem' }}>Estado da Plataforma</h4>
-                    <p style={{ color: '#64748b', fontSize: '0.9rem', lineHeight: '1.5' }}>
-                        Todos os serviços operando normalmente. Último backup executado há 2 horas. 
-                        Novas regulamentações cadastradas pelo Síndico ontem às 15:43.
-                    </p>
+                <div className="overview-grid">
+                  <div style={{ padding: '1.5rem', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '12px' }}>
+                      <h4 style={{ fontSize: '1rem', color: '#1e293b', fontWeight: 600, marginBottom: '1rem' }}>Estado da Plataforma</h4>
+                      <p style={{ color: '#64748b', fontSize: '0.9rem', lineHeight: '1.5' }}>
+                          Todos os serviços operando normalmente. Último backup executado há 2 horas. 
+                          Novas regulamentações cadastradas pelo Síndico ontem às 15:43.
+                      </p>
+                  </div>
+                  
+                  <div style={{ padding: '1.5rem', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '12px' }}>
+                      <h4 style={{ fontSize: '1rem', color: '#1e293b', fontWeight: 600, marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <AlertTriangle size={18} color="#ef4444" />
+                        Alertas Críticos
+                      </h4>
+                      <div className="gu-alerts-list">
+                        <div className="gu-alert-card critical">
+                           <div className="gu-alert-icon critical"><AlertCircle size={16} /></div>
+                           <div className="gu-alert-content">
+                             <h4>Ocorrências Vencidas</h4>
+                             <p>12 chamados sem resposta há mais de 7 dias úteis.</p>
+                           </div>
+                        </div>
+                        <div className="gu-alert-card warning">
+                           <div className="gu-alert-icon warning"><AlertTriangle size={16} /></div>
+                           <div className="gu-alert-content">
+                             <h4>Risco de Churn</h4>
+                             <p>Condomínio Bela Vista (BL 1) inadimplência acentuada.</p>
+                           </div>
+                        </div>
+                      </div>
+                  </div>
                 </div>
             </div>
           )}
@@ -229,7 +275,6 @@ const PainelAdmin = () => {
                               disabled={user.id === currentUser?.id}
                             >
                               <option value="MORADOR">Morador</option>
-                              <option value="PORTEIRO">Porteiro</option>
                               <option value="FUNCIONARIO">Funcionário</option>
                               <option value="SINDICO">Síndico</option>
                               <option value="ADMIN">Administrador</option>
@@ -253,8 +298,13 @@ const PainelAdmin = () => {
                                 {user.status === 'BLOQUEADO' ? 'Desbloquear' : 'Bloquear'}
                               </button>
                             )}
-                            <button className="gu-icon-btn" onClick={() => openEditModal(user)} title="Editar Cadastro"><Edit2 size={18}/></button>
+                            <button className="gu-icon-btn" onClick={() => {setUserToEdit(user); setShowEditModal(true);}} title="Editar Cadastro"><Edit2 size={18}/></button>
                             <button className="gu-icon-btn" style={{ marginLeft: '4px' }} onClick={() => handleResetPassword(user)} title="Ação Diretiva: Forçar Nova Senha"><Key size={18}/></button>
+                            {user.status === 'ATIVO' && user.id !== currentUser?.id && (
+                                <button className="gu-supervision-btn" style={{ marginLeft: '4px' }} onClick={() => handleViewAs(user)} title="Logar como usuário no modo Supervisão">
+                                  <Eye size={16}/> View As
+                                </button>
+                            )}
                           </td>
                         </tr>
                       ))}
@@ -327,7 +377,6 @@ const PainelAdmin = () => {
                    <div style={{ padding: '1.5rem', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '12px' }}>
                       <h4 style={{ borderBottom: '1px solid #f1f5f9', paddingBottom: '0.5rem', marginBottom: '1rem', color: '#1e293b' }}>Módulos Ativos do SaaS</h4>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', fontSize: '0.9rem', color: '#334155' }}>
-                         <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><input type="checkbox" defaultChecked /> Módulo de Portaria</label>
                          <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><input type="checkbox" defaultChecked /> Feed de Ocorrências</label>
                          <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><input type="checkbox" defaultChecked /> Painel de Manutenção (Limpeza/Obra)</label>
                          <p style={{ fontSize: '0.8rem', color: '#ef4444', marginTop: '0.5rem' }}>* O desligamento afeta globalmente o sistema.</p>
@@ -357,7 +406,6 @@ const PainelAdmin = () => {
                 <label>Nível de Acesso (Papel)</label>
                 <select value={newUser.role} onChange={e => setNewUser({...newUser, role: e.target.value})} className="gu-input">
                     <option value="MORADOR">Morador</option>
-                    <option value="PORTEIRO">Porteiro</option>
                     <option value="FUNCIONARIO">Funcionário</option>
                     <option value="SINDICO">Síndico</option>
                     <option value="ADMIN">Administrador</option>

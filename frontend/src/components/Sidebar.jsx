@@ -1,22 +1,6 @@
 import React from 'react';
 import { 
-  X, 
-  LayoutDashboard, 
-  FileEdit, 
-  FileWarning, 
-  Activity, 
-  ClipboardList, 
-  Building,
-  BarChart,
-  LogOut,
-  Settings,
-  Users,
-  PenTool,
-  Shield,
-  UserPlus,
-  Package,
-  Clock,
-  ShieldCheck
+  X, LayoutDashboard, FileEdit, FileWarning, Activity, ClipboardList, Building, BarChart, LogOut, Settings, Users, PenTool, Shield, UserPlus, Package, Clock, ShieldCheck, Map, MessageSquare, Calendar, Star, Vote, CheckSquare, FileText, CheckCircle2, ChevronRight
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -50,7 +34,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
       <div className="sidebar-nav-container">
         
         {/* SECTION: WORKSPACE (Morador, Sindico) */}
-        {(currentUser?.role === 'MORADOR' || currentUser?.role === 'SINDICO') && (
+        {(currentUser?.role === 'MORADOR' || currentUser?.role === 'SINDICO' || currentUser?.role === 'ADMIN') && (
           <div className="nav-group">
             <p className="nav-section-title">Workspace</p>
             <nav className="nav-list">
@@ -71,7 +55,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
         )}
 
         {/* SECTION: SERVIÇOS (Morador, Sindico) */}
-        {(currentUser?.role === 'MORADOR' || currentUser?.role === 'SINDICO') && (
+        {(currentUser?.role === 'MORADOR' || currentUser?.role === 'SINDICO' || currentUser?.role === 'ADMIN') && (
           <div className="nav-group">
             <p className="nav-section-title">Serviços e Apoio</p>
             <nav className="nav-list">
@@ -87,37 +71,10 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
           </div>
         )}
 
-        {/* SECTION: PORTARIA COMPLETA (Apenas Porteiro) */}
-        {(currentUser?.role === 'PORTEIRO') && (
-           <div className="nav-group">
-            <p className="nav-section-title">Painel da Portaria</p>
-            <nav className="nav-list">
-              <a href="#" className={`nav-item ${currentPath === '/painel-portaria' && !location.search ? 'nav-item-active' : 'nav-item-inactive'}`} onClick={(e) => { e.preventDefault(); navigate('/painel-portaria'); setSidebarOpen(false); }}>
-                  <LayoutDashboard className="nav-icon" />
-                  <span>Visão Geral</span>
-              </a>
-              <a href="#" className={`nav-item ${location.search === '?tab=visitantes' ? 'nav-item-active' : 'nav-item-inactive'}`} onClick={(e) => { e.preventDefault(); navigate('/painel-portaria?tab=visitantes'); setSidebarOpen(false); }}>
-                  <Users className="nav-icon" />
-                  <span>Visitantes</span>
-              </a>
-              <a href="#" className={`nav-item ${location.search === '?tab=encomendas' ? 'nav-item-active' : 'nav-item-inactive'}`} onClick={(e) => { e.preventDefault(); navigate('/painel-portaria?tab=encomendas'); setSidebarOpen(false); }}>
-                  <Package className="nav-icon" />
-                  <span>Encomendas</span>
-              </a>
-              <a href="#" className={`nav-item ${location.search === '?tab=autorizados' ? 'nav-item-active' : 'nav-item-inactive'}`} onClick={(e) => { e.preventDefault(); navigate('/painel-portaria?tab=autorizados'); setSidebarOpen(false); }}>
-                  <ShieldCheck className="nav-icon" />
-                  <span>Autorizados</span>
-              </a>
-              <a href="#" className={`nav-item ${location.search === '?tab=historico' ? 'nav-item-active' : 'nav-item-inactive'}`} onClick={(e) => { e.preventDefault(); navigate('/painel-portaria?tab=historico'); setSidebarOpen(false); }}>
-                  <Clock className="nav-icon" />
-                  <span>Histórico Geral</span>
-              </a>
-            </nav>
-          </div>
-        )}
+
 
         {/* SECTION: OPERAÇÕES (Funcionario) */}
-        {(currentUser?.role === 'FUNCIONARIO') && (
+        {(currentUser?.role === 'FUNCIONARIO' || currentUser?.role === 'SINDICO' || currentUser?.role === 'ADMIN') && (
            <div className="nav-group">
             <p className="nav-section-title">Operações</p>
             <nav className="nav-list">
@@ -130,17 +87,53 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
         )}
 
         {/* SECTION: ADMINISTRAÇÃO (Sindico) */}
-        {(currentUser?.role === 'SINDICO') && (
+        {(currentUser?.role === 'SINDICO' || currentUser?.role === 'ADMIN') && (
           <div className="nav-group">
-            <p className="nav-section-title">Administração</p>
-            <nav className="nav-list">
-                <a href="#" className={`nav-item ${currentPath === '/painel' ? 'nav-item-active' : 'nav-item-inactive'}`} onClick={(e) => { e.preventDefault(); navigate('/painel'); setSidebarOpen(false); }}>
-                  <Building className="nav-icon" />
-                  <span>Visão Geral do Condomínio</span>
+            <p className="nav-section-title">Painel do Síndico</p>
+            <nav className="nav-list" style={{ maxHeight: 'none', overflowY: 'visible' }}>
+                <a href="#" className={`nav-item ${currentPath === '/painel' && (!location.search || location.search === '?tab=overview') ? 'nav-item-active' : 'nav-item-inactive'}`} onClick={(e) => { e.preventDefault(); navigate('/painel?tab=overview'); setSidebarOpen(false); }}>
+                  <LayoutDashboard className="nav-icon" />
+                  <span>Visão Geral</span>
                 </a>
-                <a href="#" className={`nav-item ${currentPath === '/painel-funcionario' ? 'nav-item-active' : 'nav-item-inactive'}`} onClick={(e) => { e.preventDefault(); navigate('/painel-funcionario'); setSidebarOpen(false); }}>
-                  <PenTool className="nav-icon" />
-                  <span>Gestão de Manutenção</span>
+                <a href="#" className={`nav-item ${currentPath === '/painel' && location.search === '?tab=fluxo-ocorrencias' ? 'nav-item-active' : 'nav-item-inactive'}`} onClick={(e) => { e.preventDefault(); navigate('/painel?tab=fluxo-ocorrencias'); setSidebarOpen(false); }}>
+                  <Activity className="nav-icon" />
+                  <span>Fluxo de Ocorrências</span>
+                </a>
+                <a href="#" className={`nav-item ${currentPath === '/painel' && location.search === '?tab=funcionarios' ? 'nav-item-active' : 'nav-item-inactive'}`} onClick={(e) => { e.preventDefault(); navigate('/painel?tab=funcionarios'); setSidebarOpen(false); }}>
+                  <ShieldCheck className="nav-icon" />
+                  <span>Funcionários</span>
+                </a>
+                <a href="#" className={`nav-item ${currentPath === '/painel' && location.search === '?tab=moradores' ? 'nav-item-active' : 'nav-item-inactive'}`} onClick={(e) => { e.preventDefault(); navigate('/painel?tab=moradores'); setSidebarOpen(false); }}>
+                  <Users className="nav-icon" />
+                  <span>Moradores</span>
+                </a>
+                <a href="#" className={`nav-item ${currentPath === '/painel' && location.search === '?tab=votacoes' ? 'nav-item-active' : 'nav-item-inactive'}`} onClick={(e) => { e.preventDefault(); navigate('/painel?tab=votacoes'); setSidebarOpen(false); }}>
+                  <Vote className="nav-icon" />
+                  <span>Votações e Enquetes</span>
+                </a>
+                <a href="#" className={`nav-item ${currentPath === '/painel' && location.search === '?tab=agenda' ? 'nav-item-active' : 'nav-item-inactive'}`} onClick={(e) => { e.preventDefault(); navigate('/painel?tab=agenda'); setSidebarOpen(false); }}>
+                  <Calendar className="nav-icon" />
+                  <span>Agenda</span>
+                </a>
+                <a href="#" className={`nav-item ${currentPath === '/painel' && location.search === '?tab=relatorio' ? 'nav-item-active' : 'nav-item-inactive'}`} onClick={(e) => { e.preventDefault(); navigate('/painel?tab=relatorio'); setSidebarOpen(false); }}>
+                  <BarChart className="nav-icon" />
+                  <span>Relatório Mensal</span>
+                </a>
+                <a href="#" className={`nav-item ${currentPath === '/painel' && location.search === '?tab=prestadores' ? 'nav-item-active' : 'nav-item-inactive'}`} onClick={(e) => { e.preventDefault(); navigate('/painel?tab=prestadores'); setSidebarOpen(false); }}>
+                  <Star className="nav-icon" />
+                  <span>Prestadores de Serviço</span>
+                </a>
+                <a href="#" className={`nav-item ${currentPath === '/painel' && location.search === '?tab=reservas' ? 'nav-item-active' : 'nav-item-inactive'}`} onClick={(e) => { e.preventDefault(); navigate('/painel?tab=reservas'); setSidebarOpen(false); }}>
+                  <CheckSquare className="nav-icon" />
+                  <span>Reservas</span>
+                </a>
+                <a href="#" className={`nav-item ${currentPath === '/painel' && location.search === '?tab=mapa' ? 'nav-item-active' : 'nav-item-inactive'}`} onClick={(e) => { e.preventDefault(); navigate('/painel?tab=mapa'); setSidebarOpen(false); }}>
+                  <Map className="nav-icon" />
+                  <span>Mapa de Ocorrências</span>
+                </a>
+                <a href="#" className={`nav-item ${currentPath === '/painel' && location.search === '?tab=mensagens' ? 'nav-item-active' : 'nav-item-inactive'}`} onClick={(e) => { e.preventDefault(); navigate('/painel?tab=mensagens'); setSidebarOpen(false); }}>
+                  <MessageSquare className="nav-icon" />
+                  <span>Mensagens</span>
                 </a>
             </nav>
           </div>

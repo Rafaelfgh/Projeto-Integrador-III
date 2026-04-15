@@ -37,9 +37,6 @@ const Login = () => {
     } else if (email.includes('func')) {
       userRole = 'FUNCIONARIO';
       userName = 'Maria Funcionária';
-    } else if (email.includes('port')) {
-      userRole = 'PORTEIRO';
-      userName = 'Antônio Porteiro';
     }
     
     login({
@@ -57,8 +54,6 @@ const Login = () => {
       navigate('/painel');
     } else if (userRole === 'FUNCIONARIO') {
       navigate('/painel-funcionario');
-    } else if (userRole === 'PORTEIRO') {
-      navigate('/painel-portaria');
     } else {
       navigate('/solicitacoes');
     }
@@ -135,8 +130,8 @@ const Login = () => {
           </form>
 
           <div style={{ textAlign: 'center', marginTop: '1rem', borderTop: '1px solid #e2e8f0', paddingTop: '1rem' }}>
-            <Link to="/cadastro-admin" className="text-link" style={{ color: '#64748b', fontSize: '0.8rem', fontWeight: 500 }}>
-              Sou Administrador e quero registrar meu Condomínio
+            <Link to="/novo-condominio" className="text-link" style={{ color: '#64748b', fontSize: '0.8rem', fontWeight: 500 }}>
+               Sou Administrador e quero registrar meu Condomínio
             </Link>
           </div>
         </div>
