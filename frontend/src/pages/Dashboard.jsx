@@ -24,6 +24,7 @@ import {
   ChevronRight
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 import NotificationMenu from '../components/NotificationMenu';
 import Sidebar from '../components/Sidebar';
 import './Dashboard.css';
@@ -31,6 +32,7 @@ import './Dashboard.css';
 const Dashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const navigate = useNavigate();
+  const { currentUser } = useAuth();
 
   // SaaS-style stats com mini sparklines
   const stats = [
@@ -149,9 +151,9 @@ const Dashboard = () => {
 
             <NotificationMenu />
 
-            <div className="user-profile-dropdown" onClick={() => navigate('/perfil')}>
-              <div className="user-avatar">
-                 <span>M</span>
+            <div className="user-profile-dropdown" onClick={() => navigate('/perfil')} style={{cursor: 'pointer'}}>
+              <div className="user-avatar" style={{ backgroundColor: '#ea580c', color: 'white' }}>
+                 <span>{currentUser?.name?.charAt(0) || 'M'}</span>
               </div>
             </div>
           </div>

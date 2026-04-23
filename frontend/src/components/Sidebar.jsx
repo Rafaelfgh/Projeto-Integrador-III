@@ -4,11 +4,12 @@ import {
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import ContextBanner from './ContextBanner';
 
 const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { currentUser, logout } = useAuth();
+  const { currentUser, logout, visualContext, changeVisualContext } = useAuth();
   const currentPath = location.pathname;
 
   const handleLogout = () => {
@@ -17,24 +18,48 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
   };
 
   return (
-    <aside className={`dashboard-sidebar ${sidebarOpen ? 'sidebar-open' : 'sidebar-closed'}`}>
-      <div className="sidebar-header">
-        <div className="sidebar-pm-logo-box">
-           <span className="dashboard-pm-logo">PM</span>
+    <>
+      <ContextBanner />
+      <aside className={`dashboard-sidebar ${sidebarOpen ? 'sidebar-open' : 'sidebar-closed'}`}>
+        <div className="sidebar-header">
+          <div className="sidebar-pm-logo-box">
+             <span className="dashboard-pm-logo">PM</span>
+          </div>
+          <div className="sidebar-title-group">
+            <h1>Portal do</h1>
+            <p className="dashboard-pm-subtitle">Condomínio</p>
+          </div>
+          <button className="mobile-close-btn" onClick={() => setSidebarOpen(false)}>
+            <X size={20} />
+          </button>
         </div>
-        <div className="sidebar-title-group">
-          <h1>Portal do</h1>
-          <p className="dashboard-pm-subtitle">Morador</p>
-        </div>
-        <button className="mobile-close-btn" onClick={() => setSidebarOpen(false)}>
-          <X size={20} />
-        </button>
-      </div>
-      
-      <div className="sidebar-nav-container">
         
-        {/* SECTION: WORKSPACE (Morador, Sindico) */}
-        {(currentUser?.role === 'MORADOR' || currentUser?.role === 'SINDICO' || currentUser?.role === 'ADMIN') && (
+        {/* MASTER CONTEXT SELECTOR */}
+        {currentUser?.role === 'MASTER' && (
+          <div style={{ padding: '0 1rem 1rem 1rem', borderBottom: '1px solid #334155', marginBottom: '1rem' }}>
+            <p style={{ fontSize: '0.65rem', textTransform: 'uppercase', color: '#94a3b8', fontWeight: 700, marginBottom: '0.5rem', letterSpacing: '0.05em' }}>
+              Visualizando como:
+            </p>
+            <select 
+              value={visualContext} 
+              onChange={(e) => changeVisualContext(e.target.value)}
+              style={{
+                width: '100%', background: '#0f172a', color: 'white', border: '1px solid #475569',
+                padding: '0.5rem', borderRadius: '6px', fontSize: '0.8rem', outline: 'none'
+              }}
+            >
+              <option value="MASTER">Master Admin (Real)</option>
+              <option value="SINDICO">Síndico</option>
+              <option value="FUNCIONARIO">Funcionário</option>
+              <option value="MORADOR">Morador</option>
+            </select>
+          </div>
+        )}
+
+        <div className="sidebar-nav-container">
+          
+          {/* SECTION: WORKSPACE (Morador, Sindico) */}
+          {(visualContext === 'MORADOR' || visualContext === 'SINDICO') && (
           <div className="nav-group">
             <p className="nav-section-title">Workspace</p>
             <nav className="nav-list">
@@ -54,8 +79,8 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
           </div>
         )}
 
-        {/* SECTION: SERVIÇOS (Morador, Sindico) */}
-        {(currentUser?.role === 'MORADOR' || currentUser?.role === 'SINDICO' || currentUser?.role === 'ADMIN') && (
+          {/* SECTION: SERVIÇOS (Morador, Sindico) */}
+          {(visualContext === 'MORADOR' || visualContext === 'SINDICO') && (
           <div className="nav-group">
             <p className="nav-section-title">Serviços e Apoio</p>
             <nav className="nav-list">
@@ -73,8 +98,8 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
 
 
 
-        {/* SECTION: OPERAÇÕES (Funcionario) */}
-        {(currentUser?.role === 'FUNCIONARIO' || currentUser?.role === 'SINDICO' || currentUser?.role === 'ADMIN') && (
+          {/* SECTION: OPERAÇÕES (Funcionario) */}
+          {(visualContext === 'FUNCIONARIO' || visualContext === 'SINDICO') && (
            <div className="nav-group">
             <p className="nav-section-title">Operações</p>
             <nav className="nav-list">
@@ -86,8 +111,8 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
           </div>
         )}
 
-        {/* SECTION: ADMINISTRAÇÃO (Sindico) */}
-        {(currentUser?.role === 'SINDICO' || currentUser?.role === 'ADMIN') && (
+          {/* SECTION: ADMINISTRAÇÃO (Sindico) */}
+          {(visualContext === 'SINDICO') && (
           <div className="nav-group">
             <p className="nav-section-title">Painel do Síndico</p>
             <nav className="nav-list" style={{ maxHeight: 'none', overflowY: 'visible' }}>
@@ -139,8 +164,8 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
           </div>
         )}
 
-        {/* SECTION: GOVERNANÇA GLOBAL (Apenas Admin) */}
-        {(currentUser?.role === 'ADMIN') && (
+        {/* SECTION: GOVERNANÇA GLOBAL (Apenas Master) */}
+        {(visualContext === 'MASTER' || visualContext === 'ADMIN') && (
           <div className="nav-group">
             <p className="nav-section-title">Painel de Governança</p>
             <nav className="nav-list">
@@ -175,7 +200,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
            <div className="sidebar-user-details">
               <span className="sidebar-user-name">{currentUser?.name || 'Usuário'}</span>
               <span className="sidebar-user-role">
-                {currentUser?.role === 'MORADOR' ? `Morador ${currentUser?.apto ? '• Apto ' + currentUser.apto : ''}` : currentUser?.role}
+                {currentUser?.role === 'MORADOR' ? `Morador ${currentUser?.unidade ? '• ' + currentUser.unidade : ''}` : currentUser?.role}
               </span>
            </div>
         </div>

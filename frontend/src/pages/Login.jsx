@@ -27,16 +27,24 @@ const Login = () => {
 
     let userRole = 'MORADOR';
     let userName = 'João Morador';
+    let userUnidade = 'Bloco B, Apt 502';
     
-    if (email.includes('admin')) {
+    if (email === 'admin@condominio.com' || email.includes('admin')) {
       userRole = 'ADMIN';
-      userName = 'Carlos Admin';
-    } else if (email.includes('sindico')) {
+      userName = 'Carlos Master';
+      userUnidade = 'Administração Global';
+    } else if (email === 'master@condominio.com' || email.includes('sindico')) {
       userRole = 'SINDICO';
       userName = 'Roberto Síndico';
-    } else if (email.includes('func')) {
+      userUnidade = 'Administração do Condomínio';
+    } else if (email === 'operacao@condominio.com' || email.includes('func')) {
       userRole = 'FUNCIONARIO';
-      userName = 'Maria Funcionária';
+      userName = 'Maria Manutenção';
+      userUnidade = 'Equipe de Manutenção';
+    } else if (email === 'morador@condominio.com') {
+      userRole = 'MORADOR';
+      userName = 'Ana Moradora';
+      userUnidade = 'Bloco A, Apt 101';
     }
     
     login({
@@ -44,7 +52,11 @@ const Login = () => {
         name: userName,
         email: email,
         role: userRole,
-        apto: userRole === 'MORADOR' ? '102' : undefined
+        unidade: userUnidade,
+        phone: '(11) 99999-0000',
+        cpf: '123.456.789-00',
+        cadastro: '10/01/2023',
+        status: 'Ativo'
     });
 
     // Simulate login redirect depending on role
