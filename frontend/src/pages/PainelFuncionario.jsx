@@ -6,6 +6,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import NotificationMenu from '../components/NotificationMenu';
+import ContextBanner from '../components/ContextBanner';
 import { useAuth } from '../contexts/AuthContext';
 import './Dashboard.css';
 import './PainelFuncionario.css';
@@ -186,6 +187,9 @@ const PainelFuncionario = () => {
              </div>
           </div>
         </header>
+
+        {/* Banner de Contexto Visual (Master) */}
+        <ContextBanner />
 
         <div className="dashboard-content-scroll pf-container">
             

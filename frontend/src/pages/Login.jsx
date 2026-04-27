@@ -28,12 +28,17 @@ const Login = () => {
     let userRole = 'MORADOR';
     let userName = 'João Morador';
     let userUnidade = 'Bloco B, Apt 502';
-    
-    if (email === 'admin@condominio.com' || email.includes('admin')) {
+
+    // MASTER — acesso total ao sistema (admin@gmail.com ou emails com 'master')
+    if (email === 'admin@gmail.com' || email.includes('master')) {
+      userRole = 'MASTER';
+      userName = 'Admin Master';
+      userUnidade = 'Governança Global';
+    } else if (email === 'admin@condominio.com' || email.includes('admin')) {
       userRole = 'ADMIN';
-      userName = 'Carlos Master';
-      userUnidade = 'Administração Global';
-    } else if (email === 'master@condominio.com' || email.includes('sindico')) {
+      userName = 'Carlos Admin';
+      userUnidade = 'Administração';
+    } else if (email === 'sindico@condominio.com' || email.includes('sindico')) {
       userRole = 'SINDICO';
       userName = 'Roberto Síndico';
       userUnidade = 'Administração do Condomínio';
@@ -46,7 +51,7 @@ const Login = () => {
       userName = 'Ana Moradora';
       userUnidade = 'Bloco A, Apt 101';
     }
-    
+
     login({
         id: Date.now(),
         name: userName,
@@ -59,8 +64,10 @@ const Login = () => {
         status: 'Ativo'
     });
 
-    // Simulate login redirect depending on role
-    if (userRole === 'ADMIN') {
+    // Redireciona por role
+    if (userRole === 'MASTER') {
+      navigate('/painel-admin');
+    } else if (userRole === 'ADMIN') {
       navigate('/painel-admin');
     } else if (userRole === 'SINDICO') {
       navigate('/painel');

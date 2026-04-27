@@ -27,6 +27,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import NotificationMenu from '../components/NotificationMenu';
 import Sidebar from '../components/Sidebar';
+import ContextBanner from '../components/ContextBanner';
 import './Dashboard.css';
 
 const Dashboard = () => {
@@ -158,6 +159,9 @@ const Dashboard = () => {
             </div>
           </div>
         </header>
+
+        {/* Banner de Contexto Visual (Master) */}
+        <ContextBanner />
 
         {/* Corpo do Dashboard */}
         <div className="dashboard-content-scroll">
