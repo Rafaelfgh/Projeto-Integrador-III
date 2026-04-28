@@ -6,23 +6,27 @@ const ProtectedRoute = ({ allowedRoles }) => {
   const { currentUser } = useAuth();
 
   if (!currentUser) {
-    // Return to login if not authenticated
     return <Navigate to="/login" replace />;
   }
 
+  // MASTER tem acesso irrestrito a todas as rotas
+  if (currentUser.role === 'MASTER') {
+    return <Outlet />;
+  }
+
   if (allowedRoles && !allowedRoles.includes(currentUser.role)) {
-    // User is logged in but doesn't have the required role.
-    // Redirect to a specific dashboard based on their actual role or a general unauthorized page
     if (currentUser.role === 'ADMIN') {
-        return <Navigate to="/gerenciamento-usuarios" replace />;
+      return <Navigate to="/painel-admin" replace />;
     }
     if (currentUser.role === 'SINDICO') {
-        return <Navigate to="/painel" replace />;
+      return <Navigate to="/painel" replace />;
+    }
+    if (currentUser.role === 'FUNCIONARIO') {
+      return <Navigate to="/painel-funcionario" replace />;
     }
     return <Navigate to="/dashboard" replace />;
   }
 
-  // User is logged in and authorized
   return <Outlet />;
 };
 

@@ -1,49 +1,94 @@
 import React, { useState } from 'react';
 import { 
   Menu, Bell, Clock, AlertTriangle, CheckCircle2, ChevronRight, MapPin, 
-  UploadCloud, X, Play, Image as ImageIcon, CheckCircle 
+  UploadCloud, X, Play, Image as ImageIcon, CheckCircle, MessageSquare, AlertCircle, FileText
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import NotificationMenu from '../components/NotificationMenu';
+import ContextBanner from '../components/ContextBanner';
 import { useAuth } from '../contexts/AuthContext';
-import './Dashboard.css'; // reaproveitar layout base do sidebar
+import './Dashboard.css';
 import './PainelFuncionario.css';
 
 // Mock Tasks para o Funcionario (Equipe Técnica)
+// Simulando dados do Brasil e SLAs
 const initialTasks = [
-  { id: 101, title: 'Infiltração grave no teto da sala', location: 'Apto 102 - Bloco A', status: 'Em Execução', sla: 'warning', hoursLeft: 12, category: 'Hidráulica' },
-  { id: 102, title: 'Lâmpada do corredor 3º andar', location: 'Bloco B - 3º Andar', status: 'Pendente', sla: 'ok', hoursLeft: 48, category: 'Elétrica' },
-  { id: 103, title: 'Portão da garagem não fecha', location: 'Portaria Principal', status: 'Em Execução', sla: 'danger', hoursLeft: -2, category: 'Infraestrutura' },
-  { id: 104, title: 'Vazamento contínuo na pia', location: 'Apto 405 - Bloco C', status: 'Pendente', sla: 'warning', hoursLeft: 8, category: 'Hidráulica' },
-  { id: 105, title: 'Manutenção Preventiva de Pintura', location: 'Hall de Entrada', status: 'Submetida p/ Aprovar', sla: 'ok', hoursLeft: 72, category: 'Limpeza' }
+  { 
+    id: 101, title: 'Vazamento no banheiro do apto 304', location: 'Apto 304 - Bloco B', 
+    status: 'Em andamento', sla: 'danger', hoursLeft: -2, category: 'Hidráulica', 
+    assigneeName: 'Maria Manutenção',
+    unreadComments: 1,
+    history: [
+      { id: 1, author: 'Maria Manutenção', time: 'Ontem, 14:00', text: 'Iniciei a quebra da parede para achar o cano furado.' },
+      { id: 2, author: 'Roberto Síndico', time: 'Hoje, 09:00', text: 'Maria, qual a previsão? O morador está cobrando.' }
+    ]
+  },
+  { 
+    id: 102, title: 'Curto-circuito nas arandelas do Hall', location: 'Hall de Entrada - Bloco A', 
+    status: 'Pendente', sla: 'warning', hoursLeft: 4, category: 'Elétrica', 
+    assigneeName: 'Maria Manutenção',
+    unreadComments: 0, history: []
+  },
+  { 
+    id: 103, title: 'Limpeza pós-obra na garagem', location: 'Garagem Subsolo 2', 
+    status: 'Finalizada', sla: 'ok', hoursLeft: 48, category: 'Limpeza', 
+    assigneeName: 'Maria Manutenção',
+    unreadComments: 0,
+    history: [
+      { id: 1, author: 'Maria Manutenção', time: 'Hoje, 10:30', text: 'Serviço concluído, entulho removido.' }
+    ]
+  },
+  { 
+    id: 104, title: 'Desentupir ralo da lavanderia coletiva', location: 'Área Comum - Cobertura', 
+    status: 'Pendente', sla: 'ok', hoursLeft: 24, category: 'Hidráulica', 
+    assigneeName: 'Maria Manutenção',
+    unreadComments: 0, history: []
+  },
+  { 
+    id: 105, title: 'Troca de fechadura da portaria', location: 'Portaria Principal', 
+    status: 'Pendente', sla: 'danger', hoursLeft: -5, category: 'Infraestrutura', 
+    assigneeName: 'João Silva', // Outro funcionário
+    unreadComments: 0, history: []
+  }
 ];
 
 const PainelFuncionario = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [tasks, setTasks] = useState(initialTasks);
   const [activeFilter, setActiveFilter] = useState('Todas');
-  const [selectedTask, setSelectedTask] = useState(null);
   
   // Modal states
-  const [newStatus, setNewStatus] = useState('');
+  const [selectedTask, setSelectedTask] = useState(null);
+  const [selectedStatus, setSelectedStatus] = useState(''); // 'Em andamento', 'Finalizada', 'Não concluída'
   const [comment, setComment] = useState('');
+  const [reason, setReason] = useState('');
+  const [reschedule, setReschedule] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState([]);
 
   const navigate = useNavigate();
   const { currentUser } = useAuth();
 
-  // Metrics
-  const emExecucao = tasks.filter(t => t.status === 'Em Execução').length;
-  const atrasadas = tasks.filter(t => t.sla === 'danger' && t.status !== 'Concluída').length;
-  // Simulating that user completed 2 tasks today
-  const concluidasHoje = 2; 
+  // Filtrar APENAS as tarefas atribuídas ao usuário logado
+  const myTasks = tasks.filter(t => t.assigneeName === (currentUser?.name || 'Maria Manutenção'));
+
+  // Metrics baseadas apenas nas minhas tarefas
+  const emAndamentoCount = myTasks.filter(t => t.status === 'Em andamento').length;
+  const atrasadasCount = myTasks.filter(t => t.hoursLeft < 0 && t.status !== 'Finalizada').length;
+  const concluidasHojeCount = myTasks.filter(t => t.status === 'Finalizada').length; 
 
   const handleOpenModal = (task) => {
     setSelectedTask(task);
-    setNewStatus(task.status);
+    setSelectedStatus(task.status === 'Pendente' ? 'Em andamento' : task.status);
     setComment('');
+    setReason('');
+    setReschedule(false);
     setUploadedFiles([]);
+
+    // Clear unread indicator when opening
+    if(task.unreadComments > 0) {
+       setTasks(tasks.map(t => t.id === task.id ? { ...t, unreadComments: 0 } : t));
+    }
   };
 
   const handleCloseModal = () => {
@@ -60,41 +105,65 @@ const PainelFuncionario = () => {
   const saveTaskUpdate = (e) => {
     e.preventDefault();
     if (selectedTask) {
-        setTasks(tasks.map(t => t.id === selectedTask.id ? { ...t, status: newStatus } : t));
-        alert('Status da Tarefa atualizado com sucesso!');
+        if (selectedStatus === 'Não concluída' && reason.trim() === '') {
+            alert('Por favor, informe o motivo da não conclusão.');
+            return;
+        }
+
+        const newHistory = [...selectedTask.history];
+        if (comment.trim()) {
+           newHistory.push({ id: Date.now(), author: currentUser?.name || 'Técnico', time: 'Agora mesmo', text: comment });
+        }
+        if (selectedStatus === 'Não concluída') {
+           newHistory.push({ id: Date.now()+1, author: currentUser?.name || 'Técnico', time: 'Agora mesmo', text: `[NÃO CONCLUÍDA] Motivo: ${reason}` });
+        }
+
+        setTasks(tasks.map(t => t.id === selectedTask.id ? { 
+            ...t, 
+            status: selectedStatus,
+            history: newHistory
+        } : t));
+        alert('Tarefa atualizada com sucesso!');
         handleCloseModal();
     }
   };
 
-  // Filter Logic
-  const filteredTasks = tasks.filter(t => {
+  // Quick Action: Marcar como finalizada diretamente do card
+  const quickFinish = (taskId, e) => {
+      e.stopPropagation(); // Evita abrir o modal se clicar no botão
+      if(window.confirm("Confirmar finalização rápida desta tarefa?")) {
+         setTasks(tasks.map(t => t.id === taskId ? { ...t, status: 'Finalizada' } : t));
+      }
+  };
+
+  // Filter Logic over myTasks
+  const filteredTasks = myTasks.filter(t => {
       if (activeFilter === 'Todas') return true;
       if (activeFilter === 'Pendentes') return t.status === 'Pendente';
-      if (activeFilter === 'Em Execução') return t.status === 'Em Execução';
-      if (activeFilter === 'Atrasadas') return t.sla === 'danger' && t.status !== 'Concluída';
+      if (activeFilter === 'Em andamento') return t.status === 'Em andamento';
+      if (activeFilter === 'Finalizadas') return t.status === 'Finalizada';
+      if (activeFilter === 'Atrasadas') return t.hoursLeft < 0 && t.status !== 'Finalizada';
       return true;
   });
 
-  const getSlaClass = (sla) => {
-    if (sla === 'ok') return 'sla-ok';
-    if (sla === 'warning') return 'sla-warning';
-    return 'sla-danger';
-  };
-  const getSlaTextClass = (sla) => {
-    if (sla === 'ok') return 'sla-ok-text';
-    if (sla === 'warning') return 'sla-warning-text';
-    return 'sla-danger-text';
+  const getSlaClass = (task) => {
+    if (task.status === 'Finalizada') return 'sla-ok';
+    if (task.hoursLeft < 0) return 'sla-danger';
+    if (task.hoursLeft <= 12) return 'sla-warning';
+    return 'sla-ok';
   };
 
-  const getSlaIcon = (sla) => {
-    if (sla === 'ok') return <CheckCircle2 size={16} />;
-    if (sla === 'warning') return <Clock size={16} />;
-    return <AlertTriangle size={16} />;
+  const getSlaTextClass = (task) => {
+    if (task.status === 'Finalizada') return 'sla-ok-text';
+    if (task.hoursLeft < 0) return 'sla-danger-text';
+    if (task.hoursLeft <= 12) return 'sla-warning-text';
+    return 'sla-ok-text';
   };
 
-  const formatHours = (hours) => {
-      if (hours < 0) return `Atrasado há ${Math.abs(hours)}h`;
-      return `Restam ${hours}h`;
+  const formatHours = (task) => {
+      if (task.status === 'Finalizada') return 'Concluída no prazo';
+      if (task.hoursLeft < 0) return `Atrasado há ${Math.abs(task.hoursLeft)}h`;
+      return `Restam ${task.hoursLeft}h`;
   };
 
   return (
@@ -107,54 +176,56 @@ const PainelFuncionario = () => {
           <div className="header-left">
             <button className="mobile-menu-btn" onClick={() => setSidebarOpen(true)}><Menu size={20} /></button>
              <div className="header-breadcrumbs">
-               <h2 className="header-title">Painel Operacional</h2>
+               <h2 className="header-title">Minhas Tarefas</h2>
+               <p className="header-date">Operacional</p>
             </div>
           </div>
           <div className="header-right">
              <NotificationMenu />
-             <div className="user-profile-dropdown" onClick={() => navigate('/perfil')}>
-                <div className="user-avatar"><span>{currentUser?.name?.charAt(0) || 'F'}</span></div>
+             <div className="user-profile-dropdown" onClick={() => navigate('/perfil')} style={{cursor:'pointer'}}>
+                <div className="user-avatar" style={{background:'#16a34a'}}><span>{currentUser?.name?.charAt(0) || 'F'}</span></div>
              </div>
           </div>
         </header>
+
+        {/* Banner de Contexto Visual (Master) */}
+        <ContextBanner />
 
         <div className="dashboard-content-scroll pf-container">
             
             {/* Resumo */}
             <div className="pf-header">
-                <h1 className="pf-title">Olá, {currentUser?.name?.split(' ')[0] || 'Técnico'}</h1>
-                <p className="pf-subtitle">Aqui está o resumo do seu turno atual.</p>
+                <h1 className="pf-title">Olá, {currentUser?.name?.split(' ')[0] || 'Técnico'}!</h1>
+                <p className="pf-subtitle">Aqui está o resumo do seu turno atual. Você tem {myTasks.filter(t=>t.status !== 'Finalizada').length} tarefas pendentes.</p>
             </div>
 
             <div className="pf-metrics-grid">
                 <div className="pf-metric-card">
                     <div className="pf-metric-icon-box pf-metric-blue"><Play size={20} /></div>
                     <div className="pf-metric-info">
-                        <h4>{emExecucao}</h4>
-                        <span>Em Execução</span>
+                        <h4>{emAndamentoCount}</h4>
+                        <span>Em Andamento</span>
                     </div>
                 </div>
-                <div className="pf-metric-card" style={{ border: atrasadas > 0 ? '1px solid #fca5a5' : ''}}>
+                <div className="pf-metric-card" style={{ border: atrasadasCount > 0 ? '1px solid #fca5a5' : ''}}>
                     <div className="pf-metric-icon-box pf-metric-red"><AlertTriangle size={20} /></div>
                     <div className="pf-metric-info">
-                        <h4 className="text-rose">{atrasadas}</h4>
+                        <h4 className="text-rose">{atrasadasCount}</h4>
                         <span className="text-rose">Atrasadas (SLA)</span>
                     </div>
                 </div>
                 <div className="pf-metric-card">
                     <div className="pf-metric-icon-box pf-metric-green"><CheckCircle size={20} /></div>
                     <div className="pf-metric-info">
-                        <h4>{concluidasHoje}</h4>
+                        <h4>{concluidasHojeCount}</h4>
                         <span>Concluídas Hoje</span>
                     </div>
                 </div>
             </div>
 
             {/* List and Filters */}
-            <h3 style={{ marginBottom: '1rem', color: 'var(--color-slate-800)' }}>Minhas Tarefas</h3>
-            
             <div className="pf-filters">
-                {['Todas', 'Pendentes', 'Em Execução', 'Atrasadas'].map(filter => (
+                {['Todas', 'Pendentes', 'Em andamento', 'Finalizadas', 'Atrasadas'].map(filter => (
                     <button 
                        key={filter} 
                        className={`pf-filter-btn ${activeFilter === filter ? 'active' : ''}`}
@@ -167,15 +238,16 @@ const PainelFuncionario = () => {
 
             <div className="pf-tasks-grid">
                {filteredTasks.length > 0 ? filteredTasks.map(task => (
-                   <div key={task.id} className={`pf-task-card ${getSlaClass(task.sla)}`}>
+                   <div key={task.id} className={`pf-task-card ${getSlaClass(task)}`} onClick={() => handleOpenModal(task)} style={{cursor: 'pointer'}}>
                        <div className="pf-task-header">
                            <span className={`pf-status-badge ${
-                               task.status === 'Pendente' ? 'pf-status-pendente' : 
-                               task.status === 'Em Execução' ? 'pf-status-execucao' : 'pf-status-concluida'
+                               task.status === 'Pendente' ? 'status-aberta' : 
+                               task.status === 'Em andamento' ? 'status-andamento' : 
+                               task.status === 'Não concluída' ? 'status-naoconcluida' : 'status-finalizada'
                            }`}>
                                {task.status}
                            </span>
-                           <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>CÓD: #{task.id}</span>
+                           <span className="pf-task-category">{task.category}</span>
                        </div>
                        
                        <h3 className="pf-task-title">{task.title}</h3>
@@ -185,18 +257,28 @@ const PainelFuncionario = () => {
                        </div>
 
                        <div className="pf-task-meta">
-                           <div className={`pf-sla-tag ${getSlaTextClass(task.sla)}`}>
-                               {getSlaIcon(task.sla)}
-                               {formatHours(task.hoursLeft)}
+                           <div className={`pf-sla-tag ${getSlaTextClass(task)}`}>
+                               {task.status === 'Finalizada' ? <CheckCircle2 size={16}/> : (task.hoursLeft < 0 ? <AlertTriangle size={16}/> : <Clock size={16}/>)}
+                               {formatHours(task)}
                            </div>
                            
-                           <button className="pf-btn-action" onClick={() => handleOpenModal(task)}>
-                               Atualizar <ChevronRight size={16} />
-                           </button>
+                           <div className="pf-quick-actions">
+                               {task.unreadComments > 0 && (
+                                   <button className="btn-icon-round" title="Novos Comentários">
+                                       <MessageSquare size={16} />
+                                       <span className="unread-dot"></span>
+                                   </button>
+                               )}
+                               {task.status !== 'Finalizada' && (
+                                   <button className="btn-icon-round finish" title="Finalizar Rápido" onClick={(e) => quickFinish(task.id, e)}>
+                                       <CheckCircle2 size={18} />
+                                   </button>
+                               )}
+                           </div>
                        </div>
                    </div>
                )) : (
-                   <div style={{ padding: '3rem', textAlign: 'center', color: '#64748b', border: '1px dashed #cbd5e1', borderRadius: '12px' }}>
+                   <div style={{ padding: '3rem', textAlign: 'center', color: '#64748b', border: '1px dashed #cbd5e1', borderRadius: '12px', gridColumn: '1 / -1' }}>
                        Nenhuma tarefa encontrada neste filtro. Excelente trabalho!
                    </div>
                )}
@@ -204,75 +286,115 @@ const PainelFuncionario = () => {
 
         </div>
 
-        {/* Modal de Atualização de Status */}
+        {/* Modal de Detalhes e Execução */}
         {selectedTask && (
             <div className="pf-modal-overlay">
                 <div className="pf-modal">
                     <div className="pf-modal-header">
-                        <h2 className="pf-modal-title">Atualizar Execução</h2>
+                        <div>
+                           <h2 className="pf-modal-title">Ordem de Serviço #{selectedTask.id}</h2>
+                           <p className="pf-modal-subtitle">{selectedTask.title} • {selectedTask.location}</p>
+                        </div>
                         <button onClick={handleCloseModal} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><X size={20}/></button>
                     </div>
                     
-                    <form onSubmit={saveTaskUpdate}>
-                        <div className="pf-form-group">
-                            <label>Atualizar Status</label>
-                            
-                            {(currentUser?.role === 'SINDICO' || currentUser?.role === 'ADMIN') ? (
-                                <select className="pf-select" value={newStatus} onChange={e => setNewStatus(e.target.value)}>
-                                    <option value="Pendente">Pendente</option>
-                                    <option value="Em Execução">Em Execução</option>
-                                    <option value="Concluída">Concluída (Requer Validação)</option>
-                                    <option value="Arquivada (Validado)">Arquivada / Aprovada</option>
-                                    <option value="Cancelada">Cancelada</option>
-                                </select>
-                            ) : (
-                                <>
-                                    <select className="pf-select" value={newStatus} onChange={e => setNewStatus(e.target.value)}>
-                                        <option value="Pendente" disabled={selectedTask.status !== 'Pendente'}>Pendente</option>
-                                        <option value="Em Execução">Em Execução (Iniciada)</option>
-                                        <option value="Concluída">Concluída (Aguardando Validação do Síndico)</option>
-                                    </select>
-                                    <p style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '0.5rem' }}>
-                                        <i>Nota: A validação final, alterações de prioridade ou cancelamento da atividade só podem ser realizadas pelo painel do Síndico.</i>
-                                    </p>
-                                </>
-                            )}
-                        </div>
-                        
-                        <div className="pf-form-group">
-                            <label>Comentário Técnico (Opcional)</label>
-                            <textarea 
-                                className="pf-textarea" 
-                                rows="3" 
-                                placeholder="Descreva o que foi feito ou impeditivos..."
-                                value={comment}
-                                onChange={e => setComment(e.target.value)}
-                            ></textarea>
-                        </div>
+                    <div className="pf-modal-body">
+                       <form id="task-form" onSubmit={saveTaskUpdate}>
+                           
+                           <div className="pf-form-group">
+                               <label>Marcar Status</label>
+                               <div className="status-options-grid">
+                                   <div className={`status-option-btn ${selectedStatus === 'Em andamento' ? 'active-andamento' : ''}`} onClick={() => setSelectedStatus('Em andamento')}>
+                                      <Play size={20} /> Em andamento
+                                   </div>
+                                   <div className={`status-option-btn ${selectedStatus === 'Finalizada' ? 'active-finalizada' : ''}`} onClick={() => setSelectedStatus('Finalizada')}>
+                                      <CheckCircle2 size={20} /> Finalizada
+                                   </div>
+                                   <div className={`status-option-btn ${selectedStatus === 'Não concluída' ? 'active-naoconcluida' : ''}`} onClick={() => setSelectedStatus('Não concluída')}>
+                                      <X size={20} /> Não concluída
+                                   </div>
+                               </div>
+                           </div>
+                           
+                           {/* Mostrar campos adicionais dependendo do Status */}
+                           {selectedStatus === 'Não concluída' && (
+                               <div className="alert-danger-box">
+                                   <AlertCircle size={24} color="#dc2626" style={{flexShrink:0}}/>
+                                   <div style={{flex: 1}}>
+                                       <label style={{display:'block', fontWeight:700, fontSize:'0.85rem', color:'#991b1b', marginBottom:'0.5rem'}}>Motivo obrigatório</label>
+                                       <textarea 
+                                           className="pf-textarea" 
+                                           style={{borderColor:'#fca5a5', background:'white'}}
+                                           placeholder="Ex: Morador não estava em casa, falta de peça..."
+                                           value={reason} onChange={e => setReason(e.target.value)}
+                                           required
+                                       ></textarea>
+                                       <label style={{display:'flex', alignItems:'center', gap:'0.5rem', marginTop:'0.75rem', fontSize:'0.85rem', cursor:'pointer'}}>
+                                           <input type="checkbox" checked={reschedule} onChange={e=>setReschedule(e.target.checked)}/> Solicitar reagendamento para o síndico
+                                       </label>
+                                   </div>
+                               </div>
+                           )}
 
-                        <div className="pf-form-group">
-                            <label>Anexar Evidências (Fotos do serviço)</label>
-                            <label className="pf-upload-btn">
-                                <UploadCloud size={24} />
-                                <span style={{ fontSize: '0.85rem' }}>Clique p/ enviar da Galeria ou Câmera</span>
-                                <input type="file" multiple accept="image/*" style={{ display: 'none' }} onChange={handleUploadSimulate}/>
-                            </label>
-                            {uploadedFiles.length > 0 && (
-                                <div style={{ marginTop: '0.5rem', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                                    {uploadedFiles.map((file, i) => (
-                                        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '4px', background: '#f1f5f9', padding: '4px 8px', borderRadius: '4px', fontSize: '0.75rem' }}>
-                                            <ImageIcon size={12}/> {file}
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
+                           {selectedStatus === 'Finalizada' && (
+                               <div className="pf-form-group">
+                                   <label>Anexar Evidências (Obrigatório foto do serviço concluído)</label>
+                                   <label className="pf-upload-area">
+                                       <UploadCloud size={32} color="#64748b" style={{marginBottom:'0.5rem'}}/>
+                                       <span style={{ display:'block', fontSize: '0.9rem', fontWeight:600, color:'#1e293b' }}>Clique para enviar foto</span>
+                                       <span style={{ fontSize: '0.75rem', color:'#64748b' }}>Galeria ou Câmera do celular</span>
+                                       <input type="file" multiple accept="image/*" style={{ display: 'none' }} onChange={handleUploadSimulate}/>
+                                   </label>
+                                   {uploadedFiles.length > 0 && (
+                                       <div className="pf-file-list">
+                                           {uploadedFiles.map((file, i) => (
+                                               <div key={i} className="pf-file-item">
+                                                   <span style={{display:'flex', alignItems:'center', gap:'0.5rem'}}><ImageIcon size={14} color="#4f46e5"/> {file}</span>
+                                                   <button type="button" style={{background:'none',border:'none',color:'#ef4444',cursor:'pointer'}} onClick={() => setUploadedFiles(uploadedFiles.filter((_, idx)=>idx!==i))}><X size={14}/></button>
+                                               </div>
+                                           ))}
+                                       </div>
+                                   )}
+                               </div>
+                           )}
 
-                        <div className="pf-modal-footer">
-                            <button type="button" className="btn-secondary" onClick={handleCloseModal}>Cancelar</button>
-                            <button type="submit" className="btn-primary">Salvar Status e Fechar</button>
-                        </div>
-                    </form>
+                           {(selectedStatus === 'Em andamento' || selectedStatus === 'Finalizada') && (
+                               <div className="pf-form-group">
+                                   <label>Adicionar Comentário / Reporte Extra</label>
+                                   <textarea 
+                                       className="pf-textarea" 
+                                       placeholder="Reporte algo adicional ao síndico..."
+                                       value={comment} onChange={e => setComment(e.target.value)}
+                                   ></textarea>
+                               </div>
+                           )}
+                       </form>
+
+                       {/* Histórico da Ocorrência */}
+                       {selectedTask.history.length > 0 && (
+                           <div className="pf-comments-log">
+                               <h4 style={{fontSize:'0.9rem', margin:'0 0 1rem 0', color:'#1e293b'}}>Histórico de Ações</h4>
+                               {selectedTask.history.map(item => (
+                                   <div key={item.id} className="pf-comment-item">
+                                       <div className="pf-comment-avatar">{item.author.charAt(0)}</div>
+                                       <div className="pf-comment-bubble">
+                                           <div className="pf-comment-header">
+                                               <span className="pf-comment-name">{item.author}</span>
+                                               <span className="pf-comment-time">{item.time}</span>
+                                           </div>
+                                           <p className="pf-comment-text">{item.text}</p>
+                                       </div>
+                                   </div>
+                               ))}
+                           </div>
+                       )}
+
+                    </div>
+                    
+                    <div className="pf-modal-footer">
+                        <button type="button" className="btn-outline-primary" onClick={handleCloseModal}>Cancelar</button>
+                        <button type="submit" form="task-form" className="btn-saas-primary" style={{background:'#16a34a'}}>Salvar Alterações</button>
+                    </div>
                 </div>
             </div>
         )}
