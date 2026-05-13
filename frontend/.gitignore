@@ -22,3 +22,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Credenciais e pacotes
+.env
+package.json
+package-lock.json

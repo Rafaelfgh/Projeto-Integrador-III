@@ -10,5 +10,7 @@ if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
   throw new Error('As variáveis VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY não estão configuradas.');
 }
 
-// Criar o cliente do Supabase
+// Criar o cliente do Supabase (Público)
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// O cliente Admin foi removido porque o Supabase bloqueia a Service Role Key no navegador.

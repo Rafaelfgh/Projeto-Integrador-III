@@ -16,7 +16,7 @@ const ProtectedRoute = ({ allowedRoles }) => {
 
   if (allowedRoles && !allowedRoles.includes(currentUser.role)) {
     if (currentUser.role === 'ADMIN') {
-      return <Navigate to="/painel-admin" replace />;
+      return <Navigate to="/painel-master" replace />;
     }
     if (currentUser.role === 'SINDICO') {
       return <Navigate to="/painel" replace />;

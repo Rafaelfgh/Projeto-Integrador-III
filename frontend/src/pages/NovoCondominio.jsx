@@ -132,7 +132,7 @@ const NovoCondominio = () => {
         <h1 className="nc-title">Novo condomínio</h1>
         <button
           className="nc-btn-outline"
-          onClick={() => navigate("/painel-admin")}
+          onClick={() => navigate("/painel-master")}
         >
           <ArrowLeft size={16} /> Voltar
         </button>
@@ -150,15 +150,9 @@ const NovoCondominio = () => {
               <div className="nc-success-actions">
                 <button
                   className="nc-btn-primary"
-                  onClick={() => navigate("/painel-admin")}
+                  onClick={() => navigate("/painel-master")}
                 >
                   Dashboard
-                </button>
-                <button
-                  className="nc-btn-outline"
-                  onClick={() => setIsSuccess(false)}
-                >
-                  Novo cadastro
                 </button>
               </div>
             </div>
@@ -333,8 +327,7 @@ const NovoCondominio = () => {
               <div className="nc-info-text">
                 <Info size={16} />
                 <span>
-                  Esta ação criará registros em ambas as tabelas do banco de
-                  dados.
+                  Certifique-se que os dados estão corretos.
                 </span>
               </div>
 

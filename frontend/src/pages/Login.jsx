@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Mail, Lock, User, Building } from 'lucide-react';
+import { Mail, Lock, User, Building, Loader2 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { supabase } from '../backend/supabaseClient';
 import './Login.css';
 
 const CONDOMINIOS_MOCK = [
@@ -15,66 +16,123 @@ const Login = () => {
   const { login } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState(null);
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
+    setLoading(true);
+    setErrorMsg(null);
     
-    // Simula a verificação de primeiro acesso
+    // Simula a verificação de primeiro acesso (Temporário até implementação final)
     if (email.includes('novo') || password === 'senha123') {
       navigate('/primeiro-acesso');
+      setLoading(false);
       return;
     }
 
-    let userRole = 'MORADOR';
-    let userName = 'João Morador';
-    let userUnidade = 'Bloco B, Apt 502';
+    try {
+      // 1. Autenticação no Supabase Auth
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-    // MASTER — acesso total ao sistema (admin@gmail.com ou emails com 'master')
-    if (email === 'admin@gmail.com' || email.includes('master')) {
-      userRole = 'MASTER';
-      userName = 'Admin Master';
-      userUnidade = 'Governança Global';
-    } else if (email === 'admin@condominio.com' || email.includes('admin')) {
-      userRole = 'ADMIN';
-      userName = 'Carlos Admin';
-      userUnidade = 'Administração';
-    } else if (email === 'sindico@condominio.com' || email.includes('sindico')) {
-      userRole = 'SINDICO';
-      userName = 'Roberto Síndico';
-      userUnidade = 'Administração do Condomínio';
-    } else if (email === 'operacao@condominio.com' || email.includes('func')) {
-      userRole = 'FUNCIONARIO';
-      userName = 'Maria Manutenção';
-      userUnidade = 'Equipe de Manutenção';
-    } else if (email === 'morador@condominio.com') {
-      userRole = 'MORADOR';
-      userName = 'Ana Moradora';
-      userUnidade = 'Bloco A, Apt 101';
-    }
+      if (authError) {
+        throw new Error('E-mail ou senha inválidos.');
+      }
 
-    login({
-        id: Date.now(),
-        name: userName,
+      if (!authData.user) {
+        throw new Error('Usuário não encontrado.');
+      }
+
+      const userId = authData.user.id;
+      let userProfile = null;
+      let userRole = null;
+
+      // 2. Procurar na tabela Masters
+      let { data: masterData } = await supabase
+        .from('Masters')
+        .select('*')
+        .eq('id', userId)
+        .single();
+      
+      if (masterData) {
+        userProfile = masterData;
+        userRole = 'MASTER';
+      } else {
+        // Procurar na tabela Funcionarios
+        let { data: funcData } = await supabase
+          .from('Funcionarios')
+          .select('*')
+          .eq('id', userId)
+          .single();
+        
+        if (funcData) {
+          userProfile = funcData;
+          userRole = 'FUNCIONARIO';
+        } else {
+          // Procurar na tabela Moradores
+          let { data: moradorData } = await supabase
+            .from('Moradores')
+            .select('*')
+            .eq('id', userId)
+            .single();
+          
+          if (moradorData) {
+            userProfile = moradorData;
+            userRole = 'MORADOR';
+
+            // Verifica se o morador é um síndico ativo
+            let { data: gestaoData } = await supabase
+              .from('Gestao_Sindicos')
+              .select('*')
+              .eq('sindico_id', userId)
+              .eq('ativo', true)
+              .single();
+              
+            if (gestaoData) {
+               userRole = 'SINDICO';
+            }
+          }
+        }
+      }
+
+      if (!userRole || !userProfile) {
+        throw new Error('Perfil de usuário não encontrado no sistema.');
+      }
+
+      // 3. Montar dados para o AuthContext
+      const userData = {
+        id: userId,
+        name: userProfile.nome || userProfile.name || 'Usuário',
         email: email,
         role: userRole,
-        unidade: userUnidade,
-        phone: '(11) 99999-0000',
-        cpf: '123.456.789-00',
-        cadastro: '10/01/2023',
+        unidade: userProfile.unidade || userProfile.condominio_id || 'Sem unidade',
+        phone: userProfile.telefone || '',
+        cpf: userProfile.cpf_ou_cnpj || userProfile.cpf || '',
         status: 'Ativo'
-    });
+      };
 
-    // Redireciona por role
-    if (userRole === 'MASTER') {
-      navigate('/painel-admin');
-    } else if (userRole === 'ADMIN') {
-      navigate('/painel-admin');
-    } else if (userRole === 'SINDICO') {
-      navigate('/painel');
-    } else if (userRole === 'FUNCIONARIO') {
-      navigate('/painel-funcionario');
-    } else {
-      navigate('/solicitacoes');
+      // 4. Efetuar Login no Contexto
+      login(userData);
+
+      // 5. Redirecionamento por role
+      if (userRole === 'MASTER') {
+        navigate('/painel-master');
+      } else if (userRole === 'SINDICO') {
+        navigate('/painel');
+      } else if (userRole === 'FUNCIONARIO') {
+        navigate('/painel-funcionario');
+      } else {
+        navigate('/solicitacoes');
+      }
+
+    } catch (error) {
+      console.error('Erro no login:', error);
+      setErrorMsg(error.message || 'Erro inesperado ao realizar login.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -102,6 +160,12 @@ const Login = () => {
 
           <form onSubmit={handleLogin} className="login-form">
             
+            {errorMsg && (
+              <div style={{ backgroundColor: '#fee2e2', color: '#b91c1c', padding: '1rem', borderRadius: '8px', marginBottom: '1.5rem', fontSize: '0.9rem' }}>
+                {errorMsg}
+              </div>
+            )}
+
             <div className="input-group">
               <label className="input-label" htmlFor="email">
                 E-mail
@@ -143,12 +207,22 @@ const Login = () => {
               </div>
             </div>
 
-            <button type="submit" className="btn-primary">
-              Entrar
+            <button type="submit" className="btn-primary" disabled={loading}>
+              {loading ? (
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+                  <Loader2 className="input-icon" style={{ animation: 'spin 1s linear infinite', position: 'static', color: 'inherit' }} size={20} />
+                  Entrando...
+                </div>
+              ) : (
+                'Entrar'
+              )}
             </button>
           </form>
 
           <div style={{ textAlign: 'center', marginTop: '1rem', borderTop: '1px solid #e2e8f0', paddingTop: '1rem' }}>
+            <Link to="/cadastro" className="text-link" style={{ color: '#7c3aed', fontSize: '0.85rem', fontWeight: 600, display: 'block', marginBottom: '0.75rem' }}>
+               Ainda não tem conta? Cadastre-se como morador
+            </Link>
             <Link to="/novo-condominio" className="text-link" style={{ color: '#64748b', fontSize: '0.8rem', fontWeight: 500 }}>
                Sou Administrador e quero registrar meu Condomínio
             </Link>

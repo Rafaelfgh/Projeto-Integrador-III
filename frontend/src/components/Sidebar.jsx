@@ -180,20 +180,11 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
             <div className="nav-group">
               <p className="nav-section-title">Painel de Governança</p>
               <nav className="nav-list">
-                <a href="#" className={`nav-item ${currentPath === '/painel-admin' && (!location.search || location.search === '?tab=overview') ? 'nav-item-active' : 'nav-item-inactive'}`} onClick={(e) => { e.preventDefault(); handleNavClick('/painel-admin?tab=overview'); }}>
-                  <LayoutDashboard className="nav-icon" /><span>Visão Geral do Sistema</span>
+                <a href="#" className={`nav-item ${currentPath === '/painel-master' && (!location.search || location.search === '?tab=overview') ? 'nav-item-active' : 'nav-item-inactive'}`} onClick={(e) => { e.preventDefault(); handleNavClick('/painel-master?tab=overview'); }}>
+                  <LayoutDashboard className="nav-icon" /><span>Visão Geral do Condomínio</span>
                 </a>
-                <a href="#" className={`nav-item ${currentPath === '/painel-admin' && location.search === '?tab=usuarios' ? 'nav-item-active' : 'nav-item-inactive'}`} onClick={(e) => { e.preventDefault(); handleNavClick('/painel-admin?tab=usuarios'); }}>
+                <a href="#" className={`nav-item ${currentPath === '/painel-master' && location.search === '?tab=usuarios' ? 'nav-item-active' : 'nav-item-inactive'}`} onClick={(e) => { e.preventDefault(); handleNavClick('/painel-master?tab=usuarios'); }}>
                   <Users className="nav-icon" /><span>Gestão de Perfis & Acesso</span>
-                </a>
-                <a href="#" className={`nav-item ${currentPath === '/painel-admin' && location.search === '?tab=estrutura' ? 'nav-item-active' : 'nav-item-inactive'}`} onClick={(e) => { e.preventDefault(); handleNavClick('/painel-admin?tab=estrutura'); }}>
-                  <Building className="nav-icon" /><span>Estrutura de Condomínios</span>
-                </a>
-                <a href="#" className={`nav-item ${currentPath === '/painel-admin' && location.search === '?tab=auditoria' ? 'nav-item-active' : 'nav-item-inactive'}`} onClick={(e) => { e.preventDefault(); handleNavClick('/painel-admin?tab=auditoria'); }}>
-                  <Clock className="nav-icon" /><span>Auditoria & Relatórios</span>
-                </a>
-                <a href="#" className={`nav-item ${currentPath === '/painel-admin' && location.search === '?tab=parametros' ? 'nav-item-active' : 'nav-item-inactive'}`} onClick={(e) => { e.preventDefault(); handleNavClick('/painel-admin?tab=parametros'); }}>
-                  <Settings className="nav-icon" /><span>Parâmetros Globais</span>
                 </a>
               </nav>
             </div>
