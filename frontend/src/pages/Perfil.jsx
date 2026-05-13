@@ -3,11 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { 
   User, Shield, Bell, Activity, Menu, MapPin, 
   Camera, Lock, Mail, Smartphone, Monitor, Globe,
-  CheckCircle2, XCircle, AlertCircle, Info, X
+  CheckCircle2, XCircle, AlertCircle, Info, X, Building
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import NotificationMenu from '../components/NotificationMenu';
 import Sidebar from '../components/Sidebar';
+import { supabase } from '../backend/supabaseClient';
 import './Dashboard.css';
 import './Perfil.css';
 
@@ -46,9 +47,58 @@ const Perfil = () => {
   // Aba Geral - Funcionário Especialidades
   const [mySkills, setMySkills] = useState(['Hidráulica', 'Elétrica', 'Limpeza']);
 
+  // --- LOGIC: Identificar Tabela e Condomínio ---
+  const [condominioName, setCondominioName] = useState('Carregando condomínio...');
+  const [tableName, setTableName] = useState('');
+
+  useEffect(() => {
+    const fetchCondominio = async () => {
+      try {
+        let condId = null;
+        let table = '';
+
+        if (currentUser.role === 'MASTER') {
+          table = 'Masters';
+          const { data } = await supabase.from('Masters').select('condominio_id').eq('id', currentUser.id).single();
+          if (data) condId = data.condominio_id;
+        } else if (currentUser.role === 'FUNCIONARIO') {
+          table = 'Funcionarios';
+          const { data } = await supabase.from('Funcionarios').select('condominio_id').eq('id', currentUser.id).single();
+          if (data) condId = data.condominio_id;
+        } else {
+          // MORADOR ou SINDICO
+          table = 'Moradores';
+          const { data } = await supabase.from('Moradores').select('condominio_id').eq('id', currentUser.id).single();
+          if (data) condId = data.condominio_id;
+        }
+
+        setTableName(table);
+
+        if (condId) {
+          const { data: condData } = await supabase.from('Condominios').select('nome').eq('id', condId).single();
+          if (condData) {
+            setCondominioName(condData.nome);
+          } else {
+            setCondominioName('Condomínio não encontrado');
+          }
+        } else {
+          setCondominioName('Sem condomínio vinculado');
+        }
+      } catch (err) {
+        console.error('Erro ao buscar condomínio:', err);
+        setCondominioName('Erro ao carregar');
+      }
+    };
+
+    if (currentUser?.id) {
+      fetchCondominio();
+    }
+  }, [currentUser]);
+
   // --- LOGIC: Banner & Role Variables ---
   const getRoleVars = () => {
     switch (currentUser.role) {
+      case 'MASTER': return { bannerClass: 'banner-master', avatarClass: 'avatar-master', roleBadge: 'role-master', roleName: 'Master Admin', mainColor: '#7c3aed' };
       case 'SINDICO': return { bannerClass: 'banner-sindico', avatarClass: 'avatar-sindico', roleBadge: 'role-sindico', roleName: 'Síndico', mainColor: '#4f46e5' };
       case 'FUNCIONARIO': return { bannerClass: 'banner-funcionario', avatarClass: 'avatar-funcionario', roleBadge: 'role-funcionario', roleName: 'Funcionário', mainColor: '#16a34a' };
       default: return { bannerClass: 'banner-morador', avatarClass: 'avatar-morador', roleBadge: 'role-morador', roleName: 'Morador', mainColor: '#ea580c' };
@@ -160,10 +210,23 @@ const Perfil = () => {
                     {currentUser.name} 
                     <span className="perfil-user-status">ATIVO</span>
                   </h3>
-                  <div className="perfil-user-role" style={{marginTop:'4px'}}>
-                    <span className={`badge-role ${roleVars.roleBadge}`}>{roleVars.roleName}</span>
+                  <div className="perfil-user-role" style={{marginTop:'4px', display:'flex', alignItems:'center', gap:'8px', flexWrap:'wrap'}}>
+                    <span className={`badge-role ${roleVars.roleBadge}`} title={`Tabela de origem: ${tableName}`}>
+                      {roleVars.roleName}
+                    </span>
                     <span style={{color:'#cbd5e1'}}>•</span>
-                    <MapPin size={14} /> {currentUser.unidade}
+                    <span style={{display:'flex', alignItems:'center', gap:'4px'}}>
+                      <Building size={14} color={roleVars.mainColor} />
+                      <strong>{condominioName}</strong>
+                    </span>
+                    {(currentUser.role === 'MORADOR' || currentUser.role === 'SINDICO') && currentUser.unidade !== condominioName && (
+                      <>
+                        <span style={{color:'#cbd5e1'}}>•</span>
+                        <span style={{display:'flex', alignItems:'center', gap:'4px'}}>
+                          <MapPin size={14} /> {currentUser.unidade}
+                        </span>
+                      </>
+                    )}
                   </div>
                 </div>
               </div>

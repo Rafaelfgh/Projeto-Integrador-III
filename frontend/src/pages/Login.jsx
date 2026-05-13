@@ -111,7 +111,7 @@ const Login = () => {
         unidade: userProfile.unidade || userProfile.condominio_id || 'Sem unidade',
         phone: userProfile.telefone || '',
         cpf: userProfile.cpf_ou_cnpj || userProfile.cpf || '',
-        status: 'Ativo'
+        status: userProfile.status || 'ATIVO'
       };
 
       // 4. Efetuar Login no Contexto

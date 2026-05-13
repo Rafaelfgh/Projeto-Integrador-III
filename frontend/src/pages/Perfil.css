@@ -25,6 +25,7 @@
   position: relative;
   overflow: hidden;
 }
+.banner-master { background: linear-gradient(135deg, #7c3aed 0%, #8b5cf6 100%); }
 .banner-sindico { background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%); }
 .banner-funcionario { background: linear-gradient(135deg, #16a34a 0%, #22c55e 100%); }
 .banner-morador { background: linear-gradient(135deg, #ea580c 0%, #f97316 100%); }
@@ -69,6 +70,7 @@
   background-color: #f8fafc;
 }
 
+.perfil-avatar-inner.avatar-master { color: #7c3aed; background-color: #f3e8ff; }
 .perfil-avatar-inner.avatar-sindico { color: #4f46e5; background-color: #eef2ff; }
 .perfil-avatar-inner.avatar-funcionario { color: #16a34a; background-color: #f0fdf4; }
 .perfil-avatar-inner.avatar-morador { color: #ea580c; background-color: #fff7ed; }
@@ -132,6 +134,7 @@
   font-weight: 700;
   text-transform: uppercase;
 }
+.role-master { background-color: #f3e8ff; color: #7c3aed; border: 1px solid #e9d5ff; }
 .role-sindico { background-color: #eef2ff; color: #4f46e5; border: 1px solid #c7d2fe; }
 .role-funcionario { background-color: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
 .role-morador { background-color: #fff7ed; color: #ea580c; border: 1px solid #fed7aa; }
