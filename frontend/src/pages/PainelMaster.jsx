@@ -8,7 +8,20 @@ import NotificationMenu from '../components/NotificationMenu';
 import ContextBanner from '../components/ContextBanner';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../backend/supabaseClient';
+import { createClient } from '@supabase/supabase-js';
 import './PainelMaster.css';
+
+const secondarySupabase = createClient(
+  import.meta.env.VITE_SUPABASE_URL,
+  import.meta.env.VITE_SUPABASE_ANON_KEY,
+  {
+    auth: {
+      storageKey: 'secondary-client-key',
+      autoRefreshToken: false,
+      persistSession: false
+    }
+  }
+);
 
 const PainelMaster = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -27,6 +40,8 @@ const PainelMaster = () => {
   // Modals state (For Users)
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showPromoteModal, setShowPromoteModal] = useState(false);
+  const [userToPromote, setUserToPromote] = useState(null);
 
   // Forms states
   const [newFunc, setNewFunc] = useState({ nome: '', email: '', cpf: '', cargo: '', senha: 'Mudar@123' });
@@ -52,13 +67,15 @@ const PainelMaster = () => {
         // Fetch users
         const { data: moradores } = await supabase.from('Moradores').select('*').eq('condominio_id', condId);
         const { data: funcionarios } = await supabase.from('Funcionarios').select('*').eq('condominio_id', condId);
-        const { data: gestao } = await supabase.from('Gestao_Sindicos').select('sindico_id').eq('condominio_id', condId).eq('ativo', true);
+        const { data: gestao } = await supabase.from('Gestao_Sindicos').select('morador_id').eq('condominio_id', condId).eq('ativo', true);
+        const { data: userEmails } = await supabase.from('user_emails').select('*');
         
-        const sindicosIds = gestao ? gestao.map(g => g.sindico_id) : [];
+        const sindicosIds = gestao ? gestao.map(g => g.morador_id) : [];
+        const getEmail = (id) => userEmails?.find(e => e.id === id)?.email || 'Sem e-mail';
         
         let allUsers = [];
-        if (moradores) allUsers.push(...moradores.map(m => ({ ...m, role: sindicosIds.includes(m.id) ? 'SINDICO' : 'MORADOR', status: m.status || 'ATIVO', email: m.email || '—' })));
-        if (funcionarios) allUsers.push(...funcionarios.map(f => ({ ...f, role: 'FUNCIONARIO', status: f.status || 'ATIVO', email: f.email || '—' })));
+        if (moradores) allUsers.push(...moradores.map(m => ({ ...m, role: sindicosIds.includes(m.id) ? 'SINDICO' : 'MORADOR', status: m.status || 'ATIVO', email: getEmail(m.id) })));
+        if (funcionarios) allUsers.push(...funcionarios.map(f => ({ ...f, role: 'FUNCIONARIO', status: f.status || 'ATIVO', email: getEmail(f.id) })));
         
         // Sort: PENDENTES first
         allUsers.sort((a, b) => {
@@ -118,6 +135,18 @@ const PainelMaster = () => {
     }
   };
 
+  const handleDeleteFuncionario = async (user) => {
+    if (!window.confirm(`Tem certeza que deseja excluir o funcionário ${user.nome}?`)) return;
+    try {
+      const { error } = await supabase.from('Funcionarios').delete().eq('id', user.id);
+      if (error) throw error;
+      setUsers(users.filter(u => u.id !== user.id));
+      alert('Funcionário excluído com sucesso!');
+    } catch (e) {
+      alert('Erro ao excluir funcionário: ' + e.message);
+    }
+  };
+
   const handleRoleChange = async (userId, newRole) => {
     const userToChange = users.find(u => u.id === userId);
     if (!userToChange) return;
@@ -128,23 +157,34 @@ const PainelMaster = () => {
          alert('Já existe um Síndico ativo neste condomínio. Remova o síndico atual (volte para Morador) antes de promover outro.');
          return;
       }
-      try {
-        await supabase.from('Gestao_Sindicos').insert({
-           sindico_id: userId,
-           condominio_id: userToChange.condominio_id,
-           ativo: true
-        });
-        setUsers(users.map(u => u.id === userId ? { ...u, role: 'SINDICO' } : u));
-      } catch (err) {
-        alert('Erro ao promover a síndico');
-      }
+
+      setUserToPromote(userToChange);
+      setShowPromoteModal(true);
     } else if (newRole === 'MORADOR' && userToChange.role === 'SINDICO') {
       try {
-        await supabase.from('Gestao_Sindicos').update({ ativo: false }).eq('sindico_id', userId);
+        const { error } = await supabase.from('Gestao_Sindicos').update({ ativo: false }).eq('morador_id', userId);
+        if (error) throw error;
         setUsers(users.map(u => u.id === userId ? { ...u, role: 'MORADOR' } : u));
       } catch(err) {
-        alert('Erro ao remover síndico');
+        alert('Erro ao remover síndico. Detalhes: ' + err.message);
       }
+    }
+  };
+
+  const confirmPromotion = async () => {
+    if (!userToPromote) return;
+    try {
+      const { error } = await supabase.from('Gestao_Sindicos').insert({
+         morador_id: userToPromote.id,
+         condominio_id: userToPromote.condominio_id,
+         ativo: true
+      });
+      if (error) throw error;
+      setUsers(users.map(u => u.id === userToPromote.id ? { ...u, role: 'SINDICO' } : u));
+      setShowPromoteModal(false);
+      setUserToPromote(null);
+    } catch (err) {
+      alert('Erro ao promover a síndico. Detalhes: ' + err.message);
     }
   };
 
@@ -152,7 +192,7 @@ const PainelMaster = () => {
     e.preventDefault();
     setLoadingData(true);
     try {
-      const { data: authData, error: authError } = await supabase.auth.signUp({
+      const { data: authData, error: authError } = await secondarySupabase.auth.signUp({
         email: newFunc.email,
         password: newFunc.senha,
       });
@@ -163,7 +203,6 @@ const PainelMaster = () => {
       const { error: insertError } = await supabase.from('Funcionarios').insert({
         id: authData.user.id,
         nome: newFunc.nome,
-        cpf: newFunc.cpf,
         cargo: newFunc.cargo || 'Funcionário',
         condominio_id: masterData.condominio_id
       });
@@ -171,8 +210,8 @@ const PainelMaster = () => {
 
       alert('Funcionário criado com sucesso! Ele já pode fazer login com a senha: ' + newFunc.senha);
       setShowCreateModal(false);
-      setNewFunc({ nome: '', email: '', cpf: '', cargo: '', senha: 'Mudar@123' });
-      setUsers([{ id: authData.user.id, nome: newFunc.nome, email: newFunc.email, cpf: newFunc.cpf, role: 'FUNCIONARIO', status: 'ATIVO', condominio_id: masterData.condominio_id }, ...users]);
+      setNewFunc({ nome: '', email: '', cargo: '', senha: 'Mudar@123' });
+      setUsers([{ id: authData.user.id, nome: newFunc.nome, email: newFunc.email, role: 'FUNCIONARIO', status: 'ATIVO', condominio_id: masterData.condominio_id }, ...users]);
     } catch(err) {
       console.error(err);
       alert('Erro ao criar funcionário: ' + err.message);
@@ -237,57 +276,6 @@ const PainelMaster = () => {
             </div>
           </div>
           <div className="header-right">
-            {currentUser?.role === 'MASTER' && (
-              <div style={{ position: 'relative', marginRight: '0.75rem' }}>
-                <button
-                  onClick={() => setCtxOpen(o => !o)}
-                  style={{
-                    display: 'flex', alignItems: 'center', gap: '6px',
-                    padding: '0.35rem 0.85rem', borderRadius: '7px',
-                    border: '1px solid #cbd5e1', background: 'white',
-                    fontSize: '0.8rem', fontWeight: 600, color: '#475569',
-                    cursor: 'pointer', transition: 'border-color 0.15s',
-                  }}
-                  onMouseEnter={e => e.currentTarget.style.borderColor = '#94a3b8'}
-                  onMouseLeave={e => e.currentTarget.style.borderColor = '#cbd5e1'}
-                >
-                  <Eye size={13} />
-                  Visualizar como
-                  <span style={{ fontSize: '0.65rem' }}>▾</span>
-                </button>
-                {ctxOpen && (
-                  <div style={{
-                    position: 'absolute', top: 'calc(100% + 6px)', right: 0,
-                    background: 'white', border: '1px solid #e2e8f0',
-                    borderRadius: '8px', boxShadow: '0 8px 24px rgba(0,0,0,0.1)',
-                    minWidth: '180px', zIndex: 200, overflow: 'hidden',
-                  }}>
-                    {[
-                      { key: 'SINDICO',     label: 'Síndico',      color: '#4f46e5', route: '/painel?tab=overview' },
-                      { key: 'FUNCIONARIO', label: 'Funcionário',   color: '#16a34a', route: '/painel-funcionario' },
-                      { key: 'MORADOR',     label: 'Morador',       color: '#ea580c', route: '/dashboard' },
-                    ].map(opt => (
-                      <button
-                        key={opt.key}
-                        onClick={() => { changeVisualContext(opt.key); navigate(opt.route); setCtxOpen(false); }}
-                        style={{
-                          display: 'flex', alignItems: 'center', gap: '10px',
-                          width: '100%', padding: '0.6rem 1rem',
-                          background: 'transparent', border: 'none',
-                          fontSize: '0.85rem', color: '#334155', cursor: 'pointer',
-                          textAlign: 'left', borderBottom: '1px solid #f1f5f9',
-                        }}
-                        onMouseEnter={e => e.currentTarget.style.background = '#f8fafc'}
-                        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-                      >
-                        <span style={{ width: 8, height: 8, borderRadius: '50%', background: opt.color, flexShrink: 0, display: 'inline-block' }} />
-                        {opt.label}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
             <NotificationMenu />
             <div className="user-profile-dropdown" onClick={() => navigate('/perfil')}>
               <div className="user-avatar"><span>{currentUser?.name?.charAt(0) || 'A'}</span></div>
@@ -365,27 +353,27 @@ const PainelMaster = () => {
           )}
 
           {activeTab === 'usuarios' && (() => {
+            const list = users.filter(u => u.role !== 'FUNCIONARIO');
+            const hasActiveSindico = list.some(u => u.role === 'SINDICO');
+            const lActive = list.filter(u => u.status === 'ATIVO').length;
+            const lPending = list.filter(u => u.status === 'PENDENTE').length;
+            const lBlocked = list.filter(u => u.status === 'BLOQUEADO').length;
+
             return (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div>
-                    <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#0f172a', margin: '0 0 2px' }}>Gestão de Perfis & Acesso</h3>
-                    <p style={{ fontSize: '12px', color: '#94a3b8', margin: 0 }}>Gerencie permissões, status e acessos de todos os usuários cadastrados.</p>
+                    <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#0f172a', margin: '0 0 2px' }}>Gestão de Moradores</h3>
+                    <p style={{ fontSize: '12px', color: '#94a3b8', margin: 0 }}>Gerencie aprovações, permissões e acessos dos moradores do condomínio.</p>
                   </div>
-                  <button
-                    onClick={() => setShowCreateModal(true)}
-                    style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#7c3aed', color: 'white', border: 'none', borderRadius: '8px', padding: '0.5rem 1.1rem', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer' }}
-                  >
-                    <UserPlus size={16} /> Cadastrar Nova Conta
-                  </button>
                 </div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '14px' }}>
                   {[
-                    { label: 'TOTAL DE USUÁRIOS',  value: users.length, color: '#475569' },
-                    { label: 'ATIVOS',              value: activeUsers, color: '#16a34a' },
-                    { label: 'PENDENTES',           value: pendingUsers, color: '#d97706' },
-                    { label: 'BLOQUEADOS',          value: blockedUsers, color: '#dc2626' },
+                    { label: 'TOTAL DE MORADORES',  value: list.length, color: '#475569' },
+                    { label: 'ATIVOS',              value: lActive, color: '#16a34a' },
+                    { label: 'PENDENTES',           value: lPending, color: '#d97706' },
+                    { label: 'BLOQUEADOS',          value: lBlocked, color: '#dc2626' },
                   ].map((s, i) => (
                     <div key={i} style={{ background: '#f8fafc', borderRadius: '10px', padding: '16px 20px' }}>
                       <p style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', color: '#94a3b8', letterSpacing: '0.07em', margin: '0 0 6px' }}>{s.label}</p>
@@ -398,13 +386,13 @@ const PainelMaster = () => {
                   <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                     <thead>
                       <tr style={{ background: '#f8fafc' }}>
-                        {['Usuário', 'CPF/Detalhes', 'Papel', 'Status', 'Ações'].map(h => (
+                        {['Morador', 'Documentos / Und.', 'Papel', 'Status', 'Ações'].map(h => (
                           <th key={h} style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: '#94a3b8', letterSpacing: '0.06em', textAlign: 'left', padding: '12px 16px', borderBottom: '1px solid #e2e8f0' }}>{h}</th>
                         ))}
                       </tr>
                     </thead>
                     <tbody>
-                      {users.map((user, i) => {
+                      {list.map((user, i) => {
                         const rc = roleColor[user.role] || '#475569';
                         const rl = roleLabel[user.role] || user.role;
                         const sc = statusColor[user.status] || { text: '#475569', bg: '#f1f5f9' };
@@ -428,7 +416,7 @@ const PainelMaster = () => {
                             </td>
                             <td style={{ padding: '14px 16px', borderBottom: '1px solid #f1f5f9', fontSize: '12px', color: '#64748b' }}>
                                {user.cpf}<br/>
-                               {user.bloco && <span style={{fontSize:'10px', background:'#f1f5f9', padding:'2px 4px', borderRadius:'4px'}}>Bl. {user.bloco} Apt. {user.apartamento}</span>}
+                               {user.bloco && <span style={{fontSize:'10px', background:'#f1f5f9', padding:'2px 4px', borderRadius:'4px', display:'inline-block', marginTop:'4px'}}>Bl. {user.bloco} Apt. {user.apartamento}</span>}
                             </td>
                             <td style={{ padding: '14px 16px', borderBottom: '1px solid #f1f5f9' }}>
                                {['MORADOR', 'SINDICO'].includes(user.role) ? (
@@ -438,7 +426,9 @@ const PainelMaster = () => {
                                      style={{ fontSize: '11px', fontWeight: 700, color: rc, background: `${rc}15`, border: `1px solid ${rc}40`, borderRadius: '6px', padding: '4px 8px', cursor: 'pointer' }}
                                   >
                                      <option value="MORADOR">Morador</option>
-                                     <option value="SINDICO">Síndico</option>
+                                     <option value="SINDICO" disabled={hasActiveSindico && user.role !== 'SINDICO'}>
+                                       {hasActiveSindico && user.role !== 'SINDICO' ? 'Síndico (Ocupado)' : 'Síndico'}
+                                     </option>
                                   </select>
                                ) : (
                                   <span style={{ fontSize: '11px', fontWeight: 700, color: rc, background: `${rc}15`, border: `1px solid ${rc}40`, borderRadius: '6px', padding: '4px 8px' }}>{rl}</span>
@@ -458,23 +448,101 @@ const PainelMaster = () => {
                                   </button>
                                 )}
                                 <button onClick={() => { setUserToEdit(user); setShowEditModal(true); }} title="Editar" style={{ padding: '5px 8px', background: '#f1f5f9', border: '1px solid #e2e8f0', borderRadius: '6px', cursor: 'pointer', color: '#475569', display: 'flex', alignItems: 'center' }}><Edit2 size={14} /></button>
-                                {user.status === 'ATIVO' && user.id !== currentUser?.id && (
-                                  <button onClick={() => handleViewAs(user)} title="Ver como" style={{ padding: '5px 8px', background: '#f5f3ff', border: '1px solid #ddd6fe', borderRadius: '6px', cursor: 'pointer', color: '#7c3aed', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', fontWeight: 600 }}>
-                                    <Eye size={13} /> View As
-                                  </button>
-                                )}
                               </div>
                             </td>
                           </tr>
                         );
                       })}
-                      {users.length === 0 && (
-                          <tr><td colSpan="5" style={{padding:'20px', textAlign:'center', color:'#94a3b8', fontSize:'13px'}}>Nenhum usuário cadastrado neste condomínio.</td></tr>
+                      {list.length === 0 && (
+                          <tr><td colSpan="5" style={{padding:'20px', textAlign:'center', color:'#94a3b8', fontSize:'13px'}}>Nenhum morador cadastrado neste condomínio.</td></tr>
                       )}
                     </tbody>
                   </table>
                 </div>
+              </div>
+            );
+          })()}
 
+          {activeTab === 'funcionarios' && (() => {
+            const list = users.filter(u => u.role === 'FUNCIONARIO');
+            const lActive = list.filter(u => u.status === 'ATIVO').length;
+            const lPending = list.filter(u => u.status === 'PENDENTE').length;
+            const lBlocked = list.filter(u => u.status === 'BLOQUEADO').length;
+
+            return (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div>
+                    <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#0f172a', margin: '0 0 2px' }}>Gestão de Funcionários</h3>
+                    <p style={{ fontSize: '12px', color: '#94a3b8', margin: 0 }}>Gerencie o corpo técnico e operacional do seu condomínio.</p>
+                  </div>
+                  <button
+                    onClick={() => setShowCreateModal(true)}
+                    style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#7c3aed', color: 'white', border: 'none', borderRadius: '8px', padding: '0.5rem 1.1rem', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer' }}
+                  >
+                    <UserPlus size={16} /> Cadastrar Funcionário
+                  </button>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '14px', maxWidth: '300px' }}>
+                  <div style={{ background: '#f8fafc', borderRadius: '10px', padding: '16px 20px' }}>
+                    <p style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', color: '#94a3b8', letterSpacing: '0.07em', margin: '0 0 6px' }}>TOTAL FUNCIONÁRIOS</p>
+                    <p style={{ fontSize: '28px', fontWeight: 600, color: '#475569', margin: 0, lineHeight: 1 }}>{list.length}</p>
+                  </div>
+                </div>
+
+                <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '12px', overflow: 'hidden' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                    <thead>
+                      <tr style={{ background: '#f8fafc' }}>
+                        {['Funcionário', 'Cargo', 'Ações'].map(h => (
+                          <th key={h} style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: '#94a3b8', letterSpacing: '0.06em', textAlign: 'left', padding: '12px 16px', borderBottom: '1px solid #e2e8f0' }}>{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {list.map((user, i) => {
+                        const rc = roleColor[user.role] || '#475569';
+                        const rl = roleLabel[user.role] || user.role;
+                        const sc = statusColor[user.status] || { text: '#475569', bg: '#f1f5f9' };
+                        const isBlocked = user.status === 'BLOQUEADO';
+                        return (
+                          <tr key={user.id}
+                            style={{ background: isBlocked ? '#fffafa' : 'white', transition: 'background 0.1s', opacity: isBlocked ? 0.7 : 1 }}
+                            onMouseEnter={e => { if (!isBlocked) e.currentTarget.style.background = '#fafafa'; }}
+                            onMouseLeave={e => { e.currentTarget.style.background = isBlocked ? '#fffafa' : 'white'; }}
+                          >
+                            <td style={{ padding: '14px 16px', borderBottom: '1px solid #f1f5f9' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                <div style={{ width: 36, height: 36, borderRadius: '50%', background: isBlocked ? '#e2e8f0' : `${rc}18`, color: isBlocked ? '#94a3b8' : rc, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '14px', flexShrink: 0 }}>
+                                  {(user.nome || user.name || 'F').charAt(0)}
+                                </div>
+                                <div>
+                                  <p style={{ margin: 0, fontSize: '13px', fontWeight: 600, color: '#0f172a' }}>{user.nome || user.name}</p>
+                                  <p style={{ margin: 0, fontSize: '12px', color: '#94a3b8' }}>{user.email}</p>
+                                </div>
+                              </div>
+                            </td>
+                            <td style={{ padding: '14px 16px', borderBottom: '1px solid #f1f5f9', fontSize: '13px', color: '#334155', fontWeight: 500 }}>
+                               {user.cargo || 'Funcionário'}
+                            </td>
+                            <td style={{ padding: '14px 16px', borderBottom: '1px solid #f1f5f9' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                                <button onClick={() => handleDeleteFuncionario(user)} style={{ fontSize: '11px', fontWeight: 700, color: '#dc2626', background: '#fee2e2', border: '1px solid #fecaca', borderRadius: '6px', padding: '4px 10px', cursor: 'pointer' }}>
+                                  🗑 Excluir
+                                </button>
+                                <button onClick={() => { setUserToEdit(user); setShowEditModal(true); }} title="Editar" style={{ padding: '5px 8px', background: '#f1f5f9', border: '1px solid #e2e8f0', borderRadius: '6px', cursor: 'pointer', color: '#475569', display: 'flex', alignItems: 'center' }}><Edit2 size={14} /></button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                      {list.length === 0 && (
+                          <tr><td colSpan="4" style={{padding:'20px', textAlign:'center', color:'#94a3b8', fontSize:'13px'}}>Nenhum funcionário cadastrado neste condomínio.</td></tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             );
           })()}
@@ -491,10 +559,16 @@ const PainelMaster = () => {
             </div>
             <form onSubmit={handleCreateUser} className="gu-modal-form">
               <div className="gu-form-group"><label>Nome Completo</label><input type="text" value={newFunc.nome} onChange={e => setNewFunc({...newFunc, nome: e.target.value})} required className="gu-input"/></div>
-              <div className="gu-form-group"><label>E-mail (Login)</label><input type="email" value={newFunc.email} onChange={e => setNewFunc({...newFunc, email: e.target.value})} required className="gu-input"/></div>
-              <div className="gu-form-group"><label>CPF</label><input type="text" value={newFunc.cpf} onChange={e => setNewFunc({...newFunc, cpf: e.target.value})} required className="gu-input"/></div>
-              <div className="gu-form-group"><label>Cargo</label><input type="text" value={newFunc.cargo} onChange={e => setNewFunc({...newFunc, cargo: e.target.value})} placeholder="Ex: Porteiro" required className="gu-input"/></div>
-              <div className="gu-form-group"><label>Senha Inicial</label><input type="text" value={newFunc.senha} onChange={e => setNewFunc({...newFunc, senha: e.target.value})} required className="gu-input"/></div>
+              
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                <div className="gu-form-group" style={{ marginBottom: 0 }}><label>E-mail (Login)</label><input type="email" value={newFunc.email} onChange={e => setNewFunc({...newFunc, email: e.target.value})} required className="gu-input"/></div>
+                <div className="gu-form-group" style={{ marginBottom: 0 }}><label>Senha Inicial</label><input type="text" value={newFunc.senha} onChange={e => setNewFunc({...newFunc, senha: e.target.value})} required className="gu-input"/></div>
+              </div>
+
+              <div className="gu-form-group" style={{ marginBottom: '1.5rem' }}>
+                <label>Cargo</label>
+                <input type="text" value={newFunc.cargo} onChange={e => setNewFunc({...newFunc, cargo: e.target.value})} placeholder="Ex: Porteiro" required className="gu-input"/>
+              </div>
               <div className="gu-modal-footer">
                 <button type="button" className="btn-secondary" onClick={() => setShowCreateModal(false)}>Cancelar</button>
                 <button type="submit" className="btn-primary">Criar Funcionário</button>
@@ -523,6 +597,59 @@ const PainelMaster = () => {
           </div>
         </div>
       )}
+
+      {showPromoteModal && userToPromote && (
+        <div className="gu-modal-overlay">
+          <div className="gu-modal" style={{ maxWidth: '400px' }}>
+            <div className="gu-modal-header" style={{ borderBottom: 'none', paddingBottom: 0 }}>
+              <h2 style={{ fontSize: '18px', color: '#0f172a' }}>Confirmar Promoção</h2>
+              <button onClick={() => { setShowPromoteModal(false); setUserToPromote(null); }}><X size={20}/></button>
+            </div>
+            <div style={{ padding: '20px' }}>
+              <p style={{ fontSize: '14px', color: '#475569', margin: '0 0 20px', lineHeight: '1.5' }}>
+                Tem certeza que deseja promover este morador a <strong>Síndico</strong>?
+              </p>
+              
+              <div style={{ background: '#f8fafc', padding: '16px', borderRadius: '8px', marginBottom: '24px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '13px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span style={{ color: '#64748b' }}>Nome:</span>
+                    <span style={{ fontWeight: 600, color: '#0f172a' }}>{userToPromote.nome || userToPromote.name}</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span style={{ color: '#64748b' }}>CPF:</span>
+                    <span style={{ fontWeight: 600, color: '#0f172a' }}>{userToPromote.cpf || 'Não informado'}</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span style={{ color: '#64748b' }}>Bloco:</span>
+                    <span style={{ fontWeight: 600, color: '#0f172a' }}>{userToPromote.bloco || '-'}</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span style={{ color: '#64748b' }}>Ap:</span>
+                    <span style={{ fontWeight: 600, color: '#0f172a' }}>{userToPromote.apartamento || '-'}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+                <button 
+                  onClick={() => { setShowPromoteModal(false); setUserToPromote(null); }}
+                  style={{ padding: '8px 16px', background: 'transparent', border: '1px solid #e2e8f0', borderRadius: '6px', color: '#64748b', fontWeight: 500, fontFamily: 'inherit', fontSize: '14px', cursor: 'pointer' }}
+                >
+                  Cancelar
+                </button>
+                <button 
+                  onClick={confirmPromotion}
+                  style={{ padding: '8px 16px', background: '#ea580c', border: 'none', borderRadius: '6px', color: 'white', fontWeight: 500, fontFamily: 'inherit', fontSize: '14px', cursor: 'pointer' }}
+                >
+                  Confirmar Promoção
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };

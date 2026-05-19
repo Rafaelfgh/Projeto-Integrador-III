@@ -87,7 +87,7 @@ const Login = () => {
             let { data: gestaoData } = await supabase
               .from('Gestao_Sindicos')
               .select('*')
-              .eq('sindico_id', userId)
+              .eq('morador_id', userId)
               .eq('ativo', true)
               .single();
               

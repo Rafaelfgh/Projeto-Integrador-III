@@ -184,7 +184,10 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
                   <LayoutDashboard className="nav-icon" /><span>Visão Geral do Condomínio</span>
                 </a>
                 <a href="#" className={`nav-item ${currentPath === '/painel-master' && location.search === '?tab=usuarios' ? 'nav-item-active' : 'nav-item-inactive'}`} onClick={(e) => { e.preventDefault(); handleNavClick('/painel-master?tab=usuarios'); }}>
-                  <Users className="nav-icon" /><span>Gestão de Perfis & Acesso</span>
+                  <Users className="nav-icon" /><span>Gestão de Moradores</span>
+                </a>
+                <a href="#" className={`nav-item ${currentPath === '/painel-master' && location.search === '?tab=funcionarios' ? 'nav-item-active' : 'nav-item-inactive'}`} onClick={(e) => { e.preventDefault(); handleNavClick('/painel-master?tab=funcionarios'); }}>
+                  <ShieldCheck className="nav-icon" /><span>Gestão de Funcionários</span>
                 </a>
               </nav>
             </div>
