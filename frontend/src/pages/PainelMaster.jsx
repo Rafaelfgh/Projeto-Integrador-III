@@ -399,81 +399,168 @@ const PainelMaster = () => {
                   </button>
                 </div>
 
-                <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '12px', overflow: 'hidden' }}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                    <thead>
-                      <tr style={{ background: '#f8fafc' }}>
-                        {['Morador', 'Documentos / Und.', 'Papel', 'Status', 'Ações'].map(h => (
-                          <th key={h} style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: '#94a3b8', letterSpacing: '0.06em', textAlign: 'left', padding: '12px 16px', borderBottom: '1px solid #e2e8f0' }}>{h}</th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {list.filter(u => moradoresSubTab === 'ativos' ? u.status !== 'PENDENTE' : u.status === 'PENDENTE').map((user, i) => {
-                        const rc = roleColor[user.role] || '#475569';
-                        const rl = roleLabel[user.role] || user.role;
-                        const sc = statusColor[user.status] || { text: '#475569', bg: '#f1f5f9' };
-                        const isBlocked = user.status === 'BLOQUEADO';
-                        return (
-                          <tr key={user.id}
-                            style={{ background: isBlocked ? '#fffafa' : 'white', transition: 'background 0.1s', opacity: isBlocked ? 0.7 : 1 }}
-                            onMouseEnter={e => { if (!isBlocked) e.currentTarget.style.background = '#fafafa'; }}
-                            onMouseLeave={e => { e.currentTarget.style.background = isBlocked ? '#fffafa' : 'white'; }}
-                          >
-                            <td style={{ padding: '14px 16px', borderBottom: '1px solid #f1f5f9' }}>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                <div style={{ width: 36, height: 36, borderRadius: '50%', background: isBlocked ? '#e2e8f0' : `${rc}18`, color: isBlocked ? '#94a3b8' : rc, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '14px', flexShrink: 0 }}>
-                                  {(user.nome || user.name || 'U').charAt(0)}
+                {/* ── Seção Síndico Atual (só aparece na aba Ativos e quando existe síndico) ── */}
+                {moradoresSubTab === 'ativos' && (() => {
+                  const sindico = list.find(u => u.role === 'SINDICO');
+                  if (!sindico) return null;
+                  const rc = roleColor['SINDICO'] || '#4f46e5';
+                  const sc = statusColor[sindico.status] || { text: '#475569', bg: '#f1f5f9' };
+                  return (
+                    <div>
+                      <p style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: '#94a3b8', letterSpacing: '0.08em', margin: '0 0 8px' }}>Síndico Atual</p>
+                      <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '12px', overflow: 'hidden', marginBottom: '20px' }}>
+                        <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
+                          <colgroup>
+                            <col style={{ width: '28%' }} />
+                            <col style={{ width: '22%' }} />
+                            <col style={{ width: '16%' }} />
+                            <col style={{ width: '14%' }} />
+                            <col style={{ width: '20%' }} />
+                          </colgroup>
+                          <thead>
+                            <tr style={{ background: '#f8fafc' }}>
+                              {['Morador', 'Documentos / Und.', 'Perfil', 'Status', 'Ações'].map(h => (
+                                <th key={h} style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: '#94a3b8', letterSpacing: '0.06em', textAlign: 'left', padding: '12px 16px', borderBottom: '1px solid #e2e8f0' }}>{h}</th>
+                              ))}
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr style={{ background: '#f5f3ff' }}>
+                              <td style={{ padding: '14px 16px', borderBottom: '1px solid #f1f5f9' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                  <div style={{ width: 36, height: 36, borderRadius: '50%', background: `${rc}18`, color: rc, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '14px', flexShrink: 0 }}>
+                                    {(sindico.nome || sindico.name || 'S').charAt(0)}
+                                  </div>
+                                  <div>
+                                    <p style={{ margin: 0, fontSize: '13px', fontWeight: 600, color: '#0f172a' }}>{sindico.nome || sindico.name}</p>
+                                    <p style={{ margin: 0, fontSize: '12px', color: '#94a3b8' }}>{sindico.email}</p>
+                                  </div>
                                 </div>
-                                <div>
-                                  <p style={{ margin: 0, fontSize: '13px', fontWeight: 600, color: '#0f172a' }}>{user.nome || user.name}</p>
-                                  <p style={{ margin: 0, fontSize: '12px', color: '#94a3b8' }}>{user.email}</p>
+                              </td>
+                              <td style={{ padding: '14px 16px', borderBottom: '1px solid #f1f5f9', fontSize: '12px', color: '#64748b' }}>
+                                {sindico.cpf}<br/>
+                                {sindico.bloco && <span style={{fontSize:'10px', background:'#f1f5f9', padding:'2px 4px', borderRadius:'4px', display:'inline-block', marginTop:'4px'}}>Bl. {sindico.bloco} Apt. {sindico.apartamento}</span>}
+                              </td>
+                              <td style={{ padding: '14px 16px', borderBottom: '1px solid #f1f5f9' }}>
+                                <select
+                                  value="SINDICO"
+                                  onChange={(e) => handleRoleChange(sindico.id, e.target.value)}
+                                  style={{ fontSize: '11px', fontWeight: 700, color: rc, background: `${rc}15`, border: `1px solid ${rc}40`, borderRadius: '6px', padding: '4px 8px', cursor: 'pointer' }}
+                                >
+                                  <option value="MORADOR">Morador</option>
+                                  <option value="SINDICO">Síndico</option>
+                                </select>
+                              </td>
+                              <td style={{ padding: '14px 16px', borderBottom: '1px solid #f1f5f9' }}>
+                                <span style={{ fontSize: '11px', fontWeight: 700, color: sc.text, background: sc.bg, padding: '3px 10px', borderRadius: '99px' }}>{sindico.status}</span>
+                              </td>
+                              <td style={{ padding: '14px 16px', borderBottom: '1px solid #f1f5f9' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                  {sindico.id !== currentUser?.id && (
+                                    <button onClick={() => handleBlock(sindico)} style={{ fontSize: '11px', fontWeight: 700, color: sindico.status === 'BLOQUEADO' ? '#16a34a' : '#dc2626', background: sindico.status === 'BLOQUEADO' ? '#dcfce7' : '#fee2e2', border: `1px solid ${sindico.status === 'BLOQUEADO' ? '#bbf7d0' : '#fecaca'}`, borderRadius: '6px', padding: '4px 10px', cursor: 'pointer' }}>
+                                      {sindico.status === 'BLOQUEADO' ? '↑ Desbloquear' : '✕ Bloquear'}
+                                    </button>
+                                  )}
                                 </div>
-                              </div>
-                            </td>
-                            <td style={{ padding: '14px 16px', borderBottom: '1px solid #f1f5f9', fontSize: '12px', color: '#64748b' }}>
-                               {user.cpf}<br/>
-                               {user.bloco && <span style={{fontSize:'10px', background:'#f1f5f9', padding:'2px 4px', borderRadius:'4px', display:'inline-block', marginTop:'4px'}}>Bl. {user.bloco} Apt. {user.apartamento}</span>}
-                            </td>
-                            <td style={{ padding: '14px 16px', borderBottom: '1px solid #f1f5f9' }}>
-                               {['MORADOR', 'SINDICO'].includes(user.role) && moradoresSubTab === 'ativos' ? (
-                                  <select 
-                                     value={user.role} 
-                                     onChange={(e) => handleRoleChange(user.id, e.target.value)}
-                                     style={{ fontSize: '11px', fontWeight: 700, color: rc, background: `${rc}15`, border: `1px solid ${rc}40`, borderRadius: '6px', padding: '4px 8px', cursor: 'pointer' }}
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                {/* ── Seção Moradores ── */}
+                <div>
+                  {moradoresSubTab === 'ativos' && (
+                    <p style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: '#94a3b8', letterSpacing: '0.08em', margin: '0 0 8px' }}>Moradores</p>
+                  )}
+                  <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '12px', overflow: 'hidden' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
+                      <colgroup>
+                        <col style={{ width: '28%' }} />
+                        <col style={{ width: '22%' }} />
+                        <col style={{ width: '16%' }} />
+                        <col style={{ width: '14%' }} />
+                        <col style={{ width: '20%' }} />
+                      </colgroup>
+                      <thead>
+                        <tr style={{ background: '#f8fafc' }}>
+                          {['Morador', 'Documentos / Und.', 'Perfil', 'Status', 'Ações'].map(h => (
+                            <th key={h} style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: '#94a3b8', letterSpacing: '0.06em', textAlign: 'left', padding: '12px 16px', borderBottom: '1px solid #e2e8f0' }}>{h}</th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {list.filter(u => {
+                          if (u.role === 'SINDICO') return false;
+                          return moradoresSubTab === 'ativos' ? u.status !== 'PENDENTE' : u.status === 'PENDENTE';
+                        }).map((user, i) => {
+                          const rc = roleColor[user.role] || '#475569';
+                          const rl = roleLabel[user.role] || user.role;
+                          const sc = statusColor[user.status] || { text: '#475569', bg: '#f1f5f9' };
+                          const isBlocked = user.status === 'BLOQUEADO';
+                          const canPromote = !hasActiveSindico && moradoresSubTab === 'ativos';
+                          return (
+                            <tr key={user.id}
+                              style={{ background: isBlocked ? '#fffafa' : 'white', transition: 'background 0.1s', opacity: isBlocked ? 0.7 : 1 }}
+                              onMouseEnter={e => { if (!isBlocked) e.currentTarget.style.background = '#fafafa'; }}
+                              onMouseLeave={e => { e.currentTarget.style.background = isBlocked ? '#fffafa' : 'white'; }}
+                            >
+                              <td style={{ padding: '14px 16px', borderBottom: '1px solid #f1f5f9' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                  <div style={{ width: 36, height: 36, borderRadius: '50%', background: isBlocked ? '#e2e8f0' : `${rc}18`, color: isBlocked ? '#94a3b8' : rc, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '14px', flexShrink: 0 }}>
+                                    {(user.nome || user.name || 'U').charAt(0)}
+                                  </div>
+                                  <div>
+                                    <p style={{ margin: 0, fontSize: '13px', fontWeight: 600, color: '#0f172a' }}>{user.nome || user.name}</p>
+                                    <p style={{ margin: 0, fontSize: '12px', color: '#94a3b8' }}>{user.email}</p>
+                                  </div>
+                                </div>
+                              </td>
+                              <td style={{ padding: '14px 16px', borderBottom: '1px solid #f1f5f9', fontSize: '12px', color: '#64748b' }}>
+                                {user.cpf}<br/>
+                                {user.bloco && <span style={{fontSize:'10px', background:'#f1f5f9', padding:'2px 4px', borderRadius:'4px', display:'inline-block', marginTop:'4px'}}>Bl. {user.bloco} Apt. {user.apartamento}</span>}
+                              </td>
+                              <td style={{ padding: '14px 16px', borderBottom: '1px solid #f1f5f9' }}>
+                                {canPromote ? (
+                                  <select
+                                    value="MORADOR"
+                                    onChange={(e) => handleRoleChange(user.id, e.target.value)}
+                                    style={{ fontSize: '11px', fontWeight: 700, color: rc, background: `${rc}15`, border: `1px solid ${rc}40`, borderRadius: '6px', padding: '4px 8px', cursor: 'pointer' }}
                                   >
-                                     <option value="MORADOR">Morador</option>
-                                     <option value="SINDICO" disabled={hasActiveSindico && user.role !== 'SINDICO'}>
-                                       {hasActiveSindico && user.role !== 'SINDICO' ? 'Síndico (Ocupado)' : 'Síndico'}
-                                     </option>
+                                    <option value="MORADOR">Morador</option>
+                                    <option value="SINDICO">Síndico</option>
                                   </select>
-                               ) : (
-                                  <span style={{ fontSize: '11px', fontWeight: 700, color: rc, background: `${rc}15`, border: `1px solid ${rc}40`, borderRadius: '6px', padding: '4px 8px' }}>{rl}</span>
-                               )}
-                            </td>
-                            <td style={{ padding: '14px 16px', borderBottom: '1px solid #f1f5f9' }}>
-                              <span style={{ fontSize: '11px', fontWeight: 700, color: sc.text, background: sc.bg, padding: '3px 10px', borderRadius: '99px' }}>{user.status}</span>
-                            </td>
-                            <td style={{ padding: '14px 16px', borderBottom: '1px solid #f1f5f9' }}>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-                                {user.status === 'PENDENTE' && (
-                                  <button onClick={() => handleApprove(user)} style={{ fontSize: '11px', fontWeight: 700, color: '#16a34a', background: '#dcfce7', border: '1px solid #bbf7d0', borderRadius: '6px', padding: '4px 10px', cursor: 'pointer' }}>✓ Liberar</button>
+                                ) : (
+                                  <span style={{ fontSize: '11px', fontWeight: 700, color: rc, background: `${rc}15`, border: `1px solid ${rc}40`, borderRadius: '6px', padding: '4px 8px', display: 'inline-block' }}>{rl}</span>
                                 )}
-                                {user.status !== 'PENDENTE' && user.id !== currentUser?.id && (
-                                  <button onClick={() => handleBlock(user)} style={{ fontSize: '11px', fontWeight: 700, color: isBlocked ? '#16a34a' : '#dc2626', background: isBlocked ? '#dcfce7' : '#fee2e2', border: `1px solid ${isBlocked ? '#bbf7d0' : '#fecaca'}`, borderRadius: '6px', padding: '4px 10px', cursor: 'pointer' }}>
-                                    {isBlocked ? '↑ Desbloquear' : '✕ Bloquear'}
-                                  </button>
-                                )}
-                              </div>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                      {list.length === 0 && (
+                              </td>
+                              <td style={{ padding: '14px 16px', borderBottom: '1px solid #f1f5f9' }}>
+                                <span style={{ fontSize: '11px', fontWeight: 700, color: sc.text, background: sc.bg, padding: '3px 10px', borderRadius: '99px' }}>{user.status}</span>
+                              </td>
+                              <td style={{ padding: '14px 16px', borderBottom: '1px solid #f1f5f9' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                                  {user.status === 'PENDENTE' && (
+                                    <button onClick={() => handleApprove(user)} style={{ fontSize: '11px', fontWeight: 700, color: '#16a34a', background: '#dcfce7', border: '1px solid #bbf7d0', borderRadius: '6px', padding: '4px 10px', cursor: 'pointer' }}>✓ Liberar</button>
+                                  )}
+                                  {user.status !== 'PENDENTE' && user.id !== currentUser?.id && (
+                                    <button onClick={() => handleBlock(user)} style={{ fontSize: '11px', fontWeight: 700, color: isBlocked ? '#16a34a' : '#dc2626', background: isBlocked ? '#dcfce7' : '#fee2e2', border: `1px solid ${isBlocked ? '#bbf7d0' : '#fecaca'}`, borderRadius: '6px', padding: '4px 10px', cursor: 'pointer' }}>
+                                      {isBlocked ? '↑ Desbloquear' : '✕ Bloquear'}
+                                    </button>
+                                  )}
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                        {list.filter(u => u.role !== 'SINDICO' && (moradoresSubTab === 'ativos' ? u.status !== 'PENDENTE' : u.status === 'PENDENTE')).length === 0 && (
                           <tr><td colSpan="5" style={{padding:'20px', textAlign:'center', color:'#94a3b8', fontSize:'13px'}}>Nenhum morador cadastrado neste condomínio.</td></tr>
-                      )}
-                    </tbody>
-                  </table>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               </div>
             );
@@ -545,9 +632,8 @@ const PainelMaster = () => {
                             <td style={{ padding: '14px 16px', borderBottom: '1px solid #f1f5f9' }}>
                               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
                                 <button onClick={() => handleDeleteFuncionario(user)} style={{ fontSize: '11px', fontWeight: 700, color: '#dc2626', background: '#fee2e2', border: '1px solid #fecaca', borderRadius: '6px', padding: '4px 10px', cursor: 'pointer' }}>
-                                  🗑 Excluir
+                                  Remover
                                 </button>
-                                <button onClick={() => { setUserToEdit(user); setShowEditModal(true); }} title="Editar" style={{ padding: '5px 8px', background: '#f1f5f9', border: '1px solid #e2e8f0', borderRadius: '6px', cursor: 'pointer', color: '#475569', display: 'flex', alignItems: 'center' }}><Edit2 size={14} /></button>
                               </div>
                             </td>
                           </tr>
