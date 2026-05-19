@@ -1,9 +1,10 @@
 import React from 'react';
-import { Navigate, Outlet } from 'react-router-dom';
+import { Navigate, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
 const ProtectedRoute = ({ allowedRoles }) => {
-  const { currentUser } = useAuth();
+  const { currentUser, logout } = useAuth();
+  const navigate = useNavigate();
 
   if (!currentUser) {
     return <Navigate to="/login" replace />;
@@ -30,12 +31,21 @@ const ProtectedRoute = ({ allowedRoles }) => {
           <h2 style={{ margin: '0 0 1rem 0', fontSize: '1.25rem' }}>
             {isBlocked ? 'Acesso Bloqueado' : 'Seu pedido está em análise'}
           </h2>
-          <p style={{ color: '#64748b', fontSize: '0.9rem', lineHeight: '1.5', margin: 0 }}>
+          <p style={{ color: '#64748b', fontSize: '0.9rem', lineHeight: '1.5', margin: '0 0 1.5rem 0' }}>
             {isBlocked 
               ? 'Sua conta foi suspensa ou bloqueada pela administração. Entre em contato com o síndico para mais informações.'
               : 'Seu cadastro foi recebido com sucesso. Aguarde enquanto o administrador do condomínio analisa e libera o seu acesso à plataforma.'
             }
           </p>
+          <button
+            onClick={() => { logout(); navigate('/login'); }}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.8rem', fontWeight: 600, color: '#64748b', background: '#f1f5f9', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '0.5rem 1rem', cursor: 'pointer', transition: 'all 0.2s' }}
+            onMouseOver={e => { e.currentTarget.style.background = '#e2e8f0'; e.currentTarget.style.color = '#1e293b'; }}
+            onMouseOut={e => { e.currentTarget.style.background = '#f1f5f9'; e.currentTarget.style.color = '#64748b'; }}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+            Voltar ao login
+          </button>
         </div>
       </div>
     );

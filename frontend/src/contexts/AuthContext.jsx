@@ -128,6 +128,12 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Injetar variável de cor CSS dinamicamente com base no contexto visual
+  useEffect(() => {
+    const mainColor = visualContext ? (CONTEXT_CONFIG[visualContext]?.color || '#ea580c') : '#ea580c';
+    document.documentElement.style.setProperty('--role-primary-color', mainColor);
+  }, [visualContext]);
+
   return (
     <AuthContext.Provider value={{
       currentUser,

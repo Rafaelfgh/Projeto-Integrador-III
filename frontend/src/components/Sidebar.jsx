@@ -10,7 +10,7 @@ import ContextBanner from './ContextBanner';
 const CONTEXT_OPTIONS = [
   {
     key: 'MASTER',
-    label: 'Master Admin',
+    label: 'Master',
     description: 'Governança Global',
     color: '#7c3aed',
     bgActive: 'rgba(124,58,237,0.12)',
@@ -202,11 +202,12 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
             <div className="sidebar-user-details">
               <span className="sidebar-user-name">{currentUser?.name || 'Usuário'}</span>
               <span className="sidebar-user-role">
-                {currentUser?.role === 'MASTER'
-                  ? '● Master Admin'
-                  : currentUser?.role === 'MORADOR'
-                    ? `Morador ${currentUser?.unidade ? '• ' + currentUser.unidade : ''}`
-                    : currentUser?.role}
+                {currentUser?.role === 'MASTER' ? '● Master' :
+                 currentUser?.role === 'SINDICO' ? '● Síndico' :
+                 currentUser?.role === 'FUNCIONARIO' ? '● Funcionário' :
+                 currentUser?.role === 'ADMIN' ? '● Admin' :
+                 currentUser?.role === 'MORADOR' ? '● Morador' :
+                 `● ${currentUser?.role || ''}`}
               </span>
             </div>
           </div>

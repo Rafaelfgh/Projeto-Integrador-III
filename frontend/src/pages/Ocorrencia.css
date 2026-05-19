@@ -85,7 +85,7 @@
   height: 1.75rem;
   border-radius: 9999px;
   background-color: #fff7ed;
-  color: #ea580c;
+  color: var(--role-primary-color);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -417,6 +417,6 @@
 }
 
 .btn-primary-saas:hover {
-  background-color: #ea580c;
+  background-color: var(--role-primary-color);
   box-shadow: 0 4px 12px rgba(249, 115, 22, 0.4);
 }

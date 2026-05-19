@@ -276,7 +276,7 @@
 
 .btn-feed-primary {
   background-color: #fff7ed;
-  color: #ea580c;
+  color: var(--role-primary-color);
   border: 1px solid #fed7aa;
 }
 

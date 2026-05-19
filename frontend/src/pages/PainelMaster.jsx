@@ -43,6 +43,8 @@ const PainelMaster = () => {
   const [showPromoteModal, setShowPromoteModal] = useState(false);
   const [userToPromote, setUserToPromote] = useState(null);
 
+  const [moradoresSubTab, setMoradoresSubTab] = useState('ativos');
+
   // Forms states
   const [newFunc, setNewFunc] = useState({ nome: '', email: '', cpf: '', cargo: '', senha: 'Mudar@123' });
   const [userToEdit, setUserToEdit] = useState(null);
@@ -255,7 +257,7 @@ const PainelMaster = () => {
       <div className="dashboard-layout">
         <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
         <main className="main-content" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-           <Loader2 className="input-icon" style={{ animation: 'spin 1s linear infinite', position: 'static', color: '#7c3aed' }} size={32} />
+           <Loader2 className="input-icon" style={{ animation: 'spin 1s linear infinite', position: 'static', color: 'var(--role-primary-color)' }} size={32} />
         </main>
       </div>
     );
@@ -382,6 +384,21 @@ const PainelMaster = () => {
                   ))}
                 </div>
 
+                <div style={{ display: 'flex', gap: '8px', borderBottom: '1px solid #e2e8f0', paddingBottom: '12px' }}>
+                  <button 
+                    onClick={() => setMoradoresSubTab('ativos')}
+                    style={{ background: moradoresSubTab === 'ativos' ? 'var(--role-primary-color)' : '#f8fafc', color: moradoresSubTab === 'ativos' ? '#fff' : '#64748b', border: '1px solid', borderColor: moradoresSubTab === 'ativos' ? 'var(--role-primary-color)' : '#e2e8f0', padding: '6px 14px', borderRadius: '6px', fontSize: '13px', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s' }}
+                  >
+                    Ativos e Bloqueados ({lActive + lBlocked})
+                  </button>
+                  <button 
+                    onClick={() => setMoradoresSubTab('pendentes')}
+                    style={{ background: moradoresSubTab === 'pendentes' ? 'var(--role-primary-color)' : '#f8fafc', color: moradoresSubTab === 'pendentes' ? '#fff' : '#64748b', border: '1px solid', borderColor: moradoresSubTab === 'pendentes' ? 'var(--role-primary-color)' : '#e2e8f0', padding: '6px 14px', borderRadius: '6px', fontSize: '13px', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s' }}
+                  >
+                    Pendentes ({lPending})
+                  </button>
+                </div>
+
                 <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '12px', overflow: 'hidden' }}>
                   <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                     <thead>
@@ -392,7 +409,7 @@ const PainelMaster = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {list.map((user, i) => {
+                      {list.filter(u => moradoresSubTab === 'ativos' ? u.status !== 'PENDENTE' : u.status === 'PENDENTE').map((user, i) => {
                         const rc = roleColor[user.role] || '#475569';
                         const rl = roleLabel[user.role] || user.role;
                         const sc = statusColor[user.status] || { text: '#475569', bg: '#f1f5f9' };
@@ -419,7 +436,7 @@ const PainelMaster = () => {
                                {user.bloco && <span style={{fontSize:'10px', background:'#f1f5f9', padding:'2px 4px', borderRadius:'4px', display:'inline-block', marginTop:'4px'}}>Bl. {user.bloco} Apt. {user.apartamento}</span>}
                             </td>
                             <td style={{ padding: '14px 16px', borderBottom: '1px solid #f1f5f9' }}>
-                               {['MORADOR', 'SINDICO'].includes(user.role) ? (
+                               {['MORADOR', 'SINDICO'].includes(user.role) && moradoresSubTab === 'ativos' ? (
                                   <select 
                                      value={user.role} 
                                      onChange={(e) => handleRoleChange(user.id, e.target.value)}
@@ -447,7 +464,6 @@ const PainelMaster = () => {
                                     {isBlocked ? '↑ Desbloquear' : '✕ Bloquear'}
                                   </button>
                                 )}
-                                <button onClick={() => { setUserToEdit(user); setShowEditModal(true); }} title="Editar" style={{ padding: '5px 8px', background: '#f1f5f9', border: '1px solid #e2e8f0', borderRadius: '6px', cursor: 'pointer', color: '#475569', display: 'flex', alignItems: 'center' }}><Edit2 size={14} /></button>
                               </div>
                             </td>
                           </tr>
@@ -478,7 +494,7 @@ const PainelMaster = () => {
                   </div>
                   <button
                     onClick={() => setShowCreateModal(true)}
-                    style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#7c3aed', color: 'white', border: 'none', borderRadius: '8px', padding: '0.5rem 1.1rem', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer' }}
+                    style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'var(--role-primary-color)', color: 'white', border: 'none', borderRadius: '8px', padding: '0.5rem 1.1rem', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer' }}
                   >
                     <UserPlus size={16} /> Cadastrar Funcionário
                   </button>
@@ -640,7 +656,7 @@ const PainelMaster = () => {
                 </button>
                 <button 
                   onClick={confirmPromotion}
-                  style={{ padding: '8px 16px', background: '#ea580c', border: 'none', borderRadius: '6px', color: 'white', fontWeight: 500, fontFamily: 'inherit', fontSize: '14px', cursor: 'pointer' }}
+                  style={{ padding: '8px 16px', background: 'var(--role-primary-color)', border: 'none', borderRadius: '6px', color: 'white', fontWeight: 500, fontFamily: 'inherit', fontSize: '14px', cursor: 'pointer' }}
                 >
                   Confirmar Promoção
                 </button>

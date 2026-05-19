@@ -264,7 +264,7 @@ const CadastroMorador = () => {
           </form>
 
           <div style={{ textAlign: 'center', marginTop: '1.5rem', borderTop: '1px solid #e2e8f0', paddingTop: '1rem' }}>
-            <Link to="/login" className="text-link" style={{ color: '#7c3aed', fontSize: '0.85rem', fontWeight: 600 }}>
+            <Link to="/login" className="text-link" style={{ color: 'var(--role-primary-color)', fontSize: '0.85rem', fontWeight: 600 }}>
                Já tenho uma conta. Voltar ao Login
             </Link>
           </div>

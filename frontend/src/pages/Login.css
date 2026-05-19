@@ -144,7 +144,7 @@
 .role-card.active {
   border-color: var(--color-orange-500, #f97316);
   background-color: #fff7ed;
-  color: #ea580c;
+  color: var(--role-primary-color);
   box-shadow: 0 4px 6px -1px rgba(234, 88, 12, 0.1);
 }
 
@@ -211,7 +211,7 @@
 
 .text-link {
   font-size: 0.875rem;
-  color: #ea580c; /* orange-600 */
+  color: var(--role-primary-color); /* orange-600 dynamic */
   transition: color 0.2s;
   text-decoration: none;
   font-weight: 500;
@@ -224,7 +224,7 @@
 
 .btn-primary {
   width: 100%;
-  background-color: #ea580c; /* orange-600 */
+  background-color: var(--role-primary-color); /* orange-600 dynamic */
   color: #ffffff;
   font-weight: 500;
   padding: 0.75rem 0;

@@ -258,7 +258,7 @@ const PainelSindico = () => {
                      {recommendedEmps.length > 0 ? recommendedEmps.map(emp => (
                         <div key={emp.id} className="employee-card recommended" onClick={() => handleAssign(emp.id)}>
                            <div className="emp-info-group">
-                              <div className="emp-avatar" style={{ background: '#eef2ff', color: '#4f46e5' }}>{emp.avatar}</div>
+                              <div className="emp-avatar" style={{ background: '#eef2ff', color: 'var(--role-primary-color)' }}>{emp.avatar}</div>
                               <div className="emp-details">
                                  <span className="emp-name">{emp.name}</span>
                                  <span className="emp-tasks">{emp.openTasks} tarefas em andamento</span>
@@ -310,7 +310,7 @@ const PainelSindico = () => {
                <div className="header-actions">
                   <button className="btn-export"><FileText size={16} /> Exportar</button>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', borderLeft: '1px solid #e2e8f0', paddingLeft: '1rem' }}>
-                     <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: '#4f46e5', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '700' }}>
+                     <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'var(--role-primary-color)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '700' }}>
                         {currentUser?.name?.charAt(0) || 'S'}
                      </div>
                   </div>
@@ -330,7 +330,7 @@ const PainelSindico = () => {
                         padding: '0.4rem 1rem', borderRadius: '6px', fontSize: '0.85rem', fontWeight: 600,
                         border: 'none', cursor: 'pointer', transition: 'all 0.15s',
                         background: activeTab === tab.key ? '#eef2ff' : 'transparent',
-                        color: activeTab === tab.key ? '#4f46e5' : '#64748b',
+                        color: activeTab === tab.key ? 'var(--role-primary-color)' : '#64748b',
                      }}
                   >{tab.label}</button>
                ))}
@@ -361,7 +361,7 @@ const PainelSindico = () => {
                               { label: 'ABERTAS', value: kpiData.abertas.value, trend: kpiData.abertas.trendValue, trendType: kpiData.abertas.trend, borderColor: '#ef4444', iconBg: '#fef2f2', iconColor: '#ef4444', Icon: AlertCircle },
                               { label: 'EM ANÁLISE', value: kpiData.analise.value, trend: kpiData.analise.trendValue, trendType: kpiData.analise.trend, borderColor: '#f59e0b', iconBg: '#fffbeb', iconColor: '#f59e0b', Icon: Clock },
                               { label: 'RESOLVIDAS', value: kpiData.resolvidas.value, trend: kpiData.resolvidas.trendValue, trendType: kpiData.resolvidas.trend, borderColor: '#10b981', iconBg: '#f0fdf4', iconColor: '#10b981', Icon: CheckCircle2 },
-                              { label: 'TOTAL (MÊS)', value: kpiData.total.value, trend: '—', trendType: 'neutral', borderColor: '#4f46e5', iconBg: '#eef2ff', iconColor: '#4f46e5', Icon: BarChart3 },
+                              { label: 'TOTAL (MÊS)', value: kpiData.total.value, trend: '—', trendType: 'neutral', borderColor: 'var(--role-primary-color)', iconBg: '#eef2ff', iconColor: 'var(--role-primary-color)', Icon: BarChart3 },
                            ].map((k, i) => {
                               const trendColor = k.trendType === 'up' ? (k.label === 'ABERTAS' ? '#dc2626' : '#16a34a') : k.trendType === 'down' ? '#16a34a' : '#94a3b8';
                               return (
@@ -602,7 +602,7 @@ const PainelSindico = () => {
                            {empList.map(emp => (
                               <div key={emp.id} className="ps-card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.5rem' }}>
                                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                                    <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: '#eef2ff', color: '#4f46e5', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', fontWeight: 700 }}>
+                                    <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: '#eef2ff', color: 'var(--role-primary-color)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', fontWeight: 700 }}>
                                        {emp.avatar}
                                     </div>
                                     <div>
@@ -674,7 +674,7 @@ const PainelSindico = () => {
                                  type="button"
                                  style={{ background: 'white', border: '1px solid #cbd5e1', padding: '0.35rem 0.75rem', borderRadius: '6px', fontSize: '0.85rem', color: '#475569', cursor: 'pointer', transition: 'all 0.2s' }}
                                  onClick={() => addSkillToEmp(cat)}
-                                 onMouseOver={(e) => { e.currentTarget.style.borderColor = '#4f46e5'; e.currentTarget.style.color = '#4f46e5'; }}
+                                 onMouseOver={(e) => { e.currentTarget.style.borderColor = 'var(--role-primary-color)'; e.currentTarget.style.color = 'var(--role-primary-color)'; }}
                                  onMouseOut={(e) => { e.currentTarget.style.borderColor = '#cbd5e1'; e.currentTarget.style.color = '#475569'; }}
                               >
                                  + {cat}

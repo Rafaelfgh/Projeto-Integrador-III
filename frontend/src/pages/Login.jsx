@@ -220,7 +220,7 @@ const Login = () => {
           </form>
 
           <div style={{ textAlign: 'center', marginTop: '1rem', borderTop: '1px solid #e2e8f0', paddingTop: '1rem' }}>
-            <Link to="/cadastro" className="text-link" style={{ color: '#7c3aed', fontSize: '0.85rem', fontWeight: 600, display: 'block', marginBottom: '0.75rem' }}>
+            <Link to="/cadastro" className="text-link" style={{ color: 'var(--role-primary-color)', fontSize: '0.85rem', fontWeight: 600, display: 'block', marginBottom: '0.75rem' }}>
                Ainda não tem conta? Cadastre-se como morador
             </Link>
             <Link to="/novo-condominio" className="text-link" style={{ color: '#64748b', fontSize: '0.8rem', fontWeight: 500 }}>

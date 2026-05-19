@@ -184,7 +184,7 @@
 /* Botão */
 .btn-primary {
   width: 100%;
-  background-color: #ea580c; /* orange-600 */
+  background-color: var(--role-primary-color); /* orange-600 dynamic */
   color: #ffffff;
   font-weight: 500;
   padding: 0.75rem 0;
