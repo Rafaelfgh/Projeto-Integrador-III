@@ -258,7 +258,7 @@ const PainelSindico = () => {
                      {recommendedEmps.length > 0 ? recommendedEmps.map(emp => (
                         <div key={emp.id} className="employee-card recommended" onClick={() => handleAssign(emp.id)}>
                            <div className="emp-info-group">
-                              <div className="emp-avatar" style={{ background: '#eef2ff', color: 'var(--role-primary-color)' }}>{emp.avatar}</div>
+                              <div className="emp-avatar" style={{ background: '#fff7ed', color: 'var(--role-primary-color)' }}>{emp.avatar}</div>
                               <div className="emp-details">
                                  <span className="emp-name">{emp.name}</span>
                                  <span className="emp-tasks">{emp.openTasks} tarefas em andamento</span>
@@ -329,8 +329,9 @@ const PainelSindico = () => {
                      style={{
                         padding: '0.4rem 1rem', borderRadius: '6px', fontSize: '0.85rem', fontWeight: 600,
                         border: 'none', cursor: 'pointer', transition: 'all 0.15s',
-                        background: activeTab === tab.key ? '#eef2ff' : 'transparent',
-                        color: activeTab === tab.key ? 'var(--role-primary-color)' : '#64748b',
+                        background: activeTab === tab.key ? '#fff7ed' : 'transparent',
+                        color: activeTab === tab.key ? '#ea580c' : '#64748b',
+                        borderBottom: activeTab === tab.key ? '2px solid #ea580c' : 'none',
                      }}
                   >{tab.label}</button>
                ))}
@@ -361,7 +362,7 @@ const PainelSindico = () => {
                               { label: 'ABERTAS', value: kpiData.abertas.value, trend: kpiData.abertas.trendValue, trendType: kpiData.abertas.trend, borderColor: '#ef4444', iconBg: '#fef2f2', iconColor: '#ef4444', Icon: AlertCircle },
                               { label: 'EM ANÁLISE', value: kpiData.analise.value, trend: kpiData.analise.trendValue, trendType: kpiData.analise.trend, borderColor: '#f59e0b', iconBg: '#fffbeb', iconColor: '#f59e0b', Icon: Clock },
                               { label: 'RESOLVIDAS', value: kpiData.resolvidas.value, trend: kpiData.resolvidas.trendValue, trendType: kpiData.resolvidas.trend, borderColor: '#10b981', iconBg: '#f0fdf4', iconColor: '#10b981', Icon: CheckCircle2 },
-                              { label: 'TOTAL (MÊS)', value: kpiData.total.value, trend: '—', trendType: 'neutral', borderColor: 'var(--role-primary-color)', iconBg: '#eef2ff', iconColor: 'var(--role-primary-color)', Icon: BarChart3 },
+                              { label: 'TOTAL (MÊS)', value: kpiData.total.value, trend: '—', trendType: 'neutral', borderColor: '#ea580c', iconBg: '#fff7ed', iconColor: '#ea580c', Icon: BarChart3 },
                            ].map((k, i) => {
                               const trendColor = k.trendType === 'up' ? (k.label === 'ABERTAS' ? '#dc2626' : '#16a34a') : k.trendType === 'down' ? '#16a34a' : '#94a3b8';
                               return (
@@ -602,7 +603,7 @@ const PainelSindico = () => {
                            {empList.map(emp => (
                               <div key={emp.id} className="ps-card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.5rem' }}>
                                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                                    <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: '#eef2ff', color: 'var(--role-primary-color)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', fontWeight: 700 }}>
+                                    <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: '#fff7ed', color: 'var(--role-primary-color)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', fontWeight: 700 }}>
                                        {emp.avatar}
                                     </div>
                                     <div>

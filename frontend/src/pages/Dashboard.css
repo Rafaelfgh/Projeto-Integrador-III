@@ -122,9 +122,19 @@
   display: flex;
   flex-direction: column;
   gap: 2rem;
-  scrollbar-width: none;
+  scrollbar-width: thin;
+  scrollbar-color: #64748b #1e293b;
 }
-.sidebar-nav-container::-webkit-scrollbar { display: none; }
+.sidebar-nav-container::-webkit-scrollbar { 
+  width: 6px; 
+}
+.sidebar-nav-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+.sidebar-nav-container::-webkit-scrollbar-thumb {
+  background-color: #64748b;
+  border-radius: 3px;
+}
 
 .nav-group {
   display: flex;

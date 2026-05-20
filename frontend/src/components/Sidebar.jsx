@@ -137,7 +137,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
           {visualContext === 'SINDICO' && (
             <div className="nav-group">
               <p className="nav-section-title">Painel do Síndico</p>
-              <nav className="nav-list" style={{ maxHeight: 'none', overflowY: 'visible' }}>
+              <nav className="nav-list">
                 <a href="#" className={`nav-item ${currentPath === '/painel' && (!location.search || location.search === '?tab=overview') ? 'nav-item-active' : 'nav-item-inactive'}`} onClick={(e) => { e.preventDefault(); handleNavClick('/painel?tab=overview'); }}>
                   <LayoutDashboard className="nav-icon" /><span>Visão Geral</span>
                 </a>

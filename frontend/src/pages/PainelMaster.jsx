@@ -42,6 +42,8 @@ const PainelMaster = () => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showPromoteModal, setShowPromoteModal] = useState(false);
   const [userToPromote, setUserToPromote] = useState(null);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
 
   const [moradoresSubTab, setMoradoresSubTab] = useState('ativos');
 
@@ -240,6 +242,11 @@ const PainelMaster = () => {
     }
   };
 
+  const handleViewDetails = (user) => {
+    setSelectedUser(user);
+    setShowDetailsModal(true);
+  };
+
   const roleColor = { MASTER: '#7c3aed', ADMIN: '#7c3aed', SINDICO: '#4f46e5', FUNCIONARIO: '#16a34a', MORADOR: '#ea580c' };
   const roleLabel = { MASTER: 'Master', ADMIN: 'Admin', SINDICO: 'Síndico', FUNCIONARIO: 'Funcionário', MORADOR: 'Morador' };
   const statusColor = { ATIVO: { text: '#16a34a', bg: '#dcfce7' }, PENDENTE: { text: '#d97706', bg: '#fef3c7' }, BLOQUEADO: { text: '#dc2626', bg: '#fee2e2' } };
@@ -428,7 +435,12 @@ const PainelMaster = () => {
                             <tr style={{ background: '#f5f3ff' }}>
                               <td style={{ padding: '14px 16px', borderBottom: '1px solid #f1f5f9' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                  <div style={{ width: 36, height: 36, borderRadius: '50%', background: `${rc}18`, color: rc, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '14px', flexShrink: 0 }}>
+                                  <div 
+                                    onClick={() => handleViewDetails(sindico)}
+                                    style={{ width: 36, height: 36, borderRadius: '50%', background: `${rc}18`, color: rc, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '14px', flexShrink: 0, cursor: 'pointer', transition: 'all 0.2s', boxShadow: '0 0 0 2px transparent' }}
+                                    onMouseEnter={e => e.currentTarget.style.boxShadow = `0 0 0 2px ${rc}40`}
+                                    onMouseLeave={e => e.currentTarget.style.boxShadow = '0 0 0 2px transparent'}
+                                  >
                                     {(sindico.nome || sindico.name || 'S').charAt(0)}
                                   </div>
                                   <div>
@@ -510,7 +522,12 @@ const PainelMaster = () => {
                             >
                               <td style={{ padding: '14px 16px', borderBottom: '1px solid #f1f5f9' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                  <div style={{ width: 36, height: 36, borderRadius: '50%', background: isBlocked ? '#e2e8f0' : `${rc}18`, color: isBlocked ? '#94a3b8' : rc, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '14px', flexShrink: 0 }}>
+                                  <div 
+                                    onClick={() => handleViewDetails(user)}
+                                    style={{ width: 36, height: 36, borderRadius: '50%', background: isBlocked ? '#e2e8f0' : `${rc}18`, color: isBlocked ? '#94a3b8' : rc, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '14px', flexShrink: 0, cursor: 'pointer', transition: 'all 0.2s', boxShadow: '0 0 0 2px transparent' }}
+                                    onMouseEnter={e => e.currentTarget.style.boxShadow = `0 0 0 2px ${isBlocked ? '#94a3b8' : rc}40`}
+                                    onMouseLeave={e => e.currentTarget.style.boxShadow = '0 0 0 2px transparent'}
+                                  >
                                     {(user.nome || user.name || 'U').charAt(0)}
                                   </div>
                                   <div>
@@ -617,7 +634,12 @@ const PainelMaster = () => {
                           >
                             <td style={{ padding: '14px 16px', borderBottom: '1px solid #f1f5f9' }}>
                               <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                <div style={{ width: 36, height: 36, borderRadius: '50%', background: isBlocked ? '#e2e8f0' : `${rc}18`, color: isBlocked ? '#94a3b8' : rc, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '14px', flexShrink: 0 }}>
+                                <div 
+                                  onClick={() => handleViewDetails(user)}
+                                  style={{ width: 36, height: 36, borderRadius: '50%', background: isBlocked ? '#e2e8f0' : `${rc}18`, color: isBlocked ? '#94a3b8' : rc, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '14px', flexShrink: 0, cursor: 'pointer', transition: 'all 0.2s', boxShadow: '0 0 0 2px transparent' }}
+                                  onMouseEnter={e => e.currentTarget.style.boxShadow = `0 0 0 2px ${isBlocked ? '#94a3b8' : rc}40`}
+                                  onMouseLeave={e => e.currentTarget.style.boxShadow = '0 0 0 2px transparent'}
+                                >
                                   {(user.nome || user.name || 'F').charAt(0)}
                                 </div>
                                 <div>
@@ -751,6 +773,118 @@ const PainelMaster = () => {
           </div>
         </div>
       )}
+
+      {showDetailsModal && selectedUser && (() => {
+        const userRole = selectedUser.role || 'MORADOR';
+        const userRoleColor = roleColor[userRole] || '#475569';
+        const userRoleLabel = roleLabel[userRole] || userRole;
+        const userStatusColor = statusColor[selectedUser.status] || { text: '#475569', bg: '#f1f5f9' };
+        
+        return (
+          <div className="gu-modal-overlay">
+            <div className="gu-modal" style={{ maxWidth: '500px' }}>
+              <div className="gu-modal-header">
+                <h2>Detalhes do {userRole === 'FUNCIONARIO' ? 'Funcionário' : userRole === 'SINDICO' ? 'Síndico' : 'Morador'}</h2>
+                <button 
+                  onClick={() => { setShowDetailsModal(false); setSelectedUser(null); }}
+                  onMouseEnter={e => e.currentTarget.style.color = '#dc2626'}
+                  onMouseLeave={e => e.currentTarget.style.color = 'inherit'}
+                  style={{ transition: 'color 0.2s' }}
+                >
+                  <X size={20}/>
+                </button>
+              </div>
+              <div style={{ padding: '24px' }}>
+                {/* Avatar e Nome */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px', paddingBottom: '24px', borderBottom: '1px solid #e2e8f0' }}>
+                  <div style={{ width: 60, height: 60, borderRadius: '50%', background: `${userRoleColor}18`, color: userRoleColor, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '24px', flexShrink: 0 }}>
+                    {(selectedUser.nome || selectedUser.name || 'U').charAt(0)}
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <h3 style={{ fontSize: '18px', fontWeight: 700, color: '#0f172a', margin: '0 0 4px' }}>
+                      {selectedUser.nome || selectedUser.name}
+                    </h3>
+                    <p style={{ fontSize: '12px', color: '#94a3b8', margin: '0 0 8px' }}>
+                      {selectedUser.email}
+                    </p>
+                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                      <span style={{ fontSize: '11px', fontWeight: 700, color: userRoleColor, background: `${userRoleColor}15`, border: `1px solid ${userRoleColor}40`, borderRadius: '6px', padding: '4px 10px', display: 'inline-block' }}>
+                        {userRoleLabel}
+                      </span>
+                      <span style={{ fontSize: '11px', fontWeight: 700, color: userStatusColor.text, background: userStatusColor.bg, padding: '3px 10px', borderRadius: '99px', display: 'inline-block' }}>
+                        {selectedUser.status}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Informações Pessoais */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '20px' }}>
+                  <div>
+                    <p style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: '#94a3b8', letterSpacing: '0.05em', margin: '0 0 6px' }}>CPF</p>
+                    <p style={{ fontSize: '13px', color: '#0f172a', fontWeight: 500, margin: 0 }}>
+                      {selectedUser.cpf || 'Não informado'}
+                    </p>
+                  </div>
+                  {userRole === 'FUNCIONARIO' && (
+                    <div>
+                      <p style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: '#94a3b8', letterSpacing: '0.05em', margin: '0 0 6px' }}>Cargo</p>
+                      <p style={{ fontSize: '13px', color: '#0f172a', fontWeight: 500, margin: 0 }}>
+                        {selectedUser.cargo || 'Funcionário'}
+                      </p>
+                    </div>
+                  )}
+                  {userRole !== 'FUNCIONARIO' && (
+                    <div>
+                      <p style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: '#94a3b8', letterSpacing: '0.05em', margin: '0 0 6px' }}>Telefone</p>
+                      <p style={{ fontSize: '13px', color: '#0f172a', fontWeight: 500, margin: 0 }}>
+                        {selectedUser.telefone || 'Não informado'}
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Bloco e Apartamento (apenas para moradores e síndicos) */}
+                {userRole !== 'FUNCIONARIO' && (
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '20px', paddingBottom: '20px', borderBottom: '1px solid #e2e8f0' }}>
+                    <div>
+                      <p style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: '#94a3b8', letterSpacing: '0.05em', margin: '0 0 6px' }}>Bloco</p>
+                      <p style={{ fontSize: '13px', color: '#0f172a', fontWeight: 500, margin: 0 }}>
+                        {selectedUser.bloco || 'Não informado'}
+                      </p>
+                    </div>
+                    <div>
+                      <p style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: '#94a3b8', letterSpacing: '0.05em', margin: '0 0 6px' }}>Apartamento</p>
+                      <p style={{ fontSize: '13px', color: '#0f172a', fontWeight: 500, margin: 0 }}>
+                        {selectedUser.apartamento || 'Não informado'}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Informações adicionais */}
+                <div>
+                  <p style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: '#94a3b8', letterSpacing: '0.05em', margin: '0 0 12px' }}>Informações Adicionais</p>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                    <div style={{ background: '#f8fafc', padding: '12px', borderRadius: '8px' }}>
+                      <p style={{ fontSize: '10px', color: '#64748b', margin: '0 0 4px' }}>Data de Cadastro</p>
+                      <p style={{ fontSize: '12px', fontWeight: 600, color: '#0f172a', margin: 0 }}>
+                        {selectedUser.created_at ? new Date(selectedUser.created_at).toLocaleDateString('pt-BR') : 'Não disponível'}
+                      </p>
+                    </div>
+                    <div style={{ background: '#f8fafc', padding: '12px', borderRadius: '8px' }}>
+                      <p style={{ fontSize: '10px', color: '#64748b', margin: '0 0 4px' }}>Condomínio ID</p>
+                      <p style={{ fontSize: '12px', fontWeight: 600, color: '#0f172a', margin: 0 }}>
+                        {selectedUser.condominio_id || 'Não disponível'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
     </div>
   );
