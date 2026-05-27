@@ -22,6 +22,8 @@ import {
 import { useNavigate } from 'react-router-dom';
 import NotificationMenu from '../components/NotificationMenu';
 import Sidebar from '../components/Sidebar';
+import { useAuth } from '../contexts/AuthContext';
+import { criarNotificacao } from '../services/notificationService';
 import './Dashboard.css';
 import './Ocorrencia.css';
 
@@ -32,6 +34,7 @@ const Ocorrencia = () => {
   const [visibility, setVisibility] = useState('sindico');
   const inputRef = useRef(null);
   const navigate = useNavigate();
+  const { currentUser } = useAuth();
 
   // Handle Drag events para a zona de upload
   const handleDrag = function(e) {
@@ -81,8 +84,20 @@ const Ocorrencia = () => {
     inputRef.current.click();
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Notificar síndico
+    await criarNotificacao({
+      destinatario_id: 'sindico-mock-id', // ID do síndico (obter do backend)
+      tipo: 'NOVA_OCORRENCIA',
+      titulo: 'Nova Ocorrência Registrada',
+      descricao: `Uma nova ocorrência foi registrada por ${currentUser?.name || 'Morador'}.`,
+      referencia_tipo: 'ocorrencia',
+      remetente_id: currentUser?.id,
+      remetente_nome: currentUser?.name || 'Morador'
+    });
+
     alert('Ocorrência registrada com sucesso! Arquivos anexados: ' + files.length);
     navigate('/dashboard');
   };

@@ -9,6 +9,7 @@ import Sidebar from '../components/Sidebar';
 import NotificationMenu from '../components/NotificationMenu';
 import ContextBanner from '../components/ContextBanner';
 import { useAuth } from '../contexts/AuthContext';
+import { criarNotificacao } from '../services/notificationService';
 import './Dashboard.css';
 import './PainelFuncionario.css';
 
@@ -211,7 +212,7 @@ const TaskDrawer = ({ task, onClose, onUpdate, currentUserName }) => {
     setTimeout(() => setUploadedFiles(u => u.map(f => f.status === 'Enviando...' ? { ...f, status:'Enviada' } : f)), 1200);
   };
 
-  const changeStatus = (newStatus) => {
+  const changeStatus = async (newStatus) => {
     if (newStatus === 'Concluída' && !canFinish) { alert('📸 Anexe pelo menos uma foto antes de concluir.'); return; }
     const history = [...task.history];
     if (comment.trim()) history.push({ id:Date.now(), author:currentUserName, role:'Técnico', time:'Agora mesmo', text:comment });
@@ -220,6 +221,20 @@ const TaskDrawer = ({ task, onClose, onUpdate, currentUserName }) => {
     if (newStatus === 'Em andamento' && !tl.iniciada) tl.iniciada = 'Agora';
     if (newStatus === 'Concluída') { tl.evidencia = tl.evidencia || 'Agora'; tl.validando = 'Agora'; }
     onUpdate(task.id, { status:newStatus, history, evidencias:uploadedFiles, timelineEvents:tl });
+    
+    // Notificar síndico sobre atualização na tarefa
+    if (newStatus === 'Concluída' || newStatus === 'Não concluída') {
+      await criarNotificacao({
+        destinatario_id: 'sindico-mock-id', // ID do síndico (obter do backend)
+        tipo: newStatus === 'Concluída' ? 'TAREFA_FINALIZADA' : 'TAREFA_NAO_CONCLUIDA',
+        titulo: newStatus === 'Concluída' ? 'Tarefa Concluída' : 'Tarefa Não Concluída',
+        descricao: `A tarefa "${task.title}" foi marcada como ${newStatus} por ${currentUserName}.`,
+        referencia_tipo: 'ocorrencia',
+        referencia_id: task.id,
+        remetente_nome: currentUserName
+      });
+    }
+    
     onClose();
   };
 

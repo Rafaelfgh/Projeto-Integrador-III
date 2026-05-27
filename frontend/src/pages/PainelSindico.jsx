@@ -12,6 +12,7 @@ import {
 import { useAuth } from '../contexts/AuthContext';
 import Sidebar from '../components/Sidebar';
 import ContextBanner from '../components/ContextBanner';
+import { criarNotificacao } from '../services/notificationService';
 import './Dashboard.css';
 import './PainelSindico.css';
 
@@ -127,9 +128,26 @@ const PainelSindico = () => {
       setAssignModal({ isOpen: false, occ: null });
    };
 
-   const handleAssign = (empId) => {
-      // Mock assignment
+   const handleAssign = async (empId) => {
+      // Mock assignment (no futuro será update no BD)
       alert(`Tarefa atribuída ao funcionário ID: ${empId}`);
+      
+      // Criar notificação para o funcionário (usando empId como destinatario)
+      // Nota: Quando integrar com BD real, empId será o UUID do funcionário
+      if (assignModal.occ) {
+        await criarNotificacao({
+          destinatario_id: empId, // ID do funcionário
+          condominio_id: currentUser?.unidade, // Assumindo que tem o condomínio no currentUser
+          tipo: 'TAREFA_ATRIBUIDA',
+          titulo: 'Nova Tarefa Atribuída',
+          descricao: `Você foi designado para: ${assignModal.occ.title}`,
+          referencia_tipo: 'ocorrencia',
+          referencia_id: assignModal.occ.id,
+          remetente_id: currentUser?.id,
+          remetente_nome: currentUser?.name || 'Síndico'
+        });
+      }
+      
       handleCloseAssign();
    };
 

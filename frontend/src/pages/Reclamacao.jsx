@@ -22,6 +22,8 @@ import {
 import { useNavigate } from 'react-router-dom';
 import NotificationMenu from '../components/NotificationMenu';
 import Sidebar from '../components/Sidebar';
+import { useAuth } from '../contexts/AuthContext';
+import { criarNotificacao } from '../services/notificationService';
 import './Dashboard.css';
 import './Ocorrencia.css'; // Usa o mesmo CSS SaaS de Ocorrência
 
@@ -32,6 +34,7 @@ const Reclamacao = () => {
   const [visibility, setVisibility] = useState('sindico');
   const inputRef = useRef(null);
   const navigate = useNavigate();
+  const { currentUser } = useAuth();
 
   // Zone Handlers
   const handleDrag = function(e) {
@@ -79,8 +82,20 @@ const Reclamacao = () => {
     inputRef.current.click();
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Notificar síndico
+    await criarNotificacao({
+      destinatario_id: 'sindico-mock-id', // ID do síndico (obter do backend)
+      tipo: 'NOVA_OCORRENCIA',
+      titulo: 'Nova Reclamação Particular',
+      descricao: `Uma nova reclamação foi registrada de forma sigilosa.`,
+      referencia_tipo: 'ocorrencia',
+      remetente_id: currentUser?.id,
+      remetente_nome: currentUser?.name || 'Morador'
+    });
+
     alert('Reclamação registrada com absoluto sigilo! Arquivos anexados: ' + files.length);
     navigate('/dashboard');
   };

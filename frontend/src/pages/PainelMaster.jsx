@@ -9,6 +9,7 @@ import ContextBanner from '../components/ContextBanner';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../backend/supabaseClient';
 import { createClient } from '@supabase/supabase-js';
+import { criarNotificacao } from '../services/notificationService';
 import './PainelMaster.css';
 
 const secondarySupabase = createClient(
@@ -114,6 +115,16 @@ const PainelMaster = () => {
       const { error } = await supabase.from(table).update({ status: 'ATIVO' }).eq('id', user.id);
       if (error) {
          console.error(error);
+      } else {
+        await criarNotificacao({
+          destinatario_id: user.id,
+          condominio_id: user.condominio_id,
+          tipo: 'CADASTRO_APROVADO',
+          titulo: 'Cadastro Aprovado',
+          descricao: 'Seu cadastro foi aprovado pela administração! Bem-vindo.',
+          remetente_id: currentUser.id,
+          remetente_nome: currentUser.name || 'Master'
+        });
       }
 
       setUsers(users.map(u => u.id === user.id ? { ...u, status: 'ATIVO' } : u));
@@ -132,6 +143,17 @@ const PainelMaster = () => {
 
       const { error } = await supabase.from(table).update({ status: newStatus }).eq('id', user.id);
       if (error) console.error(error);
+      else {
+        await criarNotificacao({
+          destinatario_id: user.id,
+          condominio_id: user.condominio_id,
+          tipo: newStatus === 'BLOQUEADO' ? 'CADASTRO_BLOQUEADO' : 'CADASTRO_APROVADO',
+          titulo: newStatus === 'BLOQUEADO' ? 'Acesso Bloqueado' : 'Acesso Desbloqueado',
+          descricao: newStatus === 'BLOQUEADO' ? 'Seu acesso foi temporariamente bloqueado pela administração.' : 'Seu acesso foi restabelecido.',
+          remetente_id: currentUser.id,
+          remetente_nome: currentUser.name || 'Master'
+        });
+      }
 
       setUsers(users.map(u => u.id === user.id ? { ...u, status: newStatus } : u));
     } catch (e) {
@@ -168,6 +190,17 @@ const PainelMaster = () => {
       try {
         const { error } = await supabase.from('Gestao_Sindicos').update({ ativo: false }).eq('morador_id', userId);
         if (error) throw error;
+        
+        await criarNotificacao({
+          destinatario_id: userId,
+          condominio_id: userToChange.condominio_id,
+          tipo: 'SINDICO_REMOVIDO',
+          titulo: 'Acesso de Síndico Removido',
+          descricao: 'Seu perfil retornou para Morador.',
+          remetente_id: currentUser.id,
+          remetente_nome: currentUser.name || 'Master'
+        });
+
         setUsers(users.map(u => u.id === userId ? { ...u, role: 'MORADOR' } : u));
       } catch(err) {
         alert('Erro ao remover síndico. Detalhes: ' + err.message);
@@ -184,6 +217,17 @@ const PainelMaster = () => {
          ativo: true
       });
       if (error) throw error;
+      
+      await criarNotificacao({
+        destinatario_id: userToPromote.id,
+        condominio_id: userToPromote.condominio_id,
+        tipo: 'SINDICO_PROMOVIDO',
+        titulo: 'Promovido a Síndico',
+        descricao: 'Você foi promovido a Síndico do condomínio. Acesse seu novo painel.',
+        remetente_id: currentUser.id,
+        remetente_nome: currentUser.name || 'Master'
+      });
+
       setUsers(users.map(u => u.id === userToPromote.id ? { ...u, role: 'SINDICO' } : u));
       setShowPromoteModal(false);
       setUserToPromote(null);
