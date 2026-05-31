@@ -6,40 +6,11 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import ContextBanner from './ContextBanner';
 
-/* ─── Configuração dos contextos disponíveis para o Master ─── */
 const CONTEXT_OPTIONS = [
-  {
-    key: 'MASTER',
-    label: 'Master',
-    description: 'Governança Global',
-    color: '#7c3aed',
-    bgActive: 'rgba(124,58,237,0.12)',
-    borderActive: 'rgba(124,58,237,0.4)',
-  },
-  {
-    key: 'SINDICO',
-    label: 'Síndico',
-    description: 'Painel do Condomínio',
-    color: '#4f46e5',
-    bgActive: 'rgba(79,70,229,0.12)',
-    borderActive: 'rgba(79,70,229,0.4)',
-  },
-  {
-    key: 'FUNCIONARIO',
-    label: 'Funcionário',
-    description: 'Operações & Tarefas',
-    color: '#16a34a',
-    bgActive: 'rgba(22,163,74,0.12)',
-    borderActive: 'rgba(22,163,74,0.4)',
-  },
-  {
-    key: 'MORADOR',
-    label: 'Morador',
-    description: 'Bloco B, Apt 502',
-    color: '#ea580c',
-    bgActive: 'rgba(234,88,12,0.12)',
-    borderActive: 'rgba(234,88,12,0.4)',
-  },
+  { key: 'MASTER', label: 'Master', description: 'Governança Global', color: '#7c3aed', bgActive: 'rgba(124,58,237,0.12)', borderActive: 'rgba(124,58,237,0.4)' },
+  { key: 'SINDICO', label: 'Síndico', description: 'Painel do Condomínio', color: '#4f46e5', bgActive: 'rgba(79,70,229,0.12)', borderActive: 'rgba(79,70,229,0.4)' },
+  { key: 'FUNCIONARIO', label: 'Funcionário', description: 'Operações & Tarefas', color: '#16a34a', bgActive: 'rgba(22,163,74,0.12)', borderActive: 'rgba(22,163,74,0.4)' },
+  { key: 'MORADOR', label: 'Morador', description: 'Bloco B, Apt 502', color: '#ea580c', bgActive: 'rgba(234,88,12,0.12)', borderActive: 'rgba(234,88,12,0.4)' },
 ];
 
 const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
@@ -95,8 +66,6 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
           </button>
         </div>
 
-
-
         {/* ── Nav ── */}
         <div className="sidebar-nav-container">
 
@@ -140,36 +109,6 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
               <nav className="nav-list">
                 <a href="#" className={`nav-item ${currentPath === '/painel' && (!location.search || location.search === '?tab=overview') ? 'nav-item-active' : 'nav-item-inactive'}`} onClick={(e) => { e.preventDefault(); handleNavClick('/painel?tab=overview'); }}>
                   <LayoutDashboard className="nav-icon" /><span>Visão Geral</span>
-                </a>
-                <a href="#" className={`nav-item ${currentPath === '/painel' && location.search === '?tab=fluxo-ocorrencias' ? 'nav-item-active' : 'nav-item-inactive'}`} onClick={(e) => { e.preventDefault(); handleNavClick('/painel?tab=fluxo-ocorrencias'); }}>
-                  <Activity className="nav-icon" /><span>Fluxo de Ocorrências</span>
-                </a>
-                <a href="#" className={`nav-item ${currentPath === '/painel' && location.search === '?tab=funcionarios' ? 'nav-item-active' : 'nav-item-inactive'}`} onClick={(e) => { e.preventDefault(); handleNavClick('/painel?tab=funcionarios'); }}>
-                  <ShieldCheck className="nav-icon" /><span>Funcionários</span>
-                </a>
-                <a href="#" className={`nav-item ${currentPath === '/painel' && location.search === '?tab=moradores' ? 'nav-item-active' : 'nav-item-inactive'}`} onClick={(e) => { e.preventDefault(); handleNavClick('/painel?tab=moradores'); }}>
-                  <Users className="nav-icon" /><span>Moradores</span>
-                </a>
-                <a href="#" className={`nav-item ${currentPath === '/painel' && location.search === '?tab=votacoes' ? 'nav-item-active' : 'nav-item-inactive'}`} onClick={(e) => { e.preventDefault(); handleNavClick('/painel?tab=votacoes'); }}>
-                  <Vote className="nav-icon" /><span>Votações e Enquetes</span>
-                </a>
-                <a href="#" className={`nav-item ${currentPath === '/painel' && location.search === '?tab=agenda' ? 'nav-item-active' : 'nav-item-inactive'}`} onClick={(e) => { e.preventDefault(); handleNavClick('/painel?tab=agenda'); }}>
-                  <Calendar className="nav-icon" /><span>Agenda</span>
-                </a>
-                <a href="#" className={`nav-item ${currentPath === '/painel' && location.search === '?tab=relatorio' ? 'nav-item-active' : 'nav-item-inactive'}`} onClick={(e) => { e.preventDefault(); handleNavClick('/painel?tab=relatorio'); }}>
-                  <BarChart className="nav-icon" /><span>Relatório Mensal</span>
-                </a>
-                <a href="#" className={`nav-item ${currentPath === '/painel' && location.search === '?tab=prestadores' ? 'nav-item-active' : 'nav-item-inactive'}`} onClick={(e) => { e.preventDefault(); handleNavClick('/painel?tab=prestadores'); }}>
-                  <Star className="nav-icon" /><span>Prestadores de Serviço</span>
-                </a>
-                <a href="#" className={`nav-item ${currentPath === '/painel' && location.search === '?tab=reservas' ? 'nav-item-active' : 'nav-item-inactive'}`} onClick={(e) => { e.preventDefault(); handleNavClick('/painel?tab=reservas'); }}>
-                  <CheckSquare className="nav-icon" /><span>Reservas</span>
-                </a>
-                <a href="#" className={`nav-item ${currentPath === '/painel' && location.search === '?tab=mapa' ? 'nav-item-active' : 'nav-item-inactive'}`} onClick={(e) => { e.preventDefault(); handleNavClick('/painel?tab=mapa'); }}>
-                  <Map className="nav-icon" /><span>Mapa de Ocorrências</span>
-                </a>
-                <a href="#" className={`nav-item ${currentPath === '/painel' && location.search === '?tab=mensagens' ? 'nav-item-active' : 'nav-item-inactive'}`} onClick={(e) => { e.preventDefault(); handleNavClick('/painel?tab=mensagens'); }}>
-                  <MessageSquare className="nav-icon" /><span>Mensagens</span>
                 </a>
               </nav>
             </div>
