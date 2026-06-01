@@ -81,6 +81,8 @@ export const AuthProvider = ({ children }) => {
     setCurrentUser(null);
     setVisualContext(null);
     localStorage.removeItem('@PM:user');
+    // Reseta imediatamente para o laranja padrão da marca
+    document.documentElement.style.setProperty('--role-primary-color', '#ea580c');
   };
 
   // Toast Function

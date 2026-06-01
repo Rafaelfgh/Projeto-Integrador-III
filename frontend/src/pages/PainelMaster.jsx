@@ -511,12 +511,30 @@ const PainelMaster = () => {
                                 <span style={{ fontSize: '11px', fontWeight: 700, color: sc.text, background: sc.bg, padding: '3px 10px', borderRadius: '99px' }}>{sindico.status}</span>
                               </td>
                               <td style={{ padding: '14px 16px', borderBottom: '1px solid #f1f5f9' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                  {sindico.id !== currentUser?.id && (
-                                    <button onClick={() => handleBlock(sindico)} style={{ fontSize: '11px', fontWeight: 700, color: sindico.status === 'BLOQUEADO' ? '#16a34a' : '#dc2626', background: sindico.status === 'BLOQUEADO' ? '#dcfce7' : '#fee2e2', border: `1px solid ${sindico.status === 'BLOQUEADO' ? '#bbf7d0' : '#fecaca'}`, borderRadius: '6px', padding: '4px 10px', cursor: 'pointer' }}>
-                                      {sindico.status === 'BLOQUEADO' ? '↑ Desbloquear' : '✕ Bloquear'}
-                                    </button>
-                                  )}
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                  <button disabled style={{ fontSize: '11px', fontWeight: 700, color: '#94a3b8', background: '#f1f5f9', border: '1px solid #e2e8f0', borderRadius: '6px', padding: '4px 10px', cursor: 'not-allowed', opacity: 0.6 }}>
+                                    ✕ Bloquear
+                                  </button>
+                                  <div style={{ position: 'relative', display: 'inline-flex' }}
+                                    onMouseEnter={e => {
+                                      const tip = document.getElementById('sindico-block-tip');
+                                      if (tip) {
+                                        const rect = e.currentTarget.getBoundingClientRect();
+                                        tip.style.display = 'block';
+                                        tip.style.top = (rect.top + rect.height / 2) + 'px';
+                                        tip.style.left = (rect.left) + 'px';
+                                        tip.style.transform = 'translate(calc(-100% - 10px), -50%)';
+                                      }
+                                    }}
+                                    onMouseLeave={() => {
+                                      const tip = document.getElementById('sindico-block-tip');
+                                      if (tip) tip.style.display = 'none';
+                                    }}
+                                  >
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ cursor: 'help' }}>
+                                      <circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>
+                                    </svg>
+                                  </div>
                                 </div>
                               </td>
                             </tr>
@@ -526,6 +544,12 @@ const PainelMaster = () => {
                     </div>
                   );
                 })()}
+
+                {/* Tooltip global para bloqueio do síndico */}
+                <div id="sindico-block-tip" style={{ display: 'none', position: 'fixed', background: '#1e293b', color: 'white', fontSize: '11.5px', fontWeight: 500, padding: '8px 14px', borderRadius: '8px', whiteSpace: 'nowrap', zIndex: 9999, boxShadow: '0 6px 20px rgba(0,0,0,0.2)', pointerEvents: 'none' }}>
+                  Para bloquear, retorne-o para Morador primeiro
+                  <div style={{ position: 'absolute', top: '50%', left: '100%', transform: 'translateY(-50%)', borderWidth: '5px', borderStyle: 'solid', borderColor: 'transparent transparent transparent #1e293b' }} />
+                </div>
 
                 {/* ── Seção Moradores ── */}
                 <div>
@@ -557,7 +581,7 @@ const PainelMaster = () => {
                           const rl = roleLabel[user.role] || user.role;
                           const sc = statusColor[user.status] || { text: '#475569', bg: '#f1f5f9' };
                           const isBlocked = user.status === 'BLOQUEADO';
-                          const canPromote = !hasActiveSindico && moradoresSubTab === 'ativos';
+                          const canPromote = !hasActiveSindico && moradoresSubTab === 'ativos' && !isBlocked;
                           return (
                             <tr key={user.id}
                               style={{ background: isBlocked ? '#fffafa' : 'white', transition: 'background 0.1s', opacity: isBlocked ? 0.7 : 1 }}
