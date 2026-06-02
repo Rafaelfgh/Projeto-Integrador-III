@@ -22,6 +22,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import NotificationMenu from '../components/NotificationMenu';
 import Sidebar from '../components/Sidebar';
+import { useAuth } from '../contexts/AuthContext';
 import './Dashboard.css';
 import './FeedOcorrencias.css';
 
@@ -87,6 +88,7 @@ const FeedOcorrencias = () => {
   const [statusFilter, setStatusFilter] = useState('Todos os status');
   const [categoryFilter, setCategoryFilter] = useState('Todas as categorias');
   const navigate = useNavigate();
+  const { currentUser } = useAuth();
 
   const getStatusClass = (status) => {
     switch(status) {
@@ -140,9 +142,9 @@ const FeedOcorrencias = () => {
             >
               <Menu size={20} />
             </button>
-            <div>
+            <div className="header-breadcrumbs">
               <h2 className="header-title">Feed do Condomínio</h2>
-              <p className="header-subtitle">Acompanhe os chamados públicos e engaje com a comunidade</p>
+              <p className="header-date">Acompanhe os chamados públicos e engaje com a comunidade</p>
             </div>
           </div>
 
@@ -154,9 +156,24 @@ const FeedOcorrencias = () => {
 
             <NotificationMenu />
 
-            <div className="user-profile-dropdown" onClick={() => navigate('/perfil')} style={{ cursor: 'pointer' }}>
-              <div className="user-avatar">
-                 <span>M</span>
+            <div 
+              className="user-profile-dropdown" 
+              onClick={() => navigate('/perfil')} 
+              style={{ 
+                display:'flex', 
+                alignItems:'center', 
+                gap:'0.75rem', 
+                borderLeft:'1px solid #e2e8f0', 
+                paddingLeft:'1rem',
+                cursor: 'pointer' 
+              }}
+            >
+              <div style={{
+                width:36, height:36, borderRadius:'50%',
+                background:'var(--role-primary-color)', color:'white',
+                display:'flex', alignItems:'center', justifyContent:'center', fontWeight:700,
+              }}>
+                {currentUser?.name?.charAt(0) || 'M'}
               </div>
             </div>
           </div>

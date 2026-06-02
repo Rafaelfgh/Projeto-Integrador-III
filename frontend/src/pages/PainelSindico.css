@@ -275,7 +275,6 @@
 /* Tabela de Ocorrências Recentes */
 .ps-table-wrapper {
   overflow-x: auto;
-  margin: 0 -1.5rem;
 }
 .ps-table-modern {
   width: 100%;

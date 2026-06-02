@@ -128,15 +128,30 @@ const Ocorrencia = () => {
             </button>
             <div className="header-breadcrumbs">
                <h2 className="header-title">Ocorrência Estrutural</h2>
-               <p className="header-subtitle">Notifique problemas nas áreas comuns</p>
+               <p className="header-date">Notifique problemas nas áreas comuns</p>
             </div>
           </div>
           
           <div className="header-right">
             <NotificationMenu />
-            <div className="user-profile-dropdown" onClick={() => navigate('/perfil')} style={{ cursor: 'pointer' }}>
-              <div className="user-avatar">
-                 <span>M</span>
+            <div 
+              className="user-profile-dropdown" 
+              onClick={() => navigate('/perfil')} 
+              style={{ 
+                display:'flex', 
+                alignItems:'center', 
+                gap:'0.75rem', 
+                borderLeft:'1px solid #e2e8f0', 
+                paddingLeft:'1rem',
+                cursor: 'pointer' 
+              }}
+            >
+              <div style={{
+                width:36, height:36, borderRadius:'50%',
+                background:'var(--role-primary-color)', color:'white',
+                display:'flex', alignItems:'center', justifyContent:'center', fontWeight:700,
+              }}>
+                {currentUser?.name?.charAt(0) || 'M'}
               </div>
             </div>
           </div>

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Menu, CheckCircle2, AlertCircle, Clock, BarChart3,
 } from 'lucide-react';
@@ -180,6 +181,7 @@ const AguardandoChip = ({ setor }) => {
 const PainelSindico = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { currentUser } = useAuth();
+  const navigate = useNavigate();
 
   return (
     <div className="dashboard-layout">
@@ -198,9 +200,20 @@ const PainelSindico = () => {
               <p className="header-date">Condomínio Bela Vista</p>
             </div>
           </div>
-          <div className="header-actions" style={{ display:'flex', alignItems:'center', gap:'0.75rem' }}>
+          <div className="header-right">
             <NotificationMenu />
-            <div style={{ display:'flex', alignItems:'center', gap:'0.75rem', borderLeft:'1px solid #e2e8f0', paddingLeft:'1rem' }}>
+            <div 
+              className="user-profile-dropdown" 
+              onClick={() => navigate('/perfil')} 
+              style={{ 
+                display:'flex', 
+                alignItems:'center', 
+                gap:'0.75rem', 
+                borderLeft:'1px solid #e2e8f0', 
+                paddingLeft:'1rem',
+                cursor: 'pointer' 
+              }}
+            >
               <div style={{
                 width:36, height:36, borderRadius:'50%',
                 background:'var(--role-primary-color)', color:'white',

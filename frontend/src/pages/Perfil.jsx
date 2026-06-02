@@ -171,16 +171,29 @@ const Perfil = () => {
             <button className="mobile-menu-btn" onClick={() => setSidebarOpen(true)}>
               <Menu size={20} />
             </button>
-            <div>
+            <div className="header-breadcrumbs">
               <h2 className="header-title">Meu Perfil</h2>
-              <p className="header-subtitle">Gerencie sua conta e configurações pessoais</p>
+              <p className="header-date">Gerencie sua conta e configurações pessoais</p>
             </div>
           </div>
           <div className="header-right">
             <NotificationMenu />
-            <div className="user-profile-dropdown">
-              <div className="user-avatar" style={{backgroundColor: roleVars.mainColor}}>
-                 <span>{currentUser.name.charAt(0)}</span>
+            <div 
+              className="user-profile-dropdown" 
+              style={{ 
+                display:'flex', 
+                alignItems:'center', 
+                gap:'0.75rem', 
+                borderLeft:'1px solid #e2e8f0', 
+                paddingLeft:'1rem'
+              }}
+            >
+              <div style={{
+                width:36, height:36, borderRadius:'50%',
+                background:'var(--role-primary-color)', color:'white',
+                display:'flex', alignItems:'center', justifyContent:'center', fontWeight:700,
+              }}>
+                {currentUser?.name?.charAt(0) || 'U'}
               </div>
             </div>
           </div>
