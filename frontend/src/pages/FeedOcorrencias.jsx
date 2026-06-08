@@ -23,66 +23,24 @@ import { useNavigate } from 'react-router-dom';
 import NotificationMenu from '../components/NotificationMenu';
 import Sidebar from '../components/Sidebar';
 import { useAuth } from '../contexts/AuthContext';
+import { supabase } from '../backend/supabaseClient';
 import './Dashboard.css';
 import './FeedOcorrencias.css';
 
-// Mock data structured for a SaaS ticket feed
-const feedData = [
-  { 
-    id: 1, 
-    userInitial: 'M', 
-    userName: 'Maria Santos', 
-    role: 'Bloco A, 302', 
-    timeAgo: 'Há 2 horas',
-    title: 'Limpeza do hall de entrada no Bloco A', 
-    description: 'A área comum do hall de entrada está necessitando de uma limpeza mais profunda, especialmente próximo aos elevadores onde há marcas de sujeira recorrentes.',
-    category: 'Limpeza', 
-    status: 'Aberta', 
-    upvotes: 12,
-    comments: 3
-  },
-  { 
-    id: 2, 
-    userInitial: 'A', 
-    userName: 'Anônimo', 
-    role: 'Condômino', 
-    timeAgo: 'Há 5 horas',
-    title: 'Veículo estacionado fora da vaga (Garagem subsolo)', 
-    description: 'Um veículo SUV preto está frequentemente estacionando ocupando parte da faixa de pedestres no subsolo 1, dificultando a manobra dos demais.',
-    category: 'Outros', 
-    status: 'Em Análise',
-    upvotes: 45,
-    comments: 8
-  },
-  { 
-    id: 3, 
-    userInitial: 'C', 
-    userName: 'Carlos Lima', 
-    role: 'Bloco C, 105', 
-    timeAgo: 'Ontem',
-    title: 'Oscilação de energia nos andares baixos do Bloco C', 
-    description: 'Estou notando que durante a noite as luzes oscilam de forma intermitente. Já conversei com o vizinho do 104 e ele relatou o mesmo problema.',
-    category: 'Elétrica', 
-    status: 'Resolvida',
-    upvotes: 21,
-    comments: 5
-  },
-  { 
-    id: 4, 
-    userInitial: 'R', 
-    userName: 'Roberto Silva', 
-    role: 'Síndico', 
-    timeAgo: 'Ontem',
-    title: 'Manutenção preventiva das bombas d\'água concluída', 
-    description: 'Informo a todos que a manutenção preventiva semestral das bombas hidráulicas de todos os blocos foi concluída com sucesso sem necessidade de corte no fornecimento.',
-    category: 'Hidráulica', 
-    status: 'Resolvida',
-    upvotes: 89,
-    comments: 12
-  },
-];
+const CATEGORIA_LABEL = {
+  'hidraulica':   '💧 Hidráulica',
+  'manutencao':   '🔧 Manutenção',
+  'limpeza':      '🧹 Limpeza',
+  'jardinagem':   '🌿 Jardinagem',
+  'seguranca':    '🛡️ Segurança',
+  'areas_comuns': '🏢 Áreas Comuns',
+  'estrutural':   '🏗️ Estrutural',
+  'barulho':      '🔊 Barulho/Perturbação',
+  'garagem':      '🅿️ Garagem/Estacionamento',
+};
 
 const FeedOcorrencias = () => {
+  const [feedList, setFeedList] = useState([]);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('Todos os status');
@@ -109,11 +67,46 @@ const FeedOcorrencias = () => {
     }
   };
 
-  const filteredFeed = feedData.filter(ticket => {
+  React.useEffect(() => {
+    async function fetchFeed() {
+      if (!currentUser?.condominio_id) return;
+      
+      // Busca apenas ocorrências marcadas como "mural" (públicas)
+      const { data: occ } = await supabase.from('Ocorrencias')
+        .select('*, Moradores(nome, bloco, apartamento)')
+        .eq('condominio_id', currentUser.condominio_id)
+        .eq('privacidade', 'mural')
+        .order('created_at', { ascending: false });
+        
+      if (occ) {
+        const formatadas = occ.map(o => ({
+          id: o.id,
+          userInitial: o.Moradores?.nome?.charAt(0) || 'M',
+          userName: o.Moradores?.nome || 'Morador',
+          role: o.Moradores ? `Bloco ${o.Moradores.bloco}, Apt ${o.Moradores.apartamento}` : 'Condômino',
+          timeAgo: new Date(o.created_at).toLocaleDateString(),
+          title: o.titulo,
+          description: o.descricao,
+          category: CATEGORIA_LABEL[o.categoria] || o.categoria || 'Outros',
+          rawCategory: o.categoria || 'Outros',
+          status: o.status || 'Aberta',
+          upvotes: 0,
+          comments: 0
+        }));
+        setFeedList(formatadas);
+      }
+    }
+    fetchFeed();
+  }, [currentUser?.condominio_id]);
+
+  const filteredFeed = feedList.filter(ticket => {
     const matchesSearch = ticket.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
                           ticket.description.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'Todos os status' || ticket.status === statusFilter;
-    const matchesCat = categoryFilter === 'Todas as categorias' || ticket.category === categoryFilter;
+    
+    // Simplificando o filtro de categoria para bater com o select
+    const matchesCat = categoryFilter === 'Todas as categorias' || 
+                       ticket.rawCategory.toLowerCase().includes(categoryFilter.toLowerCase());
     
     return matchesSearch && matchesStatus && matchesCat;
   });
@@ -213,11 +206,15 @@ const FeedOcorrencias = () => {
                     onChange={(e) => setCategoryFilter(e.target.value)}
                   >
                     <option>Todas as categorias</option>
-                    <option>Hidráulica</option>
-                    <option>Elétrica</option>
-                    <option>Barulho</option>
-                    <option>Limpeza</option>
-                    <option>Outros</option>
+                    <option value="hidraulica">Hidráulica</option>
+                    <option value="manutencao">Manutenção</option>
+                    <option value="limpeza">Limpeza</option>
+                    <option value="jardinagem">Jardinagem</option>
+                    <option value="seguranca">Segurança</option>
+                    <option value="estrutural">Estrutural</option>
+                    <option value="barulho">Barulho</option>
+                    <option value="garagem">Garagem</option>
+                    <option value="areas_comuns">Áreas Comuns</option>
                   </select>
                 </div>
               </div>

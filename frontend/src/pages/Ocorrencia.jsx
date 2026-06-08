@@ -24,6 +24,7 @@ import NotificationMenu from '../components/NotificationMenu';
 import Sidebar from '../components/Sidebar';
 import { useAuth } from '../contexts/AuthContext';
 import { criarNotificacao } from '../services/notificationService';
+import { supabase } from '../backend/supabaseClient';
 import './Dashboard.css';
 import './Ocorrencia.css';
 
@@ -32,6 +33,7 @@ const Ocorrencia = () => {
   const [files, setFiles] = useState([]);
   const [dragActive, setDragActive] = useState(false);
   const [visibility, setVisibility] = useState('sindico');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const inputRef = useRef(null);
   const navigate = useNavigate();
   const { currentUser } = useAuth();
@@ -86,20 +88,71 @@ const Ocorrencia = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsSubmitting(true);
     
-    // Notificar síndico
-    await criarNotificacao({
-      destinatario_id: 'sindico-mock-id', // ID do síndico (obter do backend)
-      tipo: 'NOVA_OCORRENCIA',
-      titulo: 'Nova Ocorrência Registrada',
-      descricao: `Uma nova ocorrência foi registrada por ${currentUser?.name || 'Morador'}.`,
-      referencia_tipo: 'ocorrencia',
-      remetente_id: currentUser?.id,
-      remetente_nome: currentUser?.name || 'Morador'
-    });
+    try {
+      const formData = new FormData(e.target);
+      const titulo = formData.get('titulo');
+      const categoria = formData.get('categoria');
+      const local = formData.get('local');
+      const descText = formData.get('descricao');
+      
+      const descricaoCompleta = local ? `${descText}\n\nLocal Relacionado: ${local}` : descText;
 
-    alert('Ocorrência registrada com sucesso! Arquivos anexados: ' + files.length);
-    navigate('/dashboard');
+      // 1. Upload dos anexos (Fotos/Vídeos)
+      const uploadedUrls = [];
+      for (const fileObj of files) {
+        const fileExt = fileObj.name.split('.').pop();
+        const fileName = `${currentUser.id}-${Math.random().toString(36).substr(2, 9)}.${fileExt}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('anexos')
+          .upload(fileName, fileObj.file);
+          
+        if (uploadError) {
+          console.error('Erro no upload', uploadError);
+          continue; // Pula a imagem que deu erro
+        }
+        
+        const { data: { publicUrl } } = supabase.storage.from('anexos').getPublicUrl(fileName);
+        uploadedUrls.push(publicUrl);
+      }
+
+      // 2. Inserir no Banco de Dados
+      const { data, error } = await supabase.from('Ocorrencias').insert({
+        titulo: titulo,
+        categoria: categoria,
+        descricao: descricaoCompleta,
+        privacidade: visibility,
+        status: 'Aberta',
+        morador_id: currentUser.id,
+        condominio_id: currentUser.condominio_id,
+        anexos: uploadedUrls
+      }).select();
+
+      if (error) throw error;
+      
+      // Notificar síndico
+      await criarNotificacao({
+        destinatario_id: 'sindico-mock-id', // O painel do síndico depois vai puxar as notificações do condomínio
+        condominio_id: currentUser.condominio_id,
+        tipo: 'NOVA_OCORRENCIA',
+        titulo: 'Nova Ocorrência Registrada',
+        descricao: `Uma nova ocorrência foi registrada por ${currentUser?.name || 'Morador'}.`,
+        referencia_tipo: 'ocorrencia',
+        referencia_id: data[0]?.id,
+        remetente_id: currentUser?.id,
+        remetente_nome: currentUser?.name || 'Morador'
+      });
+
+      alert('Ocorrência registrada com sucesso!');
+      navigate('/dashboard');
+    } catch (err) {
+      console.error(err);
+      alert('Erro ao registrar ocorrência: ' + err.message);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -183,24 +236,28 @@ const Ocorrencia = () => {
                   <div className="saas-grid">
                     <div className="saas-input-group full-width">
                       <label>Título da Ocorrência <span className="req">*</span></label>
-                      <input type="text" placeholder="Ex: Lâmpada queimada no corredor do 3º andar" required />
+                      <input type="text" name="titulo" placeholder="Ex: Lâmpada queimada no corredor do 3º andar" required />
                     </div>
                     
                     <div className="saas-input-group">
                       <label>Categoria <span className="req">*</span></label>
-                      <select required className="saas-select">
-                        <option value="" disabled selected>Selecione uma categoria</option>
-                        <option value="hidraulica">💧 Problema Hidráulico (Vazamentos)</option>
-                        <option value="eletrica">⚡ Problema Elétrico (Luzes, Energia)</option>
-                        <option value="limpeza">🧹 Limpeza nas Áreas Comuns</option>
-                        <option value="infra">🏗️ Infraestrutura (Elevador, Portas)</option>
-                        <option value="outro">Outros</option>
+                      <select name="categoria" required className="saas-select" defaultValue="">
+                        <option value="" disabled>Selecione uma categoria</option>
+                        <option value="hidraulica">💧 Hidráulica (Vazamentos, Encanamento)</option>
+                        <option value="manutencao">🔧 Manutenção (Reparos Gerais)</option>
+                        <option value="limpeza">🧹 Limpeza (Áreas Comuns)</option>
+                        <option value="jardinagem">🌿 Jardinagem (Jardim, Paisagismo)</option>
+                        <option value="seguranca">🛡️ Segurança (Câmeras, Portaria)</option>
+                        <option value="areas_comuns">🏢 Áreas Comuns (Salão, Piscina, Academia)</option>
+                        <option value="estrutural">🏗️ Estrutural (Rachaduras, Infiltração)</option>
+                        <option value="barulho">🔊 Barulho / Perturbação</option>
+                        <option value="garagem">🅿️ Garagem / Estacionamento</option>
                       </select>
                     </div>
 
                     <div className="saas-input-group">
                       <label>Local / Bloco e Apartamento Relacionado</label>
-                      <input type="text" placeholder="Ex: Bloco B, Corredor 3º andar" />
+                      <input type="text" name="local" placeholder="Ex: Bloco B, Corredor 3º andar" />
                     </div>
                   </div>
                 </div>
@@ -216,7 +273,7 @@ const Ocorrencia = () => {
                    
                    <div className="saas-input-group full-width">
                       <label>Descrição Detalhada <span className="req">*</span></label>
-                      <textarea rows="4" placeholder="Descreva o que aconteceu em detalhes para ajudar a equipe de manutenção..." required></textarea>
+                      <textarea name="descricao" rows="4" placeholder="Descreva o que aconteceu em detalhes para ajudar a equipe de manutenção..." required></textarea>
                    </div>
                    
                    {/* Zona de Upload Drag & Drop SaaS */}
@@ -322,11 +379,11 @@ const Ocorrencia = () => {
 
                 {/* Ações (Cancel / Submit) */}
                 <div className="saas-form-footer">
-                  <button type="button" className="btn-cancel-saas" onClick={() => navigate('/dashboard')}>
+                  <button type="button" className="btn-cancel-saas" onClick={() => navigate('/dashboard')} disabled={isSubmitting}>
                     Cancelar
                   </button>
-                  <button type="submit" className="btn-primary-saas">
-                    <CheckCircle2 size={18} style={{ marginRight: '6px' }}/> Registrar Ocorrência
+                  <button type="submit" className="btn-primary-saas" disabled={isSubmitting}>
+                    {isSubmitting ? 'Enviando...' : <><CheckCircle2 size={18} style={{ marginRight: '6px' }}/> Registrar Ocorrência</>}
                   </button>
                 </div>
                 

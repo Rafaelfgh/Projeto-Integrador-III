@@ -26,19 +26,12 @@ import { useNavigate } from 'react-router-dom';
 import NotificationMenu from '../components/NotificationMenu';
 import Sidebar from '../components/Sidebar';
 import { useAuth } from '../contexts/AuthContext';
+import { supabase } from '../backend/supabaseClient';
 import './Dashboard.css';
 import './MinhasSolicitacoes.css';
 
-const mockRequests = [
-  { id: 1, protocol: 'REQ-2026-089', title: 'Infiltração grave no teto da sala e corredor', category: 'Hidráulica', status: 'Em Análise', date: '15/03/2026', time: '14:30', author: 'João Morador' },
-  { id: 2, protocol: 'REQ-2026-075', title: 'Morador do 402 com som alto durante toda madrugada', category: 'Barulho', status: 'Aberta', date: '12/03/2026', time: '22:45', author: 'Maria Funcionária' },
-  { id: 3, protocol: 'REQ-2026-041', title: 'Lâmpada do corredor do 3º andar queimada', category: 'Elétrica', status: 'Resolvida', date: '05/03/2026', time: '09:15', author: 'João Morador' },
-  { id: 4, protocol: 'REQ-2026-036', title: 'Vazamento contínuo na pia da cozinha', category: 'Hidráulica', status: 'Resolvida', date: '01/03/2026', time: '11:00', author: 'Outro Morador' },
-  { id: 5, protocol: 'REQ-2026-012', title: 'Lixo deixado no hall de entrada fora do horário', category: 'Limpeza', status: 'Resolvida', date: '20/02/2026', time: '08:00', author: 'Outro Morador' },
-  { id: 6, protocol: 'REQ-2026-005', title: 'Portão da garagem do subsolo travando', category: 'Outros', status: 'Resolvida', date: '10/02/2026', time: '18:20', author: 'João Morador' },
-];
-
 const MinhasSolicitacoes = () => {
+  const [requestsList, setRequestsList] = useState([]);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeFilter, setActiveFilter] = useState('Todos');
   const [searchTerm, setSearchTerm] = useState('');
@@ -54,11 +47,12 @@ const MinhasSolicitacoes = () => {
   }, []);
 
   const getCategoryTheme = (cat) => {
-    switch(cat) {
-      case 'Hidráulica': return { icon: <Droplet size={20} strokeWidth={2.5}/>, class: 'ms-icon-blue' };
-      case 'Elétrica': return { icon: <Zap size={20} strokeWidth={2.5}/>, class: 'ms-icon-yellow' };
-      case 'Barulho': return { icon: <Volume2 size={20} strokeWidth={2.5}/>, class: 'ms-icon-red' };
-      case 'Limpeza': return { icon: <Trash2 size={20} strokeWidth={2.5}/>, class: 'ms-icon-green' };
+    switch(cat?.toLowerCase()) {
+      case 'hidraulica': return { icon: <Droplet size={20} strokeWidth={2.5}/>, class: 'ms-icon-blue' };
+      case 'eletrica': return { icon: <Zap size={20} strokeWidth={2.5}/>, class: 'ms-icon-yellow' };
+      case 'barulho': return { icon: <Volume2 size={20} strokeWidth={2.5}/>, class: 'ms-icon-red' };
+      case 'limpeza': return { icon: <Trash2 size={20} strokeWidth={2.5}/>, class: 'ms-icon-green' };
+      case 'reclamacao': return { icon: <FileWarning size={20} strokeWidth={2.5}/>, class: 'ms-icon-red' };
       default: return { icon: <FileText size={20} strokeWidth={2.5}/>, class: 'ms-icon-purple' };
     }
   };
@@ -72,12 +66,56 @@ const MinhasSolicitacoes = () => {
     }
   };
 
-  const filteredRequests = mockRequests.filter(req => {
-    // Isolamento de dados (Row Level Security - Mock)
-    if (currentUser?.role === 'MORADOR' && req.author !== currentUser?.name) {
-      return false;
+  React.useEffect(() => {
+    async function fetchMyRequests() {
+      if (!currentUser?.id) return;
+      
+      const { data: occ } = await supabase.from('Ocorrencias')
+        .select('*')
+        .eq('morador_id', currentUser.id)
+        .order('created_at', { ascending: false });
+        
+      const { data: rec } = await supabase.from('Reclamacoes')
+        .select('*')
+        .eq('morador_id', currentUser.id)
+        .order('created_at', { ascending: false });
+        
+      let all = [];
+      if (occ) {
+        all = all.concat(occ.map(o => ({
+          id: `o-${o.id}`,
+          protocol: `OCO-${new Date(o.created_at).getFullYear()}-${o.id.toString().padStart(4, '0')}`,
+          title: o.titulo,
+          category: o.categoria || 'Outros',
+          status: o.status || 'Aberta',
+          date: new Date(o.created_at).toLocaleDateString(),
+          time: new Date(o.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          author: currentUser.name,
+          timestamp: new Date(o.created_at).getTime()
+        })));
+      }
+      
+      if (rec) {
+        all = all.concat(rec.map(r => ({
+          id: `r-${r.id}`,
+          protocol: `REC-${new Date(r.created_at).getFullYear()}-${r.id.toString().padStart(4, '0')}`,
+          title: 'Reclamação Particular',
+          category: 'reclamacao',
+          status: r.status || 'Aberta',
+          date: new Date(r.created_at).toLocaleDateString(),
+          time: new Date(r.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          author: currentUser.name,
+          timestamp: new Date(r.created_at).getTime()
+        })));
+      }
+      
+      all.sort((a, b) => b.timestamp - a.timestamp);
+      setRequestsList(all);
     }
+    fetchMyRequests();
+  }, [currentUser?.id]);
 
+  const filteredRequests = requestsList.filter(req => {
     const matchesSearch = req.protocol.toLowerCase().includes(searchTerm.toLowerCase()) || 
                           req.title.toLowerCase().includes(searchTerm.toLowerCase());
     
@@ -85,7 +123,7 @@ const MinhasSolicitacoes = () => {
     
     if (activeFilter === 'Todos') return true;
     if (activeFilter === 'Abertas') return req.status === 'Aberta';
-    if (activeFilter === 'Em Análise') return req.status === 'Em Análise';
+    if (activeFilter === 'Em Análise') return req.status === 'Em Análise' || req.status === 'Em Andamento';
     if (activeFilter === 'Resolvidas') return req.status === 'Resolvida';
     return true;
   });
@@ -203,7 +241,7 @@ const MinhasSolicitacoes = () => {
                       <div className="ms-card-header">
                         <span className={`ms-status ${getStatusClass(req.status)}`}>
                           {req.status === 'Resolvida' && <div style={{width: 6, height: 6, borderRadius: '50%', backgroundColor: '#16a34a'}}></div>}
-                          {req.status === 'Em Análise' && <div style={{width: 6, height: 6, borderRadius: '50%', backgroundColor: '#d97706'}}></div>}
+                          {(req.status === 'Em Análise' || req.status === 'Em Andamento') && <div style={{width: 6, height: 6, borderRadius: '50%', backgroundColor: '#d97706'}}></div>}
                           {req.status === 'Aberta' && <div style={{width: 6, height: 6, borderRadius: '50%', backgroundColor: '#ef4444'}}></div>}
                           {req.status}
                         </span>

@@ -24,6 +24,7 @@ import NotificationMenu from '../components/NotificationMenu';
 import Sidebar from '../components/Sidebar';
 import { useAuth } from '../contexts/AuthContext';
 import { criarNotificacao } from '../services/notificationService';
+import { supabase } from '../backend/supabaseClient';
 import './Dashboard.css';
 import './Ocorrencia.css'; // Usa o mesmo CSS SaaS de Ocorrência
 
@@ -32,6 +33,7 @@ const Reclamacao = () => {
   const [files, setFiles] = useState([]);
   const [dragActive, setDragActive] = useState(false);
   const [visibility, setVisibility] = useState('sindico');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const inputRef = useRef(null);
   const navigate = useNavigate();
   const { currentUser } = useAuth();
@@ -84,20 +86,70 @@ const Reclamacao = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsSubmitting(true);
     
-    // Notificar síndico
-    await criarNotificacao({
-      destinatario_id: 'sindico-mock-id', // ID do síndico (obter do backend)
-      tipo: 'NOVA_OCORRENCIA',
-      titulo: 'Nova Reclamação Particular',
-      descricao: `Uma nova reclamação foi registrada de forma sigilosa.`,
-      referencia_tipo: 'ocorrencia',
-      remetente_id: currentUser?.id,
-      remetente_nome: currentUser?.name || 'Morador'
-    });
+    try {
+      const formData = new FormData(e.target);
+      const tipo = formData.get('tipo');
+      const unidade = formData.get('unidade');
+      const data_violacao = formData.get('data_violacao');
+      const hora = formData.get('hora_violacao');
+      const descText = formData.get('descricao');
 
-    alert('Reclamação registrada com absoluto sigilo! Arquivos anexados: ' + files.length);
-    navigate('/dashboard');
+      const descricaoCompleta = `Tipo de Violação: ${tipo}\nData: ${data_violacao}\nHora: ${hora}\n\nDescrição do Morador:\n${descText}`;
+
+      // 1. Upload dos anexos (Fotos/Vídeos)
+      const uploadedUrls = [];
+      for (const fileObj of files) {
+        const fileExt = fileObj.name.split('.').pop();
+        const fileName = `reclamacao-${currentUser.id}-${Math.random().toString(36).substr(2, 9)}.${fileExt}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('anexos')
+          .upload(fileName, fileObj.file);
+          
+        if (uploadError) {
+          console.error('Erro no upload', uploadError);
+          continue;
+        }
+        
+        const { data: { publicUrl } } = supabase.storage.from('anexos').getPublicUrl(fileName);
+        uploadedUrls.push(publicUrl);
+      }
+
+      // 2. Inserir no Banco de Dados
+      const { data, error } = await supabase.from('Reclamacoes').insert({
+        descricao: descricaoCompleta,
+        apartamento_denunciado: unidade,
+        bloco_denunciado: 'Ver unidade', // Como o input é livre, salva em um só
+        morador_id: currentUser.id,
+        condominio_id: currentUser.condominio_id,
+        anexos: uploadedUrls
+      }).select();
+
+      if (error) throw error;
+      
+      // Notificar síndico
+      await criarNotificacao({
+        destinatario_id: 'sindico-mock-id',
+        condominio_id: currentUser.condominio_id,
+        tipo: 'NOVA_OCORRENCIA',
+        titulo: 'Nova Reclamação Particular',
+        descricao: `Uma nova reclamação foi registrada de forma sigilosa.`,
+        referencia_tipo: 'reclamacao',
+        referencia_id: data[0]?.id,
+        remetente_id: currentUser?.id,
+        remetente_nome: currentUser?.name || 'Morador'
+      });
+
+      alert('Reclamação registrada com absoluto sigilo!');
+      navigate('/dashboard');
+    } catch (err) {
+      console.error(err);
+      alert('Erro ao registrar reclamação: ' + err.message);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -180,8 +232,8 @@ const Reclamacao = () => {
                   <div className="saas-grid">
                     <div className="saas-input-group">
                       <label>Tipo de Violação <span className="req">*</span></label>
-                      <select required className="saas-select">
-                        <option value="" disabled selected>Selecione o tipo de reclamação</option>
+                      <select name="tipo" required className="saas-select" defaultValue="">
+                        <option value="" disabled>Selecione o tipo de reclamação</option>
                         <option value="barulho">🔊 Barulho Fora do Horário Permitido</option>
                         <option value="lixo">🗑️ Descarte Irregular de Lixo</option>
                         <option value="estacionamento">🚗 Uso Indevido de Vaga de Garagem</option>
@@ -192,17 +244,17 @@ const Reclamacao = () => {
 
                     <div className="saas-input-group">
                       <label>Unidade Envolvida <span className="req">*</span></label>
-                      <input type="text" placeholder="Ex: Apartamento 204" required />
+                      <input type="text" name="unidade" placeholder="Ex: Apartamento 204" required />
                     </div>
 
                     <div className="saas-input-group">
                       <label>Data Corrigida da Violação <span className="req">*</span></label>
-                      <input type="date" required style={{ color: '#475569' }} />
+                      <input type="date" name="data_violacao" required style={{ color: '#475569' }} />
                     </div>
 
                     <div className="saas-input-group">
                       <label>Horário do Incidente <span className="req">*</span></label>
-                      <input type="time" required style={{ color: '#475569' }} />
+                      <input type="time" name="hora_violacao" required style={{ color: '#475569' }} />
                     </div>
                   </div>
                 </div>
@@ -218,7 +270,7 @@ const Reclamacao = () => {
                    
                    <div className="saas-input-group full-width">
                       <label>Descrição Detalhada <span className="req">*</span></label>
-                      <textarea rows="5" placeholder="Relate com precisão o que aconteceu, tempo de duração, se houve tentativa prévia de diálogo, etc..." required></textarea>
+                      <textarea name="descricao" rows="5" placeholder="Relate com precisão o que aconteceu, tempo de duração, se houve tentativa prévia de diálogo, etc..." required></textarea>
                    </div>
                    
                    {/* Zona de Upload Drag & Drop SaaS */}
@@ -303,11 +355,11 @@ const Reclamacao = () => {
 
                 {/* Ações (Cancel / Submit) */}
                 <div className="saas-form-footer">
-                  <button type="button" className="btn-cancel-saas" onClick={() => navigate('/dashboard')}>
+                  <button type="button" className="btn-cancel-saas" onClick={() => navigate('/dashboard')} disabled={isSubmitting}>
                     Cancelar
                   </button>
-                  <button type="submit" className="btn-primary-saas">
-                    <CheckCircle2 size={18} style={{ marginRight: '6px' }}/> Registrar Reclamação
+                  <button type="submit" className="btn-primary-saas" disabled={isSubmitting}>
+                    {isSubmitting ? 'Enviando...' : <><CheckCircle2 size={18} style={{ marginRight: '6px' }}/> Registrar Reclamação</>}
                   </button>
                 </div>
                 

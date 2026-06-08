@@ -11,6 +11,7 @@ import { useAuth } from '../contexts/AuthContext';
 import Sidebar from '../components/Sidebar';
 import ContextBanner from '../components/ContextBanner';
 import NotificationMenu from '../components/NotificationMenu';
+import { supabase } from '../backend/supabaseClient';
 import './Dashboard.css';
 import './PainelSindico.css';
 
@@ -19,15 +20,37 @@ import './PainelSindico.css';
 // No backend isso vira uma tabela: setores_categorias
 // ---------------------------------------------------------------------------
 export const CATEGORIA_SETOR = {
-  'Hidráulica':        'manutencao',
-  'Elétrica':          'infraestrutura',
-  'Infraestrutura':    'infraestrutura',
-  'Limpeza':           'limpeza',
-  'Barulho':           'seguranca',
-  'Portaria':          'seguranca',
-  'Jardinagem':        'limpeza',
-  'Manutenção Geral':  'manutencao',
-  'Outros':            'manutencao',
+  'hidraulica':    'manutencao',
+  'manutencao':    'manutencao',
+  'limpeza':       'limpeza',
+  'jardinagem':    'limpeza',
+  'seguranca':     'seguranca',
+  'areas_comuns':  'infraestrutura',
+  'estrutural':    'infraestrutura',
+  'barulho':       'seguranca',
+  'garagem':       'infraestrutura',
+  // Nomes legados (para dados antigos)
+  'Hidráulica':    'manutencao',
+  'Elétrica':      'infraestrutura',
+  'Infraestrutura':'infraestrutura',
+  'Limpeza':       'limpeza',
+  'Barulho':       'seguranca',
+  'Portaria':      'seguranca',
+  'Jardinagem':    'limpeza',
+  'Manutenção Geral':'manutencao',
+  'Outros':        'manutencao',
+};
+
+export const CATEGORIA_LABEL = {
+  'hidraulica':   '💧 Hidráulica',
+  'manutencao':   '🔧 Manutenção',
+  'limpeza':      '🧹 Limpeza',
+  'jardinagem':   '🌿 Jardinagem',
+  'seguranca':    '🛡️ Segurança',
+  'areas_comuns': '🏢 Áreas Comuns',
+  'estrutural':   '🏗️ Estrutural',
+  'barulho':      '🔊 Barulho/Perturbação',
+  'garagem':      '🅿️ Garagem/Estacionamento',
 };
 
 export const SETOR_LABEL = {
@@ -183,6 +206,111 @@ const PainelSindico = () => {
   const { currentUser } = useAuth();
   const navigate = useNavigate();
 
+  const [occurrencesList, setOccurrencesList] = useState([]);
+  const [funcionarios, setFuncionarios] = useState([]);
+  const [kpis, setKpis] = useState(kpiData);
+  const [statusChart, setStatusChart] = useState(dataStatus);
+
+  const fetchDados = React.useCallback(async () => {
+    if (!currentUser?.condominio_id) return;
+
+    // Buscar funcionários do condomínio
+    const { data: funcs } = await supabase
+      .from('Funcionarios')
+      .select('id, nome, cargo')
+      .eq('condominio_id', currentUser.condominio_id);
+    if (funcs) setFuncionarios(funcs);
+
+    // Buscar ocorrências com dados do morador E do funcionário atribuído
+    const { data: occ } = await supabase
+      .from('Ocorrencias')
+      .select('*, Moradores(nome, bloco, apartamento), Funcionarios(nome)')
+      .eq('condominio_id', currentUser.condominio_id)
+      .order('created_at', { ascending: false });
+
+    const { data: rec } = await supabase
+      .from('Reclamacoes')
+      .select('*, Moradores(nome, bloco, apartamento)')
+      .eq('condominio_id', currentUser.condominio_id)
+      .order('created_at', { ascending: false });
+
+    let all = [];
+    if (occ) {
+      all = all.concat(occ.map(o => ({
+        id: o.id,
+        isReclamacao: false,
+        title: o.titulo,
+        subtitle: o.Moradores ? `Bloco ${o.Moradores.bloco} - Apt ${o.Moradores.apartamento}` : 'Área Comum',
+        category: o.categoria || 'Outros',
+        categoryLabel: CATEGORIA_LABEL[o.categoria] || o.categoria,
+        status: o.status || 'Aberta',
+        timeOpen: new Date(o.created_at).toLocaleDateString(),
+        responsible: o.Funcionarios?.nome || null,
+        atribuido_a: o.atribuido_a || null,
+        setor: CATEGORIA_SETOR[o.categoria] || 'manutencao',
+        criado_em: new Date(o.created_at).getTime()
+      })));
+    }
+
+    if (rec) {
+      all = all.concat(rec.map(r => ({
+        id: `r-${r.id}`,
+        isReclamacao: true,
+        title: 'Reclamação Particular',
+        subtitle: r.Moradores ? `Bloco ${r.Moradores.bloco} - Apt ${r.Moradores.apartamento}` : '',
+        category: 'barulho',
+        categoryLabel: '🔊 Reclamação',
+        status: 'Aberta',
+        timeOpen: new Date(r.created_at).toLocaleDateString(),
+        responsible: null,
+        atribuido_a: null,
+        setor: 'seguranca',
+        criado_em: new Date(r.created_at).getTime()
+      })));
+    }
+
+    all.sort((a, b) => b.criado_em - a.criado_em);
+
+    if (all.length > 0) {
+      setOccurrencesList(all.slice(0, 15));
+
+      const abertas = all.filter(x => x.status === 'Aberta').length;
+      const emAndamento = all.filter(x => x.status === 'Em Andamento').length;
+      const resolvidas = all.filter(x => x.status === 'Resolvida').length;
+
+      setKpis({
+        abertas:   { value: abertas,  trend: 'neutral', trendValue: '' },
+        analise:   { value: emAndamento,  trend: 'neutral', trendValue: '' },
+        resolvidas:{ value: resolvidas, trend: 'neutral', trendValue: '' },
+        total:     { value: all.length, trend: 'neutral', trendValue: '' },
+      });
+
+      setStatusChart([
+        { name: 'Abertas',    value: abertas,     fill: '#ef4444' },
+        { name: 'Em Andamento', value: emAndamento, fill: '#f59e0b' },
+        { name: 'Resolvidas', value: resolvidas,   fill: '#10b981' },
+      ]);
+    } else {
+      setOccurrencesList(recentOccurrences);
+    }
+  }, [currentUser?.condominio_id]);
+
+  React.useEffect(() => { fetchDados(); }, [fetchDados]);
+
+  // Handler para atribuir funcionário a uma ocorrência
+  const handleAtribuir = async (ocorrenciaId, funcionarioId) => {
+    if (!funcionarioId) return;
+    const { error } = await supabase
+      .from('Ocorrencias')
+      .update({ atribuido_a: funcionarioId, status: 'Em Andamento' })
+      .eq('id', ocorrenciaId);
+    if (error) {
+      alert('Erro ao atribuir: ' + error.message);
+    } else {
+      fetchDados(); // Recarrega a lista
+    }
+  };
+
   return (
     <div className="dashboard-layout">
       {sidebarOpen && <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)} />}
@@ -243,10 +371,10 @@ const PainelSindico = () => {
             {/* KPIs */}
             <div className="ps-kpis-grid" style={{ marginBottom:'1.25rem' }}>
               {[
-                { label:'ABERTAS',    value:kpiData.abertas.value,    trend:kpiData.abertas.trendValue,    trendType:kpiData.abertas.trend,    borderColor:'#ef4444', iconBg:'#fef2f2', iconColor:'#ef4444', Icon:AlertCircle  },
-                { label:'EM ANDAMENTO',value:kpiData.analise.value,   trend:kpiData.analise.trendValue,    trendType:kpiData.analise.trend,    borderColor:'#f59e0b', iconBg:'#fffbeb', iconColor:'#f59e0b', Icon:Clock        },
-                { label:'RESOLVIDAS', value:kpiData.resolvidas.value, trend:kpiData.resolvidas.trendValue, trendType:kpiData.resolvidas.trend, borderColor:'#10b981', iconBg:'#f0fdf4', iconColor:'#10b981', Icon:CheckCircle2 },
-                { label:'TOTAL (MÊS)',value:kpiData.total.value,      trend:'—',                           trendType:'neutral',                borderColor:'#ea580c', iconBg:'#fff7ed', iconColor:'#ea580c', Icon:BarChart3    },
+                { label:'ABERTAS',    value:kpis.abertas.value,    trend:kpis.abertas.trendValue,    trendType:kpis.abertas.trend,    borderColor:'#ef4444', iconBg:'#fef2f2', iconColor:'#ef4444', Icon:AlertCircle  },
+                { label:'EM ANDAMENTO',value:kpis.analise.value,   trend:kpis.analise.trendValue,    trendType:kpis.analise.trend,    borderColor:'#f59e0b', iconBg:'#fffbeb', iconColor:'#f59e0b', Icon:Clock        },
+                { label:'RESOLVIDAS', value:kpis.resolvidas.value, trend:kpis.resolvidas.trendValue, trendType:kpis.resolvidas.trend, borderColor:'#10b981', iconBg:'#f0fdf4', iconColor:'#10b981', Icon:CheckCircle2 },
+                { label:'TOTAL (MÊS)',value:kpis.total.value,      trend:'—',                           trendType:'neutral',                borderColor:'#ea580c', iconBg:'#fff7ed', iconColor:'#ea580c', Icon:BarChart3    },
               ].map((k, i) => {
                 const trendColor = k.trendType === 'up'
                   ? (k.label === 'ABERTAS' ? '#dc2626' : '#16a34a')
@@ -341,7 +469,7 @@ const PainelSindico = () => {
                   <div style={{ padding:'0 1.5rem 1rem 1.5rem' }}>
                     <h3 className="ps-section-title">Ocorrências Recentes</h3>
                     <p className="ps-section-subtitle">
-                      Roteamento automático por setor · Síndico apenas monitora
+                      Atribua funcionários às ocorrências abertas
                     </p>
                   </div>
 
@@ -370,17 +498,17 @@ const PainelSindico = () => {
                         </tr>
                       </thead>
                       <tbody>
-                        {recentOccurrences.map(occ => (
+                        {occurrencesList.map(occ => (
                           <tr key={occ.id}>
                             {/* Título + local */}
                             <td>
                               <div style={{ fontWeight:600, color:'#1e293b', fontSize:'0.85rem' }}>{occ.title}</div>
                               <div style={{ fontSize:'0.75rem', color:'#64748b', marginTop:4 }}>
-                                {occ.subtitle} · {occ.category}
+                                {occ.subtitle} · {occ.categoryLabel || occ.category}
                               </div>
                             </td>
 
-                            {/* Setor destino — roteado automaticamente */}
+                            {/* Setor destino */}
                             <td>
                               <SetorBadge setor={occ.setor} />
                             </td>
@@ -403,11 +531,28 @@ const PainelSindico = () => {
                               <div className="time-open"><Clock size={12} /> {occ.timeOpen}</div>
                             </td>
 
-                            {/* Responsável — auto-assumido pelo funcionário, não atribuído pelo síndico */}
+                            {/* Responsável — atribuído pelo síndico */}
                             <td>
                               {occ.responsible
                                 ? <ResponsavelChip name={occ.responsible} />
-                                : <AguardandoChip setor={occ.setor} />
+                                : occ.isReclamacao
+                                  ? <span style={{ fontSize:'0.75rem', color:'#94a3b8', fontStyle:'italic' }}>Síndico resolve</span>
+                                  : (
+                                    <select
+                                      defaultValue=""
+                                      onChange={(e) => handleAtribuir(occ.id, e.target.value)}
+                                      style={{
+                                        padding:'4px 8px', fontSize:'0.78rem', borderRadius:6,
+                                        border:'1px solid #cbd5e1', background:'#f8fafc',
+                                        color:'#475569', cursor:'pointer', width:'100%', maxWidth:180
+                                      }}
+                                    >
+                                      <option value="">Atribuir funcionário...</option>
+                                      {funcionarios.map(f => (
+                                        <option key={f.id} value={f.id}>{f.nome} ({f.cargo})</option>
+                                      ))}
+                                    </select>
+                                  )
                               }
                             </td>
                           </tr>
@@ -433,8 +578,8 @@ const PainelSindico = () => {
                   <div className="ps-chart-donut-container" style={{ height:200 }}>
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
-                        <Pie data={dataStatus} cx="50%" cy="50%" innerRadius={60} outerRadius={85} paddingAngle={2} cornerRadius={4} dataKey="value" stroke="none">
-                          {dataStatus.map((entry, i) => <Cell key={i} fill={entry.fill} />)}
+                        <Pie data={statusChart} cx="50%" cy="50%" innerRadius={60} outerRadius={85} paddingAngle={2} cornerRadius={4} dataKey="value" stroke="none">
+                          {statusChart.map((entry, i) => <Cell key={i} fill={entry.fill} />)}
                         </Pie>
                         <RechartsTooltip content={<CustomTooltip />} />
                       </PieChart>
@@ -442,7 +587,7 @@ const PainelSindico = () => {
                     <div className="donut-center-text" />
                   </div>
                   <div className="ps-legend-vertical">
-                    {dataStatus.map(s => (
+                    {statusChart.map(s => (
                       <div key={s.name} className="legend-item-v">
                         <div className="legend-item-v-left">
                           <div className="legend-dot" style={{ backgroundColor:s.fill }} />
@@ -486,32 +631,44 @@ const PainelSindico = () => {
                     Tarefas abertas · carga por funcionário
                   </p>
                   <div className="widget-list">
-                    {[...employeesMock]
-                      .sort((a, b) => b.openTasks - a.openTasks)
-                      .map(emp => {
-                        const cfg = SETOR_COLOR[emp.setor] ?? SETOR_COLOR.manutencao;
-                        return (
+                    {funcionarios.length > 0 ? funcionarios.map(emp => (
                           <div key={emp.id} className="widget-item">
                             <div className="widget-item-left">
                               <div className="w-icon-box" style={{ background:'#f1f5f9', color:'#475569', fontSize:'0.7rem', fontWeight:700 }}>
-                                {emp.avatar}
+                                {emp.nome?.charAt(0) || 'F'}
                               </div>
                               <div className="w-texts">
-                                <span className="w-title">{emp.name}</span>
-                                {/* Setor do funcionário em vez de lista de skills */}
-                                <span className="w-subtitle" style={{ display:'flex', alignItems:'center', gap:4 }}>
-                                  <span style={{
-                                    display:'inline-block', width:6, height:6,
-                                    borderRadius:'50%', background: cfg.text,
-                                  }} />
-                                  {SETOR_LABEL[emp.setor]}
-                                </span>
+                                <span className="w-title">{emp.nome}</span>
+                                <span className="w-subtitle">{emp.cargo || 'Funcionário'}</span>
                               </div>
                             </div>
-                            <div className="w-right-val">{emp.openTasks}</div>
                           </div>
-                        );
-                      })}
+                        ))
+                      : [...employeesMock]
+                        .sort((a, b) => b.openTasks - a.openTasks)
+                        .map(emp => {
+                          const cfg = SETOR_COLOR[emp.setor] ?? SETOR_COLOR.manutencao;
+                          return (
+                            <div key={emp.id} className="widget-item">
+                              <div className="widget-item-left">
+                                <div className="w-icon-box" style={{ background:'#f1f5f9', color:'#475569', fontSize:'0.7rem', fontWeight:700 }}>
+                                  {emp.avatar}
+                                </div>
+                                <div className="w-texts">
+                                  <span className="w-title">{emp.name}</span>
+                                  <span className="w-subtitle" style={{ display:'flex', alignItems:'center', gap:4 }}>
+                                    <span style={{
+                                      display:'inline-block', width:6, height:6,
+                                      borderRadius:'50%', background: cfg.text,
+                                    }} />
+                                    {SETOR_LABEL[emp.setor]}
+                                  </span>
+                                </div>
+                              </div>
+                              <div className="w-right-val">{emp.openTasks}</div>
+                            </div>
+                          );
+                        })}
                   </div>
                 </div>
 

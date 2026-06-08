@@ -25,9 +25,10 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import NotificationMenu from '../components/NotificationMenu';
 import Sidebar from '../components/Sidebar';
 import ContextBanner from '../components/ContextBanner';
+import NotificationMenu from '../components/NotificationMenu';
+import { supabase } from '../backend/supabaseClient';
 import './Dashboard.css';
 
 const Dashboard = () => {
@@ -114,6 +115,96 @@ const Dashboard = () => {
     month: 'long'
   });
 
+  const [statsData, setStatsData] = useState(stats);
+  const [activities, setActivities] = useState(recentActivities);
+
+  React.useEffect(() => {
+    async function fetchData() {
+      if (!currentUser?.condominio_id) return;
+      
+      const { data: occ } = await supabase.from('Ocorrencias').select('*').eq('condominio_id', currentUser.condominio_id).order('created_at', { ascending: false });
+      const { data: rec } = await supabase.from('Reclamacoes').select('*').eq('condominio_id', currentUser.condominio_id).order('created_at', { ascending: false });
+      
+      let all = [];
+      if (occ) {
+        all = all.concat(occ.map(o => ({
+          id: o.id,
+          title: o.titulo,
+          type: 'Ocorrência',
+          time: new Date(o.created_at).toLocaleDateString(),
+          status: o.status || 'Aberta',
+          statusColor: o.status === 'Aberta' ? 'status-rose' : (o.status === 'Em Andamento' ? 'status-amber' : 'status-emerald'),
+          icon: AlertCircle,
+          iconColor: 'text-rose-500',
+          iconBg: 'bg-rose-50',
+          criado_em: new Date(o.created_at).getTime()
+        })));
+      }
+      
+      if (rec) {
+        all = all.concat(rec.map(r => ({
+          id: `r-${r.id}`,
+          title: 'Reclamação Particular',
+          type: 'Reclamação',
+          time: new Date(r.created_at).toLocaleDateString(),
+          status: 'Em Análise',
+          statusColor: 'status-amber',
+          icon: MessageSquare,
+          iconColor: 'text-amber-500',
+          iconBg: 'bg-amber-50',
+          criado_em: new Date(r.created_at).getTime()
+        })));
+      }
+      
+      all.sort((a, b) => b.criado_em - a.criado_em);
+      
+      if (all.length > 0) {
+        setActivities(all.slice(0, 5));
+        
+        const abertas = all.filter(x => x.status === 'Aberta').length;
+        const analise = all.filter(x => x.status === 'Em Andamento' || x.status === 'Em Análise').length;
+        const resolvidas = all.filter(x => x.status === 'Resolvida').length;
+        
+        setStatsData([
+          { 
+            title: 'Ocorrências Abertas', 
+            value: abertas.toString(), 
+            icon: AlertCircle, 
+            color: 'text-rose-500', 
+            bg: 'bg-rose-50',
+            trend: 'Atualizado hoje',
+            trendIcon: TrendingUp,
+            trendColor: 'text-rose-500',
+            sparkline: stats[0].sparkline
+          },
+          { 
+            title: 'Em Análise', 
+            value: analise.toString(), 
+            icon: Clock, 
+            color: 'text-amber-500', 
+            bg: 'bg-amber-50',
+            trend: 'Atualizado hoje',
+            trendIcon: TrendingDown,
+            trendColor: 'text-amber-500',
+            sparkline: stats[1].sparkline
+          },
+          { 
+            title: 'Resolvidas', 
+            value: resolvidas.toString(), 
+            icon: CheckCircle2, 
+            color: 'text-emerald-500', 
+            bg: 'bg-emerald-50',
+            trend: 'Atualizado hoje',
+            trendIcon: TrendingUp,
+            trendColor: 'text-emerald-500',
+            sparkline: stats[2].sparkline
+          },
+        ]);
+      }
+    }
+    fetchData();
+  }, [currentUser?.condominio_id]);
+
   return (
     <div className="dashboard-layout">
       {/* Mobile Sidebar Overlay */}
@@ -184,7 +275,7 @@ const Dashboard = () => {
             
             {/* Seção das Métricas (Stats Cards com Sparklines) */}
             <div className="stats-grid">
-              {stats.map((stat, idx) => (
+              {statsData.map((stat, idx) => (
                 <div key={idx} className="stat-card">
                   {/* Row superior: Título + Ícone */}
                   <div className="stat-card-header">
@@ -289,7 +380,7 @@ const Dashboard = () => {
                 </button>
               </div>
               <div className="recent-activities-list">
-                {recentActivities.map((activity) => (
+                {activities.map((activity) => (
                   <div key={activity.id} className="activity-item">
                      
                      <div className="activity-main">

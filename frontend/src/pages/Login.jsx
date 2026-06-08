@@ -109,6 +109,7 @@ const Login = () => {
         email: email,
         role: userRole,
         unidade: userProfile.unidade || userProfile.condominio_id || 'Sem unidade',
+        condominio_id: userProfile.condominio_id,
         phone: userProfile.telefone || '',
         cpf: userProfile.cpf_ou_cnpj || userProfile.cpf || '',
         status: userProfile.status || 'ATIVO'
