@@ -420,3 +420,35 @@
   background-color: var(--role-primary-color);
   box-shadow: 0 4px 12px rgba(249, 115, 22, 0.4);
 }
+
+/* Estado de sucesso do botão */
+.btn-primary-saas.btn-success-state {
+  background-color: transparent;
+  border-color: #16a34a;
+  color: #16a34a;
+  box-shadow: none;
+  cursor: default;
+  animation: btn-success-pop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes btn-success-pop {
+  0%   { transform: scale(0.95); opacity: 0.6; }
+  60%  { transform: scale(1.04); }
+  100% { transform: scale(1);    opacity: 1; }
+}
+
+/* Spinner para estado "Enviando..." */
+.btn-spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255,255,255,0.4);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: btn-spin 0.7s linear infinite;
+  vertical-align: middle;
+}
+
+@keyframes btn-spin {
+  to { transform: rotate(360deg); }
+}

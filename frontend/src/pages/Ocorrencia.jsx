@@ -34,6 +34,7 @@ const Ocorrencia = () => {
   const [dragActive, setDragActive] = useState(false);
   const [visibility, setVisibility] = useState('sindico');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
   const inputRef = useRef(null);
   const navigate = useNavigate();
   const { currentUser } = useAuth();
@@ -145,12 +146,11 @@ const Ocorrencia = () => {
         remetente_nome: currentUser?.name || 'Morador'
       });
 
-      alert('Ocorrência registrada com sucesso!');
-      navigate('/dashboard');
+      setIsSuccess(true);
+      setTimeout(() => navigate('/dashboard'), 1400);
     } catch (err) {
       console.error(err);
       alert('Erro ao registrar ocorrência: ' + err.message);
-    } finally {
       setIsSubmitting(false);
     }
   };
@@ -379,11 +379,15 @@ const Ocorrencia = () => {
 
                 {/* Ações (Cancel / Submit) */}
                 <div className="saas-form-footer">
-                  <button type="button" className="btn-cancel-saas" onClick={() => navigate('/dashboard')} disabled={isSubmitting}>
+                  <button type="button" className="btn-cancel-saas" onClick={() => navigate('/dashboard')} disabled={isSubmitting || isSuccess}>
                     Cancelar
                   </button>
-                  <button type="submit" className="btn-primary-saas" disabled={isSubmitting}>
-                    {isSubmitting ? 'Enviando...' : <><CheckCircle2 size={18} style={{ marginRight: '6px' }}/> Registrar Ocorrência</>}
+                  <button type="submit" className={`btn-primary-saas${isSuccess ? ' btn-success-state' : ''}`} disabled={isSubmitting || isSuccess}>
+                    {isSuccess
+                      ? <><CheckCircle2 size={18} style={{ marginRight: '6px' }}/> Registrado!</>
+                      : isSubmitting
+                        ? <><span className="btn-spinner"/>&nbsp;Enviando...</>
+                        : <><CheckCircle2 size={18} style={{ marginRight: '6px' }}/> Registrar Ocorrência</>}
                   </button>
                 </div>
                 

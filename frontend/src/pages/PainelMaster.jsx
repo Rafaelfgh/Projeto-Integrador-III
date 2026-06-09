@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Menu, Search, UserCheck, Shield, User, Building, MoreVertical, Check, X, Users, UserPlus, FileText, Ban, Edit2, Key, LayoutDashboard, Clock, Settings, AlertTriangle, Eye, TrendingUp, TrendingDown, DollarSign, AlertCircle, Loader2
+  Menu, Search, UserCheck, Shield, User, Building, MoreVertical, Check, X, Users, UserPlus, FileText, Ban, Edit2, Key, LayoutDashboard, Clock, Settings, AlertTriangle, Eye, TrendingUp, TrendingDown, DollarSign, AlertCircle, Loader2, Trash2
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
@@ -45,6 +45,8 @@ const PainelMaster = () => {
   const [userToPromote, setUserToPromote] = useState(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [userToDelete, setUserToDelete] = useState(null);
 
   const [moradoresSubTab, setMoradoresSubTab] = useState('ativos');
 
@@ -161,15 +163,22 @@ const PainelMaster = () => {
     }
   };
 
-  const handleDeleteFuncionario = async (user) => {
-    if (!window.confirm(`Tem certeza que deseja excluir o funcionário ${user.nome}?`)) return;
+  const handleDeleteFuncionario = (user) => {
+    setUserToDelete(user);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDeleteFuncionario = async () => {
+    if (!userToDelete) return;
     try {
-      const { error } = await supabase.from('Funcionarios').delete().eq('id', user.id);
+      const { error } = await supabase.from('Funcionarios').delete().eq('id', userToDelete.id);
       if (error) throw error;
-      setUsers(users.filter(u => u.id !== user.id));
-      alert('Funcionário excluído com sucesso!');
+      setUsers(users.filter(u => u.id !== userToDelete.id));
     } catch (e) {
       alert('Erro ao excluir funcionário: ' + e.message);
+    } finally {
+      setShowDeleteModal(false);
+      setUserToDelete(null);
     }
   };
 
@@ -852,6 +861,52 @@ const PainelMaster = () => {
                   style={{ padding: '8px 16px', background: 'var(--role-primary-color)', border: 'none', borderRadius: '6px', color: 'white', fontWeight: 500, fontFamily: 'inherit', fontSize: '14px', cursor: 'pointer' }}
                 >
                   Confirmar Promoção
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showDeleteModal && userToDelete && (
+        <div className="gu-modal-overlay">
+          <div className="gu-modal" style={{ maxWidth: '420px' }}>
+            <div className="gu-modal-header" style={{ borderBottom: 'none', paddingBottom: 0 }}>
+              <h2 style={{ fontSize: '18px', color: '#0f172a', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 32, height: 32, borderRadius: '50%', background: '#fee2e2' }}>
+                  <AlertTriangle size={16} color="#dc2626" />
+                </span>
+                Remover Funcionário
+              </h2>
+              <button onClick={() => { setShowDeleteModal(false); setUserToDelete(null); }}><X size={20}/></button>
+            </div>
+            <div style={{ padding: '20px' }}>
+              <p style={{ fontSize: '14px', color: '#475569', margin: '0 0 20px', lineHeight: '1.6' }}>
+                Tem certeza que deseja remover <strong style={{ color: '#0f172a' }}>{userToDelete.nome}</strong> do sistema? Esta ação não pode ser desfeita.
+              </p>
+
+              <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', padding: '14px 16px', borderRadius: '8px', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={{ width: 36, height: 36, borderRadius: '50%', background: '#16a34a18', color: '#16a34a', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '14px', flexShrink: 0 }}>
+                  {(userToDelete.nome || 'F').charAt(0)}
+                </div>
+                <div>
+                  <p style={{ margin: 0, fontSize: '13px', fontWeight: 600, color: '#0f172a' }}>{userToDelete.nome}</p>
+                  <p style={{ margin: 0, fontSize: '12px', color: '#94a3b8' }}>{userToDelete.cargo || 'Funcionário'}</p>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+                <button
+                  onClick={() => { setShowDeleteModal(false); setUserToDelete(null); }}
+                  style={{ padding: '8px 16px', background: 'transparent', border: '1px solid #e2e8f0', borderRadius: '6px', color: '#64748b', fontWeight: 500, fontFamily: 'inherit', fontSize: '14px', cursor: 'pointer' }}
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={confirmDeleteFuncionario}
+                  style={{ padding: '8px 16px', background: 'var(--role-primary-color)', border: 'none', borderRadius: '6px', color: 'white', fontWeight: 500, fontFamily: 'inherit', fontSize: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
+                >
+                  <Trash2 size={14} /> Confirmar Remoção
                 </button>
               </div>
             </div>

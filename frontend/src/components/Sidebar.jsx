@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-  X, LayoutDashboard, FileEdit, FileWarning, Activity, ClipboardList, Building, BarChart, LogOut, Settings, Users, PenTool, Shield, UserPlus, Package, Clock, ShieldCheck, Map, MessageSquare, Calendar, Star, Vote, CheckSquare, FileText, CheckCircle2, ChevronRight
+  LayoutDashboard, FileEdit, FileWarning, Activity, ClipboardList, Building, BarChart, LogOut, Settings, Users, PenTool, Shield, UserPlus, Package, Clock, ShieldCheck, Map, MessageSquare, Calendar, Star, Vote, CheckSquare, FileText, CheckCircle2, ChevronRight
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -61,9 +61,6 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
             <h1>Portal do</h1>
             <p className="dashboard-pm-subtitle">Condomínio</p>
           </div>
-          <button className="mobile-close-btn" onClick={() => setSidebarOpen(false)}>
-            <X size={20} />
-          </button>
         </div>
 
         {/* ── Nav ── */}
