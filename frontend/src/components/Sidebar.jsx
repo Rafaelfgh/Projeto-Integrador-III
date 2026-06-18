@@ -54,12 +54,15 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
 
         {/* ── Header ── */}
         <div className="sidebar-header">
-          <div className="sidebar-pm-logo-box">
-            <span className="dashboard-pm-logo">PM</span>
+          <div className="sidebar-logo-img-box">
+            <img
+              src="/Design_sem_nome-removebg-preview.png"
+              alt="Habitare"
+              className="sidebar-logo-img"
+            />
           </div>
           <div className="sidebar-title-group">
-            <h1>Portal do</h1>
-            <p className="dashboard-pm-subtitle">Condomínio</p>
+            <h1>Habitare</h1>
           </div>
         </div>
 
@@ -72,7 +75,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
               <p className="nav-section-title">Workspace</p>
               <nav className="nav-list">
                 {navItem('/dashboard', LayoutDashboard, 'Visão Geral', '')}
-                {navItem('/feed', Activity, 'Feed de Atividades')}
+                {navItem('/feed', Activity, 'Feed de Ocorrências', '')}
                 {navItem('/solicitacoes', ClipboardList, 'Minhas Solicitações')}
               </nav>
             </div>
@@ -105,7 +108,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
               <p className="nav-section-title">Painel do Síndico</p>
               <nav className="nav-list">
                 <a href="#" className={`nav-item ${currentPath === '/painel' && (!location.search || location.search === '?tab=overview') ? 'nav-item-active' : 'nav-item-inactive'}`} onClick={(e) => { e.preventDefault(); handleNavClick('/painel?tab=overview'); }}>
-                  <LayoutDashboard className="nav-icon" /><span>Visão Geral</span>
+                  <LayoutDashboard className="nav-icon" /><span>Dashboard Síndico</span>
                 </a>
               </nav>
             </div>

@@ -67,29 +67,35 @@
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-.sidebar-pm-logo-box {
-  background: var(--role-primary-color);
-  width: 40px;
-  height: 40px;
+/* ── Logo Habitare na Sidebar ── */
+.sidebar-logo-img-box {
+  width: 52px;
+  height: 52px;
   border-radius: 10px;
+  overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
+  background-color: #1e293b;
   box-shadow: 0 4px 12px rgba(234, 88, 12, 0.4);
+  flex-shrink: 0;
 }
 
-.dashboard-pm-logo {
-  font-size: 1.125rem;
-  font-weight: 800;
-  color: #ffffff;
-  letter-spacing: 0.5px;
+.sidebar-logo-img {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 4px rgba(255, 120, 0, 0.6));
 }
 
 .sidebar-title-group h1 {
-  color: #f8fafc;
-  font-weight: 600;
-  font-size: 1rem;
+  color: #F47920;
+  font-weight: 700;
+  font-size: 1.1rem;
   line-height: 1.2;
+  text-shadow: 0 0 8px rgba(255, 120, 0, 0.9),
+               0 0 16px rgba(255, 100, 0, 0.6),
+               0 0 30px rgba(255, 80, 0, 0.3);
 }
 
 .dashboard-pm-subtitle {
@@ -762,9 +768,6 @@
 }
 .qa-amber-card:hover .quick-action-arrow { color: #f59e0b; }
 
-/* 
-  ATIVIDADES RECENTES — CORRIGIDO
-*/
 .recent-activities-section {
   background-color: white;
   border-radius: 1rem;
@@ -805,33 +808,54 @@
 .recent-activities-list {
   display: flex;
   flex-direction: column;
+  position: relative;
+}
+
+/* Linha única e contínua da timeline, posicionada atrás de todos os itens.
+   Por ser uma única linha (em vez de um pedaço por item), o alinhamento
+   não depende da altura de cada card — elimina o desalinhamento. */
+.recent-activities-list::before {
+  content: '';
+  position: absolute;
+  top: 2.625rem;
+  bottom: 2.625rem;
+  left: calc(1.5rem + 1.125rem - 1px);
+  width: 2px;
+  background-color: #e2e8f0;
 }
 
 .activity-item {
   padding: 1rem 1.5rem;
-  border-bottom: 1px solid #f1f5f9;
   display: flex;
   flex-direction: column;
   gap: 1rem;
   transition: background-color 0.2s;
+  position: relative;
 }
 
-.activity-item:last-child { border-bottom: none; }
 .activity-item:hover { background-color: #f8fafc; }
 
 @media (min-width: 640px) {
   .activity-item {
     flex-direction: row;
-    align-items: center;
+    align-items: flex-start;
     justify-content: space-between;
   }
 }
 
-/* CORRIGIDO: alinhamento central do ícone com o texto */
 .activity-main {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 1rem;
+}
+
+/* A coluna agora só abriga o ícone — a linha não vive mais aqui dentro,
+   então não há mais cálculo de altura por item. */
+.activity-icon-col {
+  display: flex;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
 }
 
 .activity-icon-rounded {
@@ -848,6 +872,7 @@
   display: flex;
   flex-direction: column;
   gap: 0.2rem;
+  padding-top: 0.375rem;
 }
 
 .activity-name {
@@ -875,6 +900,7 @@
   display: flex;
   align-items: center;
   gap: 1rem;
+  padding-top: 0.375rem;
 }
 
 .activity-action-btn {

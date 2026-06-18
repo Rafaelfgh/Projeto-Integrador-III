@@ -5,7 +5,6 @@ import {
   Bell,
   LogOut,
   User,
-  ArrowRight,
   Menu,
   X,
   LayoutDashboard,
@@ -375,17 +374,16 @@ const Dashboard = () => {
                    <h3 className="section-title">Atividades Recentes</h3>
                    <p className="section-subtitle">Últimas atualizações no condomínio</p>
                 </div>
-                <button className="btn-secondary" onClick={() => navigate('/feed')}>
-                  Ver Relatório <ArrowRight size={16} />
-                </button>
               </div>
               <div className="recent-activities-list">
                 {activities.map((activity) => (
                   <div key={activity.id} className="activity-item">
-                     
+
                      <div className="activity-main">
-                        <div className={`activity-icon-rounded ${activity.iconBg}`}>
-                          <activity.icon className={activity.iconColor} size={18} />
+                        <div className="activity-icon-col">
+                          <div className={`activity-icon-rounded ${activity.iconBg}`}>
+                            <activity.icon className={activity.iconColor} size={18} />
+                          </div>
                         </div>
                         <div className="activity-details">
                           <p className="activity-name">{activity.title}</p>

@@ -142,12 +142,12 @@ const Login = () => {
       {/* Left Column (Logo Area) */}
       <div className="login-left-panel">
         <div className="login-logo-container">
-          <span className="login-logo-text">
-            PM
-          </span>
-          <h2 className="login-brand-name">
-            Portal do Morador
-          </h2>
+          {/* Logo Habitare */}
+          <img
+            src="/Design_sem_nome-removebg-preview.png"
+            alt="Portal do Morador"
+            className="login-logo-img"
+          />
         </div>
       </div>
 

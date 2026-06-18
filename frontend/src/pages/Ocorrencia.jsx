@@ -39,7 +39,6 @@ const Ocorrencia = () => {
   const navigate = useNavigate();
   const { currentUser } = useAuth();
 
-  // Handle Drag events para a zona de upload
   const handleDrag = function(e) {
     e.preventDefault();
     e.stopPropagation();
@@ -50,7 +49,6 @@ const Ocorrencia = () => {
     }
   };
 
-  // Triggers when file is dropped
   const handleDrop = function(e) {
     e.preventDefault();
     e.stopPropagation();
@@ -60,7 +58,6 @@ const Ocorrencia = () => {
     }
   };
 
-  // Triggers when file is selected with click
   const handleChange = function(e) {
     e.preventDefault();
     if (e.target.files && e.target.files[0]) {
@@ -100,7 +97,7 @@ const Ocorrencia = () => {
       
       const descricaoCompleta = local ? `${descText}\n\nLocal Relacionado: ${local}` : descText;
 
-      // 1. Upload dos anexos (Fotos/Vídeos)
+      // 1. Upload dos anexos
       const uploadedUrls = [];
       for (const fileObj of files) {
         const fileExt = fileObj.name.split('.').pop();
@@ -112,14 +109,14 @@ const Ocorrencia = () => {
           
         if (uploadError) {
           console.error('Erro no upload', uploadError);
-          continue; // Pula a imagem que deu erro
+          continue;
         }
         
         const { data: { publicUrl } } = supabase.storage.from('anexos').getPublicUrl(fileName);
         uploadedUrls.push(publicUrl);
       }
 
-      // 2. Inserir no Banco de Dados
+      // 2. Inserir ocorrência no banco
       const { data, error } = await supabase.from('Ocorrencias').insert({
         titulo: titulo,
         categoria: categoria,
@@ -132,18 +129,33 @@ const Ocorrencia = () => {
       }).select();
 
       if (error) throw error;
-      
-      // Notificar síndico
+
+      const ocorrenciaId = data[0]?.id;
+
+      // 3. Notificar o síndico
       await criarNotificacao({
-        destinatario_id: 'sindico-mock-id', // O painel do síndico depois vai puxar as notificações do condomínio
+        destinatario_id: 'sindico-mock-id',
         condominio_id: currentUser.condominio_id,
         tipo: 'NOVA_OCORRENCIA',
         titulo: 'Nova Ocorrência Registrada',
         descricao: `Uma nova ocorrência foi registrada por ${currentUser?.name || 'Morador'}.`,
         referencia_tipo: 'ocorrencia',
-        referencia_id: data[0]?.id,
+        referencia_id: ocorrenciaId,
         remetente_id: currentUser?.id,
         remetente_nome: currentUser?.name || 'Morador'
+      });
+
+      // 4. Notificar o próprio morador — confirmação de recebimento
+      await criarNotificacao({
+        destinatario_id: currentUser.id,
+        condominio_id: currentUser.condominio_id,
+        tipo: 'informativo',
+        titulo: '✅ Ocorrência recebida com sucesso!',
+        descricao: `Sua ocorrência "${titulo}" foi registrada e está aguardando análise da administração. Você pode acompanhar o status no Painel de Acompanhamento.`,
+        referencia_tipo: 'ocorrencia',
+        referencia_id: ocorrenciaId,
+        remetente_id: currentUser?.id,
+        remetente_nome: 'Sistema'
       });
 
       setIsSuccess(true);
@@ -157,7 +169,6 @@ const Ocorrencia = () => {
 
   return (
     <div className="dashboard-layout">
-      {/* Mobile Sidebar Overlay */}
       {sidebarOpen && (
         <div 
           className="sidebar-overlay"
@@ -165,12 +176,9 @@ const Ocorrencia = () => {
         />
       )}
 
-      {/* Sidebar */}
       <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
 
-      {/* Main Content */}
       <main className="main-content">
-        {/* Header Superior Moderno */}
         <header className="main-header">
           <div className="header-left">
             <button 
@@ -210,7 +218,6 @@ const Ocorrencia = () => {
           </div>
         </header>
 
-        {/* Scaffold de Conteúdo SaaS */}
         <div className="dashboard-content-scroll form-page-bg">
           <div className="dashboard-content-inner centered-form-layout">
             
@@ -226,7 +233,6 @@ const Ocorrencia = () => {
 
               <form className="saas-occurrence-form" onSubmit={handleSubmit}>
                 
-                {/* 1. Detalhes Básicos */}
                 <div className="form-section">
                   <div className="section-header-block">
                      <span className="section-step-badge">1</span>
@@ -264,7 +270,6 @@ const Ocorrencia = () => {
 
                 <div className="section-divider"></div>
 
-                {/* 2. Descrição e Evidências */}
                 <div className="form-section">
                    <div className="section-header-block">
                      <span className="section-step-badge">2</span>
@@ -276,7 +281,6 @@ const Ocorrencia = () => {
                       <textarea name="descricao" rows="4" placeholder="Descreva o que aconteceu em detalhes para ajudar a equipe de manutenção..." required></textarea>
                    </div>
                    
-                   {/* Zona de Upload Drag & Drop SaaS */}
                    <div className="saas-input-group full-width" style={{ marginTop: '0.5rem' }}>
                       <label>Anexos (Fotos ou Vídeos)</label>
                       
@@ -296,7 +300,6 @@ const Ocorrencia = () => {
                             onChange={handleChange} 
                             style={{ display: 'none' }} 
                          />
-                         
                          <div className="upload-icon-circle">
                            <UploadCloud size={28} />
                          </div>
@@ -304,7 +307,6 @@ const Ocorrencia = () => {
                          <p className="upload-subtitle">Formatos suportados: JPG, PNG, MP4 (Máx. 50MB)</p>
                       </div>
 
-                      {/* Lista de Arquivos Anexados */}
                       {files.length > 0 && (
                         <div className="attached-files-list">
                           {files.map(file => (
@@ -333,7 +335,6 @@ const Ocorrencia = () => {
 
                 <div className="section-divider"></div>
 
-                {/* 3. Privacidade e Envio */}
                 <div className="form-section">
                    <div className="section-header-block">
                      <span className="section-step-badge">3</span>
@@ -377,7 +378,6 @@ const Ocorrencia = () => {
                    </div>
                 </div>
 
-                {/* Ações (Cancel / Submit) */}
                 <div className="saas-form-footer">
                   <button type="button" className="btn-cancel-saas" onClick={() => navigate('/dashboard')} disabled={isSubmitting || isSuccess}>
                     Cancelar
