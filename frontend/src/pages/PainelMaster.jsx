@@ -30,7 +30,7 @@ const PainelMaster = () => {
   const location = useLocation();
   const { currentUser, changeVisualContext, visualContext } = useAuth();
   const [ctxOpen, setCtxOpen] = useState(false);
-  
+
   const searchParams = new URLSearchParams(location.search);
   const activeTab = searchParams.get('tab') || 'overview';
 
@@ -54,6 +54,11 @@ const PainelMaster = () => {
   const [newFunc, setNewFunc] = useState({ nome: '', email: '', cpf: '', cargo: '', senha: 'Mudar@123' });
   const [userToEdit, setUserToEdit] = useState(null);
 
+  // Estados do modal de cadastro de funcionário
+  const [createSubmitting, setCreateSubmitting] = useState(false);
+  const [createSuccess, setCreateSuccess] = useState(false);
+  const [feedbackModal, setFeedbackModal] = useState({ show: false, title: '', message: '', type: 'success' });
+
   // User Stats
   const totalUsers = users.length;
   const activeUsers = users.filter(u => u.status === 'ATIVO').length;
@@ -68,42 +73,42 @@ const PainelMaster = () => {
       try {
         const { data: masterData } = await supabase.from('Masters').select('condominio_id').eq('id', currentUser.id).single();
         if (!masterData) throw new Error('Master sem condomínio');
-        
+
         const condId = masterData.condominio_id;
-        
+
         // Fetch users
         const { data: moradores } = await supabase.from('Moradores').select('*').eq('condominio_id', condId);
         const { data: funcionarios } = await supabase.from('Funcionarios').select('*').eq('condominio_id', condId);
         const { data: gestao } = await supabase.from('Gestao_Sindicos').select('morador_id').eq('condominio_id', condId).eq('ativo', true);
         const { data: userEmails } = await supabase.from('user_emails').select('*');
-        
+
         const sindicosIds = gestao ? gestao.map(g => g.morador_id) : [];
         const getEmail = (id) => userEmails?.find(e => e.id === id)?.email || 'Sem e-mail';
-        
+
         let allUsers = [];
         if (moradores) allUsers.push(...moradores.map(m => ({ ...m, role: sindicosIds.includes(m.id) ? 'SINDICO' : 'MORADOR', status: m.status || 'ATIVO', email: getEmail(m.id) })));
         if (funcionarios) allUsers.push(...funcionarios.map(f => ({ ...f, role: 'FUNCIONARIO', status: f.status || 'ATIVO', email: getEmail(f.id) })));
-        
+
         // Sort: PENDENTES first
         allUsers.sort((a, b) => {
-           if (a.status === 'PENDENTE' && b.status !== 'PENDENTE') return -1;
-           if (a.status !== 'PENDENTE' && b.status === 'PENDENTE') return 1;
-           return 0;
+          if (a.status === 'PENDENTE' && b.status !== 'PENDENTE') return -1;
+          if (a.status !== 'PENDENTE' && b.status === 'PENDENTE') return 1;
+          return 0;
         });
 
         setUsers(allUsers);
-        
+
         // Fetch Ocorrencias
         const { data: occ } = await supabase.from('Ocorrencias').select('*').eq('condominio_id', condId);
         if (occ) setOcorrencias(occ);
-        
+
       } catch (err) {
         console.error('Erro ao buscar dados:', err);
       } finally {
         setLoadingData(false);
       }
     };
-    
+
     fetchDashboardData();
   }, [currentUser]);
 
@@ -116,7 +121,7 @@ const PainelMaster = () => {
 
       const { error } = await supabase.from(table).update({ status: 'ATIVO' }).eq('id', user.id);
       if (error) {
-         console.error(error);
+        console.error(error);
       } else {
         await criarNotificacao({
           destinatario_id: user.id,
@@ -189,8 +194,8 @@ const PainelMaster = () => {
     if (newRole === 'SINDICO') {
       const currentSindico = users.find(u => u.role === 'SINDICO');
       if (currentSindico && currentSindico.id !== userId) {
-         alert('Já existe um Síndico ativo neste condomínio. Remova o síndico atual (volte para Morador) antes de promover outro.');
-         return;
+        alert('Já existe um Síndico ativo neste condomínio. Remova o síndico atual (volte para Morador) antes de promover outro.');
+        return;
       }
 
       setUserToPromote(userToChange);
@@ -199,7 +204,7 @@ const PainelMaster = () => {
       try {
         const { error } = await supabase.from('Gestao_Sindicos').update({ ativo: false }).eq('morador_id', userId);
         if (error) throw error;
-        
+
         await criarNotificacao({
           destinatario_id: userId,
           condominio_id: userToChange.condominio_id,
@@ -211,7 +216,7 @@ const PainelMaster = () => {
         });
 
         setUsers(users.map(u => u.id === userId ? { ...u, role: 'MORADOR' } : u));
-      } catch(err) {
+      } catch (err) {
         alert('Erro ao remover síndico. Detalhes: ' + err.message);
       }
     }
@@ -221,12 +226,12 @@ const PainelMaster = () => {
     if (!userToPromote) return;
     try {
       const { error } = await supabase.from('Gestao_Sindicos').insert({
-         morador_id: userToPromote.id,
-         condominio_id: userToPromote.condominio_id,
-         ativo: true
+        morador_id: userToPromote.id,
+        condominio_id: userToPromote.condominio_id,
+        ativo: true
       });
       if (error) throw error;
-      
+
       await criarNotificacao({
         destinatario_id: userToPromote.id,
         condominio_id: userToPromote.condominio_id,
@@ -247,7 +252,8 @@ const PainelMaster = () => {
 
   const handleCreateUser = async (e) => {
     e.preventDefault();
-    setLoadingData(true);
+    setCreateSubmitting(true);
+    setCreateSuccess(false);
     try {
       const { data: authData, error: authError } = await secondarySupabase.auth.signUp({
         email: newFunc.email,
@@ -265,15 +271,32 @@ const PainelMaster = () => {
       });
       if (insertError) throw insertError;
 
-      alert('Funcionário criado com sucesso! Ele já pode fazer login com a senha: ' + newFunc.senha);
-      setShowCreateModal(false);
-      setNewFunc({ nome: '', email: '', cargo: '', senha: 'Mudar@123' });
+      setCreateSuccess(true);
       setUsers([{ id: authData.user.id, nome: newFunc.nome, email: newFunc.email, role: 'FUNCIONARIO', status: 'ATIVO', condominio_id: masterData.condominio_id }, ...users]);
+      
+      setTimeout(() => {
+        setShowCreateModal(false);
+        setCreateSuccess(false);
+        setNewFunc({ nome: '', email: '', cargo: '', senha: 'Mudar@123' });
+        
+        setFeedbackModal({
+          show: true,
+          title: 'Cadastro Realizado',
+          message: `Funcionário criado com sucesso! Ele já pode fazer login com a senha: ${newFunc.senha}`,
+          type: 'success'
+        });
+      }, 1500);
+
     } catch(err) {
       console.error(err);
-      alert('Erro ao criar funcionário: ' + err.message);
+      setFeedbackModal({
+        show: true,
+        title: 'Falha no Cadastro',
+        message: 'Erro ao criar funcionário: ' + err.message,
+        type: 'error'
+      });
     } finally {
-      setLoadingData(false);
+      setCreateSubmitting(false);
     }
   };
 
@@ -317,7 +340,7 @@ const PainelMaster = () => {
       <div className="dashboard-layout">
         <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
         <main className="main-content" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-           <Loader2 className="input-icon" style={{ animation: 'spin 1s linear infinite', position: 'static', color: 'var(--role-primary-color)' }} size={32} />
+          <Loader2 className="input-icon" style={{ animation: 'spin 1s linear infinite', position: 'static', color: 'var(--role-primary-color)' }} size={32} />
         </main>
       </div>
     );
@@ -339,22 +362,22 @@ const PainelMaster = () => {
           </div>
           <div className="header-right">
             <NotificationMenu />
-            <div 
-              className="user-profile-dropdown" 
-              onClick={() => navigate('/perfil')} 
-              style={{ 
-                display:'flex', 
-                alignItems:'center', 
-                gap:'0.75rem', 
-                borderLeft:'1px solid #e2e8f0', 
-                paddingLeft:'1rem',
-                cursor: 'pointer' 
+            <div
+              className="user-profile-dropdown"
+              onClick={() => navigate('/perfil')}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.75rem',
+                borderLeft: '1px solid #e2e8f0',
+                paddingLeft: '1rem',
+                cursor: 'pointer'
               }}
             >
               <div style={{
-                width:36, height:36, borderRadius:'50%',
-                background:'var(--role-primary-color)', color:'white',
-                display:'flex', alignItems:'center', justifyContent:'center', fontWeight:700,
+                width: 36, height: 36, borderRadius: '50%',
+                background: 'var(--role-primary-color)', color: 'white',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700,
               }}>
                 {currentUser?.name?.charAt(0) || 'A'}
               </div>
@@ -365,14 +388,14 @@ const PainelMaster = () => {
         <ContextBanner />
 
         <div className="dashboard-content-scroll" style={{ padding: '2rem' }}>
-          
+
           {activeTab === 'overview' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px' }}>
                 {[
-                  { label: 'OCORRÊNCIAS ABERTAS',   value: String(ocorrencias.filter(o => o.status !== 'Concluída').length), trend: 'requerem atenção', trendColor: '#f59e0b' },
-                  { label: 'TOTAL DE OCORRÊNCIAS', value: String(ocorrencias.length),       trend: 'registradas no sistema', trendColor: '#16a34a' },
-                  { label: 'USUÁRIOS CADASTRADOS',  value: String(totalUsers), trend: `${pendingUsers} pendentes de aprovação`,     trendColor: pendingUsers > 0 ? '#f59e0b' : '#16a34a' },
+                  { label: 'OCORRÊNCIAS ABERTAS', value: String(ocorrencias.filter(o => o.status !== 'Concluída').length), trend: 'requerem atenção', trendColor: '#f59e0b' },
+                  { label: 'TOTAL DE OCORRÊNCIAS', value: String(ocorrencias.length), trend: 'registradas no sistema', trendColor: '#16a34a' },
+                  { label: 'USUÁRIOS CADASTRADOS', value: String(totalUsers), trend: `${pendingUsers} pendentes de aprovação`, trendColor: pendingUsers > 0 ? '#f59e0b' : '#16a34a' },
                 ].map((k, i) => (
                   <div key={i} style={{ background: '#f8fafc', borderRadius: '10px', padding: '20px' }}>
                     <p style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: '#94a3b8', letterSpacing: '0.07em', margin: '0 0 10px' }}>{k.label}</p>
@@ -388,11 +411,11 @@ const PainelMaster = () => {
                   <p style={{ fontSize: '12px', color: '#94a3b8', margin: '0 0 24px' }}>Todas as ocorrências do sistema por status.</p>
                   <div style={{ display: 'flex', alignItems: 'flex-end', gap: '10px', height: '130px' }}>
                     {[
-                      { label: 'Recebida',    value: pipeRecebida,  color: '#9CA3AF' },
-                      { label: 'Em análise', value: pipeAnalise,  color: '#3B82F6' },
-                      { label: 'Aguardando',  value: pipeAguardando,  color: '#F59E0B' },
-                      { label: 'Em execução', value: pipeExecucao,  color: '#8B5CF6' },
-                      { label: 'Concluída',   value: pipeConcluida, color: '#10B981' },
+                      { label: 'Recebida', value: pipeRecebida, color: '#9CA3AF' },
+                      { label: 'Em análise', value: pipeAnalise, color: '#3B82F6' },
+                      { label: 'Aguardando', value: pipeAguardando, color: '#F59E0B' },
+                      { label: 'Em execução', value: pipeExecucao, color: '#8B5CF6' },
+                      { label: 'Concluída', value: pipeConcluida, color: '#10B981' },
                     ].map((col, i) => {
                       const barH = Math.max(10, Math.round((col.value / totalOcc) * 100));
                       return (
@@ -449,10 +472,10 @@ const PainelMaster = () => {
 
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '14px' }}>
                   {[
-                    { label: 'TOTAL DE MORADORES',  value: list.length, color: '#475569' },
-                    { label: 'ATIVOS',              value: lActive, color: '#16a34a' },
-                    { label: 'PENDENTES',           value: lPending, color: '#d97706' },
-                    { label: 'BLOQUEADOS',          value: lBlocked, color: '#dc2626' },
+                    { label: 'TOTAL DE MORADORES', value: list.length, color: '#475569' },
+                    { label: 'ATIVOS', value: lActive, color: '#16a34a' },
+                    { label: 'PENDENTES', value: lPending, color: '#d97706' },
+                    { label: 'BLOQUEADOS', value: lBlocked, color: '#dc2626' },
                   ].map((s, i) => (
                     <div key={i} style={{ background: '#f8fafc', borderRadius: '10px', padding: '16px 20px' }}>
                       <p style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', color: '#94a3b8', letterSpacing: '0.07em', margin: '0 0 6px' }}>{s.label}</p>
@@ -462,13 +485,13 @@ const PainelMaster = () => {
                 </div>
 
                 <div style={{ display: 'flex', gap: '8px', borderBottom: '1px solid #e2e8f0', paddingBottom: '12px' }}>
-                  <button 
+                  <button
                     onClick={() => setMoradoresSubTab('ativos')}
                     style={{ background: moradoresSubTab === 'ativos' ? 'var(--role-primary-color)' : '#f8fafc', color: moradoresSubTab === 'ativos' ? '#fff' : '#64748b', border: '1px solid', borderColor: moradoresSubTab === 'ativos' ? 'var(--role-primary-color)' : '#e2e8f0', padding: '6px 14px', borderRadius: '6px', fontSize: '13px', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s' }}
                   >
                     Ativos e Bloqueados ({lActive + lBlocked})
                   </button>
-                  <button 
+                  <button
                     onClick={() => setMoradoresSubTab('pendentes')}
                     style={{ background: moradoresSubTab === 'pendentes' ? 'var(--role-primary-color)' : '#f8fafc', color: moradoresSubTab === 'pendentes' ? '#fff' : '#64748b', border: '1px solid', borderColor: moradoresSubTab === 'pendentes' ? 'var(--role-primary-color)' : '#e2e8f0', padding: '6px 14px', borderRadius: '6px', fontSize: '13px', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s' }}
                   >
@@ -505,7 +528,7 @@ const PainelMaster = () => {
                             <tr style={{ background: '#f5f3ff' }}>
                               <td style={{ padding: '14px 16px', borderBottom: '1px solid #f1f5f9' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                  <div 
+                                  <div
                                     onClick={() => handleViewDetails(sindico)}
                                     style={{ width: 36, height: 36, borderRadius: '50%', background: `${rc}18`, color: rc, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '14px', flexShrink: 0, cursor: 'pointer', transition: 'all 0.2s', boxShadow: '0 0 0 2px transparent' }}
                                     onMouseEnter={e => e.currentTarget.style.boxShadow = `0 0 0 2px ${rc}40`}
@@ -520,8 +543,8 @@ const PainelMaster = () => {
                                 </div>
                               </td>
                               <td style={{ padding: '14px 16px', borderBottom: '1px solid #f1f5f9', fontSize: '12px', color: '#64748b' }}>
-                                {sindico.cpf}<br/>
-                                {sindico.bloco && <span style={{fontSize:'10px', background:'#f1f5f9', padding:'2px 4px', borderRadius:'4px', display:'inline-block', marginTop:'4px'}}>Bl. {sindico.bloco} Apt. {sindico.apartamento}</span>}
+                                {sindico.cpf}<br />
+                                {sindico.bloco && <span style={{ fontSize: '10px', background: '#f1f5f9', padding: '2px 4px', borderRadius: '4px', display: 'inline-block', marginTop: '4px' }}>Bl. {sindico.bloco} Apt. {sindico.apartamento}</span>}
                               </td>
                               <td style={{ padding: '14px 16px', borderBottom: '1px solid #f1f5f9' }}>
                                 <select
@@ -558,7 +581,7 @@ const PainelMaster = () => {
                                     }}
                                   >
                                     <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ cursor: 'help' }}>
-                                      <circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>
+                                      <circle cx="12" cy="12" r="10" /><line x1="12" y1="16" x2="12" y2="12" /><line x1="12" y1="8" x2="12.01" y2="8" />
                                     </svg>
                                   </div>
                                 </div>
@@ -616,7 +639,7 @@ const PainelMaster = () => {
                             >
                               <td style={{ padding: '14px 16px', borderBottom: '1px solid #f1f5f9' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                  <div 
+                                  <div
                                     onClick={() => handleViewDetails(user)}
                                     style={{ width: 36, height: 36, borderRadius: '50%', background: isBlocked ? '#e2e8f0' : `${rc}18`, color: isBlocked ? '#94a3b8' : rc, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '14px', flexShrink: 0, cursor: 'pointer', transition: 'all 0.2s', boxShadow: '0 0 0 2px transparent' }}
                                     onMouseEnter={e => e.currentTarget.style.boxShadow = `0 0 0 2px ${isBlocked ? '#94a3b8' : rc}40`}
@@ -631,8 +654,8 @@ const PainelMaster = () => {
                                 </div>
                               </td>
                               <td style={{ padding: '14px 16px', borderBottom: '1px solid #f1f5f9', fontSize: '12px', color: '#64748b' }}>
-                                {user.cpf}<br/>
-                                {user.bloco && <span style={{fontSize:'10px', background:'#f1f5f9', padding:'2px 4px', borderRadius:'4px', display:'inline-block', marginTop:'4px'}}>Bl. {user.bloco} Apt. {user.apartamento}</span>}
+                                {user.cpf}<br />
+                                {user.bloco && <span style={{ fontSize: '10px', background: '#f1f5f9', padding: '2px 4px', borderRadius: '4px', display: 'inline-block', marginTop: '4px' }}>Bl. {user.bloco} Apt. {user.apartamento}</span>}
                               </td>
                               <td style={{ padding: '14px 16px', borderBottom: '1px solid #f1f5f9' }}>
                                 {canPromote ? (
@@ -667,7 +690,7 @@ const PainelMaster = () => {
                           );
                         })}
                         {list.filter(u => u.role !== 'SINDICO' && (moradoresSubTab === 'ativos' ? u.status !== 'PENDENTE' : u.status === 'PENDENTE')).length === 0 && (
-                          <tr><td colSpan="5" style={{padding:'20px', textAlign:'center', color:'#94a3b8', fontSize:'13px'}}>Nenhum morador cadastrado neste condomínio.</td></tr>
+                          <tr><td colSpan="5" style={{ padding: '20px', textAlign: 'center', color: '#94a3b8', fontSize: '13px' }}>Nenhum morador cadastrado neste condomínio.</td></tr>
                         )}
                       </tbody>
                     </table>
@@ -728,7 +751,7 @@ const PainelMaster = () => {
                           >
                             <td style={{ padding: '14px 16px', borderBottom: '1px solid #f1f5f9' }}>
                               <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                <div 
+                                <div
                                   onClick={() => handleViewDetails(user)}
                                   style={{ width: 36, height: 36, borderRadius: '50%', background: isBlocked ? '#e2e8f0' : `${rc}18`, color: isBlocked ? '#94a3b8' : rc, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '14px', flexShrink: 0, cursor: 'pointer', transition: 'all 0.2s', boxShadow: '0 0 0 2px transparent' }}
                                   onMouseEnter={e => e.currentTarget.style.boxShadow = `0 0 0 2px ${isBlocked ? '#94a3b8' : rc}40`}
@@ -743,7 +766,7 @@ const PainelMaster = () => {
                               </div>
                             </td>
                             <td style={{ padding: '14px 16px', borderBottom: '1px solid #f1f5f9', fontSize: '13px', color: '#334155', fontWeight: 500 }}>
-                               {user.cargo || 'Funcionário'}
+                              {user.cargo || 'Funcionário'}
                             </td>
                             <td style={{ padding: '14px 16px', borderBottom: '1px solid #f1f5f9' }}>
                               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
@@ -756,7 +779,7 @@ const PainelMaster = () => {
                         );
                       })}
                       {list.length === 0 && (
-                          <tr><td colSpan="4" style={{padding:'20px', textAlign:'center', color:'#94a3b8', fontSize:'13px'}}>Nenhum funcionário cadastrado neste condomínio.</td></tr>
+                        <tr><td colSpan="4" style={{ padding: '20px', textAlign: 'center', color: '#94a3b8', fontSize: '13px' }}>Nenhum funcionário cadastrado neste condomínio.</td></tr>
                       )}
                     </tbody>
                   </table>
@@ -773,23 +796,84 @@ const PainelMaster = () => {
           <div className="gu-modal">
             <div className="gu-modal-header">
               <h2>Cadastrar Funcionário</h2>
-              <button onClick={() => setShowCreateModal(false)}><X size={20}/></button>
+              <button onClick={() => setShowCreateModal(false)} disabled={createSubmitting || createSuccess}><X size={20} /></button>
             </div>
             <form onSubmit={handleCreateUser} className="gu-modal-form">
-              <div className="gu-form-group"><label>Nome Completo</label><input type="text" value={newFunc.nome} onChange={e => setNewFunc({...newFunc, nome: e.target.value})} required className="gu-input"/></div>
-              
+              <div className="gu-form-group">
+                <label>Nome Completo</label>
+                <input 
+                  type="text" 
+                  value={newFunc.nome} 
+                  onChange={e => setNewFunc({ ...newFunc, nome: e.target.value })} 
+                  required 
+                  className="gu-input"
+                  disabled={createSubmitting || createSuccess}
+                />
+              </div>
+
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
-                <div className="gu-form-group" style={{ marginBottom: 0 }}><label>E-mail (Login)</label><input type="email" value={newFunc.email} onChange={e => setNewFunc({...newFunc, email: e.target.value})} required className="gu-input"/></div>
-                <div className="gu-form-group" style={{ marginBottom: 0 }}><label>Senha Inicial</label><input type="text" value={newFunc.senha} onChange={e => setNewFunc({...newFunc, senha: e.target.value})} required className="gu-input"/></div>
+                <div className="gu-form-group" style={{ marginBottom: 0 }}>
+                  <label>E-mail (Login)</label>
+                  <input 
+                    type="email" 
+                    value={newFunc.email} 
+                    onChange={e => setNewFunc({ ...newFunc, email: e.target.value })} 
+                    required 
+                    className="gu-input"
+                    disabled={createSubmitting || createSuccess}
+                  />
+                </div>
+                <div className="gu-form-group" style={{ marginBottom: 0 }}>
+                  <label>Senha Inicial</label>
+                  <input 
+                    type="text" 
+                    value={newFunc.senha} 
+                    onChange={e => setNewFunc({ ...newFunc, senha: e.target.value })} 
+                    required 
+                    className="gu-input"
+                    disabled={createSubmitting || createSuccess}
+                  />
+                </div>
               </div>
 
               <div className="gu-form-group" style={{ marginBottom: '1.5rem' }}>
                 <label>Cargo</label>
-                <input type="text" value={newFunc.cargo} onChange={e => setNewFunc({...newFunc, cargo: e.target.value})} placeholder="Ex: Porteiro" required className="gu-input"/>
+                <input 
+                  type="text" 
+                  value={newFunc.cargo} 
+                  onChange={e => setNewFunc({ ...newFunc, cargo: e.target.value })} 
+                  placeholder="Ex: Porteiro" 
+                  required 
+                  className="gu-input"
+                  disabled={createSubmitting || createSuccess}
+                />
               </div>
               <div className="gu-modal-footer">
-                <button type="button" className="btn-secondary" onClick={() => setShowCreateModal(false)}>Cancelar</button>
-                <button type="submit" className="btn-primary">Criar Funcionário</button>
+                <button 
+                  type="button" 
+                  className="btn-secondary" 
+                  onClick={() => setShowCreateModal(false)}
+                  disabled={createSubmitting || createSuccess}
+                >
+                  Cancelar
+                </button>
+                <button 
+                  type="submit" 
+                  className={`btn-primary${createSuccess ? ' btn-success-state' : ''}`}
+                  disabled={createSubmitting || createSuccess}
+                >
+                  {createSuccess ? (
+                    <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                      <Check size={18} /> Criado!
+                    </span>
+                  ) : createSubmitting ? (
+                    <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                      <span className="btn-spinner" /> Criando...
+                    </span>
+                  ) : (
+                    'Criar Funcionário'
+                  )}
+                </button>
               </div>
             </form>
           </div>
@@ -801,12 +885,12 @@ const PainelMaster = () => {
           <div className="gu-modal">
             <div className="gu-modal-header">
               <h2>Editar Cadastro Básico</h2>
-              <button onClick={() => setShowEditModal(false)}><X size={20}/></button>
+              <button onClick={() => setShowEditModal(false)}><X size={20} /></button>
             </div>
             <form onSubmit={handleEditSubmit} className="gu-modal-form">
-              <div className="gu-form-group"><label>Nome Completo</label><input type="text" value={userToEdit.nome || userToEdit.name} onChange={e => setUserToEdit({...userToEdit, nome: e.target.value})} required className="gu-input"/></div>
-              <div className="gu-form-group"><label>E-mail / Login</label><input type="email" value={userToEdit.email} onChange={e => setUserToEdit({...userToEdit, email: e.target.value})} required className="gu-input"/></div>
-              <div className="gu-form-group"><label>CPF</label><input type="text" value={userToEdit.cpf} onChange={e => setUserToEdit({...userToEdit, cpf: e.target.value})} required className="gu-input"/></div>
+              <div className="gu-form-group"><label>Nome Completo</label><input type="text" value={userToEdit.nome || userToEdit.name} onChange={e => setUserToEdit({ ...userToEdit, nome: e.target.value })} required className="gu-input" /></div>
+              <div className="gu-form-group"><label>E-mail / Login</label><input type="email" value={userToEdit.email} onChange={e => setUserToEdit({ ...userToEdit, email: e.target.value })} required className="gu-input" /></div>
+              <div className="gu-form-group"><label>CPF</label><input type="text" value={userToEdit.cpf} onChange={e => setUserToEdit({ ...userToEdit, cpf: e.target.value })} required className="gu-input" /></div>
               <div className="gu-modal-footer">
                 <button type="button" className="btn-secondary" onClick={() => setShowEditModal(false)}>Cancelar</button>
                 <button type="submit" className="btn-primary">Sobrescrever</button>
@@ -821,13 +905,13 @@ const PainelMaster = () => {
           <div className="gu-modal" style={{ maxWidth: '400px' }}>
             <div className="gu-modal-header" style={{ borderBottom: 'none', paddingBottom: 0 }}>
               <h2 style={{ fontSize: '18px', color: '#0f172a' }}>Confirmar Promoção</h2>
-              <button onClick={() => { setShowPromoteModal(false); setUserToPromote(null); }}><X size={20}/></button>
+              <button onClick={() => { setShowPromoteModal(false); setUserToPromote(null); }}><X size={20} /></button>
             </div>
             <div style={{ padding: '20px' }}>
               <p style={{ fontSize: '14px', color: '#475569', margin: '0 0 20px', lineHeight: '1.5' }}>
                 Tem certeza que deseja promover este morador a <strong>Síndico</strong>?
               </p>
-              
+
               <div style={{ background: '#f8fafc', padding: '16px', borderRadius: '8px', marginBottom: '24px' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '13px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -850,13 +934,13 @@ const PainelMaster = () => {
               </div>
 
               <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
-                <button 
+                <button
                   onClick={() => { setShowPromoteModal(false); setUserToPromote(null); }}
                   style={{ padding: '8px 16px', background: 'transparent', border: '1px solid #e2e8f0', borderRadius: '6px', color: '#64748b', fontWeight: 500, fontFamily: 'inherit', fontSize: '14px', cursor: 'pointer' }}
                 >
                   Cancelar
                 </button>
-                <button 
+                <button
                   onClick={confirmPromotion}
                   style={{ padding: '8px 16px', background: 'var(--role-primary-color)', border: 'none', borderRadius: '6px', color: 'white', fontWeight: 500, fontFamily: 'inherit', fontSize: '14px', cursor: 'pointer' }}
                 >
@@ -878,7 +962,7 @@ const PainelMaster = () => {
                 </span>
                 Remover Funcionário
               </h2>
-              <button onClick={() => { setShowDeleteModal(false); setUserToDelete(null); }}><X size={20}/></button>
+              <button onClick={() => { setShowDeleteModal(false); setUserToDelete(null); }}><X size={20} /></button>
             </div>
             <div style={{ padding: '20px' }}>
               <p style={{ fontSize: '14px', color: '#475569', margin: '0 0 20px', lineHeight: '1.6' }}>
@@ -919,19 +1003,19 @@ const PainelMaster = () => {
         const userRoleColor = roleColor[userRole] || '#475569';
         const userRoleLabel = roleLabel[userRole] || userRole;
         const userStatusColor = statusColor[selectedUser.status] || { text: '#475569', bg: '#f1f5f9' };
-        
+
         return (
           <div className="gu-modal-overlay">
             <div className="gu-modal" style={{ maxWidth: '500px' }}>
               <div className="gu-modal-header">
                 <h2>Detalhes do {userRole === 'FUNCIONARIO' ? 'Funcionário' : userRole === 'SINDICO' ? 'Síndico' : 'Morador'}</h2>
-                <button 
+                <button
                   onClick={() => { setShowDetailsModal(false); setSelectedUser(null); }}
                   onMouseEnter={e => e.currentTarget.style.color = '#dc2626'}
                   onMouseLeave={e => e.currentTarget.style.color = 'inherit'}
                   style={{ transition: 'color 0.2s' }}
                 >
-                  <X size={20}/>
+                  <X size={20} />
                 </button>
               </div>
               <div style={{ padding: '24px' }}>
@@ -1025,6 +1109,58 @@ const PainelMaster = () => {
           </div>
         );
       })()}
+
+      {/* Modal de Feedback Customizado */}
+      {feedbackModal.show && (
+        <div className="gu-modal-overlay" style={{ zIndex: 9999 }}>
+          <style>
+            {`
+              .btn-feedback-success {
+                background-color: var(--role-primary-color) !important;
+                transition: all 0.2s;
+              }
+              .btn-feedback-success:hover {
+                background-color: #9333ea !important;
+              }
+              .btn-feedback-error {
+                background-color: #9333ea !important;
+                transition: all 0.2s;
+              }
+              .btn-feedback-error:hover {
+                background-color: #7e22ce !important;
+              }
+            `}
+          </style>
+          <div className="gu-modal" style={{ maxWidth: '400px', textAlign: 'center', padding: '30px 20px' }}>
+            <div style={{ 
+              width: '60px', 
+              height: '60px', 
+              borderRadius: '50%', 
+              background: feedbackModal.type === 'success' ? '#d1fae5' : '#f3e8ff',
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center',
+              margin: '0 auto 16px',
+              color: feedbackModal.type === 'success' ? '#10b981' : '#9333ea'
+            }}>
+              {feedbackModal.type === 'success' ? <Check size={32} /> : <X size={32} />}
+            </div>
+            <h2 style={{ fontSize: '1.25rem', fontWeight: 600, color: '#0f172a', marginBottom: '8px' }}>
+              {feedbackModal.title}
+            </h2>
+            <p style={{ color: '#64748b', fontSize: '0.95rem', marginBottom: '24px', lineHeight: 1.5 }}>
+              {feedbackModal.message}
+            </p>
+            <button 
+              className={`btn-primary ${feedbackModal.type === 'success' ? 'btn-feedback-success' : 'btn-feedback-error'}`}
+              style={{ width: '100%', border: 'none' }}
+              onClick={() => setFeedbackModal({ show: false, title: '', message: '', type: 'success' })}
+            >
+              Entendido
+            </button>
+          </div>
+        </div>
+      )}
 
     </div>
   );

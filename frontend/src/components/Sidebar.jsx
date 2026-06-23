@@ -75,7 +75,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
               <p className="nav-section-title">Workspace</p>
               <nav className="nav-list">
                 {navItem('/dashboard', LayoutDashboard, 'Visão Geral', '')}
-                {navItem('/feed', Activity, 'Feed de Ocorrências', '')}
+                {navItem('/feed', Activity, 'Mural de Ocorrências', '')}
                 {navItem('/solicitacoes', ClipboardList, 'Minhas Solicitações')}
               </nav>
             </div>
