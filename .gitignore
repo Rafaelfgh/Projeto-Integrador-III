@@ -1,0 +1,8 @@
+# Anotações e documentos de apoio gerados com o Claude (ficam só no computador)
+CLAUDE/
+
+# Arquivos do macOS
+.DS_Store
+
+# Cache do Vite
+.vite/

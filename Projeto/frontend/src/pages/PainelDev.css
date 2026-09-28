@@ -1,0 +1,170 @@
+/* Painel da equipe Habitare (Dev) */
+.dev-container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding-bottom: 3rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.dev-barra { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.75rem; }
+.dev-abas { display: flex; gap: 0.25rem; padding: 0.25rem; background: #eef2f6; border-radius: 0.875rem; }
+.dev-abas button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.5rem 0.9rem;
+  border: none;
+  border-radius: 0.65rem;
+  background: transparent;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #64748b;
+  cursor: pointer;
+}
+.dev-abas button.ativa { background: #ffffff; color: #0f172a; box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08); }
+.dev-abas button span {
+  min-width: 1.35rem;
+  padding: 0 0.45rem;
+  border-radius: 999px;
+  background: #e2e8f0;
+  color: #475569;
+  font-size: 0.72rem;
+  text-align: center;
+}
+.dev-abas button.ativa span { background: var(--role-primary-color, #0f766e); color: #ffffff; }
+.dev-busca {
+  flex: 1 1 280px;
+  max-width: 420px;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0 0.75rem;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.7rem;
+  color: #94a3b8;
+}
+.dev-busca input { flex: 1; min-width: 0; height: 2.5rem; border: none; outline: none; font: inherit; font-size: 0.875rem; color: #0f172a; background: transparent; }
+
+.dev-lista { display: flex; flex-direction: column; gap: 0.75rem; }
+.dev-card {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.1rem 1.25rem;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-left: 4px solid #f59e0b;
+  border-radius: 1rem;
+}
+.dev-card-ativo    { border-left-color: #22c55e; }
+.dev-card-recusado { border-left-color: #ef4444; }
+.dev-card-info { min-width: 0; }
+.dev-card h3 { margin: 0 0 0.4rem; font-size: 1.05rem; color: #0f172a; }
+.dev-meta { display: flex; flex-wrap: wrap; gap: 0.35rem 1rem; font-size: 0.8rem; color: #64748b; }
+.dev-meta span { display: inline-flex; align-items: center; gap: 0.3rem; }
+
+.dev-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.55rem 1rem;
+  border: none;
+  border-radius: 0.6rem;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.dev-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+.dev-btn-pri     { background: var(--role-primary-color, #0f766e); color: #ffffff; }
+.dev-btn-aprovar { background: #16a34a; color: #ffffff; }
+.dev-btn-recusar { background: #fee2e2; color: #b91c1c; }
+.dev-btn-sec     { background: #f1f5f9; color: #334155; }
+
+/* Ficha */
+.dev-overlay { position: fixed; inset: 0; z-index: 200; background: rgba(15, 23, 42, 0.55); }
+.dev-ficha {
+  position: fixed;
+  top: 0;
+  right: 0;
+  z-index: 201;
+  width: min(560px, 100vw);
+  height: 100%;
+  overflow-y: auto;
+  background: #ffffff;
+  border-left: 1px solid #e2e8f0;
+}
+.dev-ficha-topo {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid #f1f5f9;
+}
+.dev-ficha-topo h2 { margin: 0.2rem 0 0.5rem; font-size: 1.2rem; color: #0f172a; }
+.dev-protocolo { font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; color: #94a3b8; }
+.dev-fechar { flex-shrink: 0; width: 36px; height: 36px; border: none; border-radius: 10px; background: #f8fafc; cursor: pointer; }
+.dev-situacao {
+  display: inline-flex;
+  padding: 0.18rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.74rem;
+  font-weight: 700;
+}
+.dev-st-pendente { background: #fef3c7; color: #b45309; }
+.dev-st-ativo    { background: #dcfce7; color: #15803d; }
+.dev-st-recusado { background: #fee2e2; color: #b91c1c; }
+
+.dev-ficha-corpo { display: flex; flex-direction: column; gap: 1rem; padding: 1.25rem 1.5rem 2rem; }
+.dev-secao { padding: 1rem; border: 1px solid #e2e8f0; border-radius: 0.9rem; }
+.dev-secao h3 {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0 0 0.75rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+.dev-secao dl { display: grid; grid-template-columns: 160px 1fr; gap: 0.5rem 1rem; margin: 0; }
+.dev-secao dt { font-size: 0.82rem; color: #94a3b8; }
+.dev-secao dd { margin: 0; font-size: 0.9rem; color: #0f172a; word-break: break-word; }
+
+.dev-acoes { display: flex; flex-direction: column; gap: 0.6rem; }
+.dev-botoes { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 0.5rem; }
+.dev-confirmar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.9rem;
+  background: #f8fafc;
+}
+.dev-confirmar p { margin: 0; font-size: 0.88rem; line-height: 1.5; color: #334155; }
+.dev-confirmar label { font-size: 0.78rem; font-weight: 700; color: #64748b; }
+.dev-confirmar textarea {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 90px;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.6rem;
+  font: inherit;
+  font-size: 0.875rem;
+  resize: vertical;
+}
+.dev-erro { margin: 0; padding: 0.6rem 0.8rem; border-radius: 0.6rem; background: #fee2e2; color: #b91c1c; font-size: 0.84rem; }
+
+.dev-vazio { display: flex; flex-direction: column; align-items: center; gap: 0.4rem; padding: 3rem 1rem; color: #94a3b8; text-align: center; }
+.dev-vazio h4 { margin: 0.4rem 0 0; color: #475569; }
+.dev-girar { animation: dev-girar 1s linear infinite; }
+@keyframes dev-girar { to { transform: rotate(360deg); } }

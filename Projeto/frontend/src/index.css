@@ -1,0 +1,68 @@
+@import "tailwindcss";
+
+@theme {
+  --color-slate-50: #f8fafc;
+  --color-slate-100: #f1f5f9;
+  --color-slate-200: #e2e8f0;
+  --color-slate-900: #0f172a;
+  --color-slate-950: #020617;
+  --font-sans: 'Inter', system-ui, sans-serif;
+}
+
+:root {
+  --role-primary-color: #ea580c;
+}
+
+@layer utilities {
+  .neon-glow {
+    text-shadow: 0 0 10px rgba(234, 88, 12, 0.7), 0 0 20px rgba(234, 88, 12, 0.5), 0 0 30px rgba(234, 88, 12, 0.3);
+  }
+}
+
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+/* ---------- Responsividade para desktop e notebook ---------- */
+/* Janelas modais nunca passam da altura da tela: o conteúdo rola por dentro */
+.gu-modal {
+  max-height: calc(100vh - 2rem);
+  display: flex;
+  flex-direction: column;
+}
+.gu-modal > :not(.gu-modal-header) {
+  min-height: 0;
+  overflow-y: auto;
+}
+@media (max-height: 820px) {
+  .gu-modal .gu-modal-header { padding-top: 1rem; padding-bottom: 1rem; }
+  .gu-modal .gu-modal-form { padding: 1.25rem 1.5rem; gap: 0.85rem; }
+}
+
+/* Imagens clicáveis que abrem no visualizador (sem sair da página) */
+.img-zoom {
+  display: block;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: zoom-in;
+  border-radius: inherit;
+}
+.img-zoom:focus-visible { outline: 3px solid var(--role-primary-color); outline-offset: 2px; }
+
+/* Bolinha de quantidade nos itens do menu lateral */
+.nav-badge {
+  margin-left: auto;
+  min-width: 1.35rem;
+  height: 1.35rem;
+  padding: 0 0.4rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: #ef4444;
+  color: #ffffff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  line-height: 1;
+}

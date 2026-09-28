@@ -1,0 +1,50 @@
+.vi-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 3000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3.5rem 4.5rem;
+  background: rgba(2, 6, 23, 0.88);
+  animation: vi-entrar 0.15s ease-out;
+}
+.vi-imagem {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: 0.75rem;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5);
+  cursor: default;
+}
+.vi-botao {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.vi-botao:hover { background: rgba(255, 255, 255, 0.24); }
+.vi-botao:focus-visible { outline: 2px solid #ffffff; outline-offset: 2px; }
+.vi-fechar   { top: 1rem; right: 1rem; }
+.vi-anterior { left: 1rem; top: 50%; transform: translateY(-50%); }
+.vi-proxima  { right: 1rem; top: 50%; transform: translateY(-50%); }
+.vi-contador {
+  position: absolute;
+  bottom: 1.1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 0.25rem 0.7rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+@keyframes vi-entrar { from { opacity: 0; } to { opacity: 1; } }
