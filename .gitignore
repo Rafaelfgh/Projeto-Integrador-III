@@ -1,5 +1,7 @@
 # Anotações e documentos de apoio gerados com o Claude (ficam só no computador)
 CLAUDE/
+# Atalho que faz o Claude Code carregar CLAUDE/CLAUDE.md sozinho
+/CLAUDE.md
 
 # Arquivos do macOS
 .DS_Store
