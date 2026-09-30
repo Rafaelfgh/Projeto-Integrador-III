@@ -422,7 +422,7 @@
 .feed-comment-delete {
   background: none;
   border: none;
-  color: #cbd5e1;
+  color: #64748b;
   cursor: pointer;
   padding: 0.25rem;
   flex-shrink: 0;
@@ -729,3 +729,17 @@
   cursor: pointer;
 }
 .feed-gerenciar:hover { background: #e0e7ff; }
+
+/* Botão de enviar comentário enquanto envia */
+.feed-girando { animation: feed-spin 0.9s linear infinite; }
+
+/* Edição do próprio comentário */
+.feed-comment-edit { margin: 0.35rem 0 0.25rem; }
+.feed-comment-edit .feed-comment-input { width: 100%; box-sizing: border-box; }
+.feed-comment-edit-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 0.4rem;
+}
+.feed-comment-editar:hover { color: #4f46e5; }

@@ -25,6 +25,7 @@ import Sidebar from '../components/Sidebar';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../backend/supabaseClient';
 import { mascaraBloco, somenteNumeros, TAMANHO } from '../utils/mascaras';
+import { garantirSemPalavrao } from '../utils/palavroes';
 import './Dashboard.css';
 import './Ocorrencia.css';
 
@@ -77,6 +78,7 @@ const Reclamacao = () => {
       const data_violacao      = formData.get('data_violacao');
       const hora               = formData.get('hora_violacao');
       const descText           = formData.get('descricao');
+      await garantirSemPalavrao(descText);
 
       const descricaoCompleta = `Tipo de Violação: ${tipo}\nData: ${data_violacao}\nHora: ${hora}\n\nDescrição do Morador: ${descText}`;
 

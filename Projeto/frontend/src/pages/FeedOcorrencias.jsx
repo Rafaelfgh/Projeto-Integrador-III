@@ -1,12 +1,13 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
-  Menu, Search, BellOff, Clock, FileEdit, Send, Trash2, MessageCircle,
+  Menu, Search, BellOff, Clock, FileEdit, Send, Trash2, MessageCircle, Loader2,
   RefreshCw, ChevronDown, ChevronUp, UserCog, CheckCircle2, Pin, Pencil
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import NotificationMenu from '../components/NotificationMenu';
 import Sidebar from '../components/Sidebar';
 import { useAuth } from '../contexts/AuthContext';
+import { contemPalavrao, MSG_PALAVRAO } from '../utils/palavroes';
 import { useCategorias } from '../hooks/useCategorias';
 import { supabase } from '../backend/supabaseClient';
 import { useVisualizadorImagem } from '../contexts/visualizadorImagem';
@@ -29,15 +30,7 @@ const DIAS_CONCLUIDAS = 14;
 
 const PAPEL_LABEL = { SINDICO: 'Síndico', MASTER: 'Administração', FUNCIONARIO: 'Equipe' };
 
-const PALAVRAS_BLOQUEADAS = [
-  'porra','caralho','merda','puta','foda','fodase','fdp',
-  'arrombado','cacete','cuzao','cuzão','viado','corno','bosta',
-];
-
-const contemPalavraoBasico = (texto) => {
-  const normalizado = texto.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
-  return PALAVRAS_BLOQUEADAS.some(p => normalizado.includes(p));
-};
+const COMENTARIO_CAMPOS = 'id, ocorrencia_id, autor_id, autor_nome, autor_papel, texto, created_at, editado_em';
 
 const getStatusCfg = (status) => STATUS_CONFIG[status] || { class: 'f-status-yellow', label: status || '—' };
 
@@ -65,6 +58,10 @@ const FeedOcorrencias = () => {
   const [erroComentario, setErroComentario] = useState({});
   const [editandoPron,   setEditandoPron]   = useState({});
   const [salvandoPron,   setSalvandoPron]   = useState(null);
+  const [erroPron,       setErroPron]       = useState({});
+  const [comentando,     setComentando]     = useState(null);
+  const [editandoCom,    setEditandoCom]    = useState(null); // { id, texto } do comentário em edição
+  const travaComentario = useRef(false); // bloqueia cliques repetidos antes de a tela redesenhar
   const [gerenciando,    setGerenciando]    = useState(null);
   const navigate  = useNavigate();
   const { currentUser } = useAuth();
@@ -94,7 +91,7 @@ const FeedOcorrencias = () => {
       assinarEvidencias(lista.flatMap(o => o.conclusao_evidencias || [])),
       ids.length
         ? supabase.from('ocorrencia_comentarios')
-            .select('id, ocorrencia_id, autor_id, autor_nome, autor_papel, texto, created_at')
+            .select(COMENTARIO_CAMPOS)
             .in('ocorrencia_id', ids)
             .order('created_at')
         : { data: [] },
@@ -126,26 +123,68 @@ const FeedOcorrencias = () => {
 
   const enviarComentario = async (ocorrenciaId) => {
     const texto = (novoComentario[ocorrenciaId] || '').trim();
-    if (!texto) return;
-    if (contemPalavraoBasico(texto)) {
-      setErroComentario(prev => ({ ...prev, [ocorrenciaId]: 'Comentário contém linguagem inadequada.' }));
+    if (!texto || travaComentario.current) return;
+    travaComentario.current = true;
+    setComentando(ocorrenciaId);
+    setErroComentario(prev => ({ ...prev, [ocorrenciaId]: null }));
+    if (await contemPalavrao(texto)) {
+      travaComentario.current = false;
+      setComentando(null);
+      setErroComentario(prev => ({ ...prev, [ocorrenciaId]: MSG_PALAVRAO }));
       return;
     }
-    setErroComentario(prev => ({ ...prev, [ocorrenciaId]: null }));
 
     // Autor, nome e papel são preenchidos pelo banco
     const { data, error } = await supabase
       .from('ocorrencia_comentarios')
       .insert({ ocorrencia_id: ocorrenciaId, texto })
-      .select('id, ocorrencia_id, autor_id, autor_nome, autor_papel, texto, created_at')
+      .select(COMENTARIO_CAMPOS)
       .single();
+    travaComentario.current = false;
+    setComentando(null);
     if (error) {
       console.error('Erro ao comentar:', error);
-      setErroComentario(prev => ({ ...prev, [ocorrenciaId]: 'Não foi possível enviar o comentário.' }));
+      // hint 'palavrao' / 'um_comentario' = regra do banco, com mensagem pronta para o usuário
+      const msg = error.hint ? error.message : 'Não foi possível enviar o comentário.';
+      setErroComentario(prev => ({ ...prev, [ocorrenciaId]: msg }));
       return;
     }
     setComentarios(prev => ({ ...prev, [ocorrenciaId]: [...(prev[ocorrenciaId] || []), data] }));
     setNovoComentario(prev => ({ ...prev, [ocorrenciaId]: '' }));
+  };
+
+  // Só o autor edita (o banco confere), apenas o texto; o banco marca editado_em
+  const salvarEdicaoComentario = async (ocorrenciaId) => {
+    const texto = (editandoCom?.texto || '').trim();
+    if (!texto || travaComentario.current) return;
+    travaComentario.current = true;
+    setComentando(ocorrenciaId);
+    setErroComentario(prev => ({ ...prev, [ocorrenciaId]: null }));
+
+    let erro = null;
+    if (await contemPalavrao(texto)) {
+      erro = MSG_PALAVRAO;
+    } else {
+      const { data, error } = await supabase
+        .from('ocorrencia_comentarios')
+        .update({ texto })
+        .eq('id', editandoCom.id)
+        .select(COMENTARIO_CAMPOS)
+        .single();
+      if (error) {
+        console.error('Erro ao editar comentário:', error);
+        erro = error.hint ? error.message : 'Não foi possível salvar a edição.';
+      } else {
+        setComentarios(prev => ({
+          ...prev,
+          [ocorrenciaId]: (prev[ocorrenciaId] || []).map(c => (c.id === data.id ? data : c)),
+        }));
+        setEditandoCom(null);
+      }
+    }
+    travaComentario.current = false;
+    setComentando(null);
+    if (erro) setErroComentario(prev => ({ ...prev, [ocorrenciaId]: erro }));
   };
 
   const apagarComentario = async (ocorrenciaId, comentarioId) => {
@@ -168,6 +207,11 @@ const FeedOcorrencias = () => {
 
   const salvarPronunciamento = async (id) => {
     const texto = (editandoPron[id] || '').trim();
+    setErroPron(prev => ({ ...prev, [id]: null }));
+    if (await contemPalavrao(texto)) {
+      setErroPron(prev => ({ ...prev, [id]: MSG_PALAVRAO }));
+      return;
+    }
     setSalvandoPron(id);
     const { data, error } = await supabase
       .from('Ocorrencias')
@@ -177,7 +221,7 @@ const FeedOcorrencias = () => {
       .single();
     setSalvandoPron(null);
     if (error) {
-      alert('Não foi possível salvar o pronunciamento: ' + error.message);
+      setErroPron(prev => ({ ...prev, [id]: 'Não foi possível salvar o pronunciamento: ' + error.message }));
       return;
     }
     setOcorrencias(prev => prev.map(o => (o.id === id ? { ...o, ...data } : o)));
@@ -389,6 +433,7 @@ const FeedOcorrencias = () => {
                                 {salvandoPron === item.id ? 'Salvando...' : 'Publicar'}
                               </button>
                             </div>
+                            {erroPron[item.id] && <p className="feed-comment-erro">{erroPron[item.id]}</p>}
                           </div>
                         ) : item.pronunciamento ? (
                           <>
@@ -438,9 +483,43 @@ const FeedOcorrencias = () => {
                                     <span className="feed-comment-papel">{PAPEL_LABEL[c.autor_papel]}</span>
                                   )}
                                 </span>
-                                <span className="feed-comment-text">{c.texto}</span>
-                                <span className="feed-comment-time">{formatarData(c.created_at)}</span>
+                                {editandoCom?.id === c.id ? (
+                                  <div className="feed-comment-edit">
+                                    <input
+                                      type="text"
+                                      className="feed-comment-input"
+                                      maxLength={1000}
+                                      autoFocus
+                                      value={editandoCom.texto}
+                                      onChange={(e) => setEditandoCom(prev => ({ ...prev, texto: e.target.value }))}
+                                      onKeyDown={(e) => {
+                                        if (e.key === 'Enter' && !e.nativeEvent.isComposing) salvarEdicaoComentario(item.id);
+                                        if (e.key === 'Escape') setEditandoCom(null);
+                                      }}
+                                    />
+                                    <div className="feed-comment-edit-actions">
+                                      <button className="feed-pron-cancel" onClick={() => setEditandoCom(null)} disabled={comentando === item.id}>Cancelar</button>
+                                      <button
+                                        className="feed-pron-save"
+                                        onClick={() => salvarEdicaoComentario(item.id)}
+                                        disabled={!editandoCom.texto.trim() || comentando === item.id}
+                                      >
+                                        {comentando === item.id ? 'Salvando...' : 'Salvar'}
+                                      </button>
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <span className="feed-comment-text">{c.texto}</span>
+                                )}
+                                <span className="feed-comment-time">
+                                  {formatarData(c.created_at)}{c.editado_em && ' · editado'}
+                                </span>
                               </div>
+                              {c.autor_id === currentUser?.id && !isResolvida && editandoCom?.id !== c.id && (
+                                <button className="feed-comment-delete feed-comment-editar" title="Editar comentário" onClick={() => setEditandoCom({ id: c.id, texto: c.texto })}>
+                                  <Pencil size={14} />
+                                </button>
+                              )}
                               {(c.autor_id === currentUser?.id || isGestor) && (
                                 <button className="feed-comment-delete" title="Apagar comentário" onClick={() => apagarComentario(item.id, c.id)}>
                                   <Trash2 size={14} />
@@ -459,6 +538,10 @@ const FeedOcorrencias = () => {
                             <p className="feed-comments-empty">
                               <CheckCircle2 size={14} /> Ocorrência encerrada — comentários fechados.
                             </p>
+                          ) : lista.some(c => c.autor_id === currentUser?.id) ? (
+                            <p className="feed-comments-empty">
+                              <MessageCircle size={14} /> Você já comentou nesta ocorrência. Para editar, use o lápis no seu comentário.
+                            </p>
                           ) : (
                             <>
                               <div className="feed-comment-input-row">
@@ -474,15 +557,15 @@ const FeedOcorrencias = () => {
                                 <button
                                   className="feed-comment-send"
                                   onClick={() => enviarComentario(item.id)}
-                                  disabled={!(novoComentario[item.id] || '').trim()}
+                                  disabled={!(novoComentario[item.id] || '').trim() || comentando === item.id}
                                 >
-                                  <Send size={16} />
+                                  {comentando === item.id ? <Loader2 size={16} className="feed-girando" /> : <Send size={16} />}
                                 </button>
                               </div>
-                              {erroComentario[item.id] && (
-                                <p className="feed-comment-erro">{erroComentario[item.id]}</p>
-                              )}
                             </>
+                          )}
+                          {!isResolvida && erroComentario[item.id] && (
+                            <p className="feed-comment-erro">{erroComentario[item.id]}</p>
                           )}
                         </div>
                       )}

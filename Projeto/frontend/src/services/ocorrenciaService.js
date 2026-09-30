@@ -37,12 +37,14 @@ export const assinarEvidencias = async (caminhos) => {
   return Object.fromEntries((data || []).filter(d => d.signedUrl).map(d => [d.path, d.signedUrl]));
 };
 
-// Envia fotos para <condominio>/<ocorrencia>/<arquivo> e devolve os caminhos
-export const enviarEvidencias = async (condominioId, ocorrenciaId, arquivos) => {
+// Envia fotos para <condominio>/<ocorrencia>/[subpasta/]<arquivo> e devolve os caminhos
+// (subpasta 'conversa' = fotos da conversa das ocorrências pessoais)
+export const enviarEvidencias = async (condominioId, ocorrenciaId, arquivos, subpasta = '') => {
   const caminhos = [];
   for (const arquivo of arquivos) {
     const ext = arquivo.name.split('.').pop()?.toLowerCase() || 'jpg';
-    const caminho = `${condominioId}/${ocorrenciaId}/${crypto.randomUUID()}.${ext}`;
+    const pasta = subpasta ? `${condominioId}/${ocorrenciaId}/${subpasta}` : `${condominioId}/${ocorrenciaId}`;
+    const caminho = `${pasta}/${crypto.randomUUID()}.${ext}`;
     const { error } = await supabase.storage.from('evidencias').upload(caminho, arquivo);
     if (error) throw new Error(`Falha ao enviar a foto ${arquivo.name}: ${error.message}`);
     caminhos.push(caminho);

@@ -14,6 +14,7 @@ import ContextBanner from '../components/ContextBanner';
 import NotificationMenu from '../components/NotificationMenu';
 import { supabase } from '../backend/supabaseClient';
 import GerenciarOcorrencia from '../components/GerenciarOcorrencia';
+import { contemPalavrao, MSG_PALAVRAO } from '../utils/palavroes';
 import './Dashboard.css';
 import './PainelSindico.css';
 
@@ -374,9 +375,15 @@ const DrawerReclamacao = ({ reclamacao, onFechar, currentUser, onRespondida }) =
   const [resposta,  setResposta]  = useState('');
   const [enviando,  setEnviando]  = useState(false);
   const [enviado,   setEnviado]   = useState(false);
+  const [erro,      setErro]      = useState(null);
 
   const enviarResposta = async () => {
     if (!resposta.trim() || enviando) return;
+    setErro(null);
+    if (await contemPalavrao(resposta)) {
+      setErro(MSG_PALAVRAO);
+      return;
+    }
     setEnviando(true);
 
     const { error } = await supabase
@@ -396,6 +403,7 @@ const DrawerReclamacao = ({ reclamacao, onFechar, currentUser, onRespondida }) =
     setEnviando(false);
     if (error) {
       console.error('Erro ao enviar resposta:', error);
+      setErro(error.message);
       return;
     }
     setEnviado(true);
@@ -514,6 +522,9 @@ const DrawerReclamacao = ({ reclamacao, onFechar, currentUser, onRespondida }) =
               }}
             />
 
+            {erro && (
+              <p style={{ margin:0, fontSize:13, color:'#b91c1c', background:'#fef2f2', border:'1px solid #fecaca', borderRadius:10, padding:'8px 12px' }}>{erro}</p>
+            )}
             {enviado ? (
               <div style={{ display:'flex', alignItems:'center', gap:8, padding:'12px 16px', background:'#f0fdf4', borderRadius:12, border:'1px solid #bbf7d0' }}>
                 <CheckCircle2 size={18} color="#16a34a" />

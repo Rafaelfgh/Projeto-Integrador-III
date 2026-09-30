@@ -31,6 +31,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../backend/supabaseClient';
 import { useVisualizadorImagem } from '../contexts/visualizadorImagem';
 import AtualizacaoOcorrencia from '../components/AtualizacaoOcorrencia';
+import ConversaOcorrencia from '../components/ConversaOcorrencia';
 import { carregarNomes, assinarEvidencias } from '../services/ocorrenciaService';
 import { protocoloOcorrencia, protocoloReclamacao } from '../utils/protocolo';
 import './Dashboard.css';
@@ -486,6 +487,10 @@ const MinhasSolicitacoes = () => {
               <p style={{ fontSize: '0.8rem', color: '#6d28d9', marginTop: '0.75rem' }}>
                 Ocorrência pessoal: só você, o síndico e o funcionário encaminhado veem.
               </p>
+            )}
+
+            {selectedRequest.tipo === 'ocorrencia' && selectedRequest.pessoal && (
+              <ConversaOcorrencia ocorrencia={selectedRequest.ocorrencia} />
             )}
 
             {selectedRequest.tipo === 'ocorrencia' && selectedRequest.funcionarioNome && (

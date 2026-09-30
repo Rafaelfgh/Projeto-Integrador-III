@@ -25,6 +25,7 @@ import Sidebar from '../components/Sidebar';
 import { useAuth } from '../contexts/AuthContext';
 import { useCategorias } from '../hooks/useCategorias';
 import { supabase } from '../backend/supabaseClient';
+import { garantirSemPalavrao } from '../utils/palavroes';
 import './Dashboard.css';
 import './Ocorrencia.css';
 
@@ -97,6 +98,7 @@ const Ocorrencia = () => {
       const categoria = formData.get('categoria');
       const local = formData.get('local');
       const descText = formData.get('descricao');
+      await garantirSemPalavrao(titulo, descText, local);
       
       const descricaoCompleta = local ? `${descText}\n\nLocal Relacionado: ${local}` : descText;
 

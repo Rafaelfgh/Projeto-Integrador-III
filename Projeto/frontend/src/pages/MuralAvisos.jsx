@@ -9,6 +9,7 @@ import ContextBanner from '../components/ContextBanner';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../backend/supabaseClient';
 import { useVisualizadorImagem } from '../contexts/visualizadorImagem';
+import { garantirSemPalavrao } from '../utils/palavroes';
 import './Dashboard.css';
 import './MuralAvisos.css';
 
@@ -78,6 +79,7 @@ const NovoAviso = ({ condominioId, onPublicado, onCancelar }) => {
     setEnviando(true);
     const caminhos = [];
     try {
+      await garantirSemPalavrao(form.titulo, form.conteudo);
       for (const img of imagens) {
         const ext = img.file.name.split('.').pop()?.toLowerCase() || 'jpg';
         const caminho = `${condominioId}/${crypto.randomUUID()}.${ext}`;

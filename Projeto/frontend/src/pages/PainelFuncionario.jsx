@@ -23,11 +23,13 @@ import Sidebar from '../components/Sidebar';
 import NotificationMenu from '../components/NotificationMenu';
 import ContextBanner from '../components/ContextBanner';
 import AtualizacaoOcorrencia from '../components/AtualizacaoOcorrencia';
+import ConversaOcorrencia from '../components/ConversaOcorrencia';
 
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../backend/supabaseClient';
 import { useVisualizadorImagem } from '../contexts/visualizadorImagem';
 import { protocoloOcorrencia } from '../utils/protocolo';
+import { contemPalavrao, garantirSemPalavrao, MSG_PALAVRAO } from '../utils/palavroes';
 import {
   OCORRENCIA_CAMPOS, MIN_DESCRICAO, carregarNomes, assinarEvidencias, enviarEvidencias, mudarStatus,
 } from '../services/ocorrenciaService';
@@ -184,16 +186,24 @@ const OcorrenciaDrawer = ({ ocorrencia, onFechar, onAtualizada, currentUser, nom
     }
   };
 
-  const iniciar = () => executar(() => mudarStatus(ocorrencia.id, 'Em Andamento', descricao.trim()));
+  const iniciar = () => executar(async () => {
+    await garantirSemPalavrao(descricao);
+    await mudarStatus(ocorrencia.id, 'Em Andamento', descricao.trim());
+  });
 
   const concluir = () => executar(async () => {
+    await garantirSemPalavrao(descricao);
     const caminhos = await enviarEvidencias(currentUser.condominio_id, ocorrencia.id, evidencias.map(e => e.file));
     await mudarStatus(ocorrencia.id, 'Resolvida', descricao.trim(), caminhos);
   });
 
   const chamarSindico = async () => {
-    setEnviando(true);
     setErro(null);
+    if (await contemPalavrao(mensagem)) {
+      setErro(MSG_PALAVRAO);
+      return;
+    }
+    setEnviando(true);
     const { error } = await supabase.rpc('convocar_sindico', {
       p_ocorrencia_id: ocorrencia.id,
       p_mensagem: mensagem.trim() || null,
@@ -307,6 +317,8 @@ const OcorrenciaDrawer = ({ ocorrencia, onFechar, onAtualizada, currentUser, nom
               <AtualizacaoOcorrencia ocorrencia={ocorrencia} nomes={nomes} fotos={fotos} />
             </div>
           )}
+
+          {ocorrencia.privacidade === 'pessoal' && <ConversaOcorrencia ocorrencia={ocorrencia} />}
 
           {emAnalise && (
             <p style={{ display:'flex', alignItems:'center', gap:6, color:'#0369a1', fontSize:13, marginTop:20 }}>

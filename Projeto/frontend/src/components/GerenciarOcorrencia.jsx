@@ -4,10 +4,12 @@ import { supabase } from '../backend/supabaseClient';
 import { useVisualizadorImagem } from '../contexts/visualizadorImagem';
 import { useCategorias } from '../hooks/useCategorias';
 import { protocoloOcorrencia } from '../utils/protocolo';
+import { garantirSemPalavrao } from '../utils/palavroes';
 import {
   OCORRENCIA_CAMPOS, MIN_DESCRICAO, carregarNomes, assinarEvidencias, enviarEvidencias, mudarStatus,
 } from '../services/ocorrenciaService';
 import AtualizacaoOcorrencia from './AtualizacaoOcorrencia';
+import ConversaOcorrencia from './ConversaOcorrencia';
 import { avisarMudancaOcorrencias } from '../hooks/useContadoresGestao';
 import './GerenciarOcorrencia.css';
 
@@ -97,8 +99,12 @@ const GerenciarOcorrencia = ({ ocorrenciaId, onFechar, onAtualizada }) => {
     setConfirmarAnalise(false);
     executar(() => mudarStatus(oc.id, 'Em Análise'));
   };
-  const colocarEmAndamento = () => executar(() => mudarStatus(oc.id, 'Em Andamento', descricao.trim()));
+  const colocarEmAndamento = () => executar(async () => {
+    await garantirSemPalavrao(descricao);
+    await mudarStatus(oc.id, 'Em Andamento', descricao.trim());
+  });
   const atribuir = () => executar(async () => {
+    await garantirSemPalavrao(descricao);
     const { error } = await supabase.rpc('atribuir_ocorrencia', {
       p_ocorrencia_id: oc.id,
       p_funcionario_id: funcionarioId,
@@ -107,6 +113,7 @@ const GerenciarOcorrencia = ({ ocorrenciaId, onFechar, onAtualizada }) => {
     if (error) throw new Error(error.message);
   });
   const concluir = () => executar(async () => {
+    await garantirSemPalavrao(descricao);
     const caminhos = await enviarEvidencias(oc.condominio_id, oc.id, arquivos);
     await mudarStatus(oc.id, 'Resolvida', descricao.trim(), caminhos);
   });
@@ -151,6 +158,8 @@ const GerenciarOcorrencia = ({ ocorrenciaId, onFechar, onAtualizada }) => {
               </section>
 
               <AtualizacaoOcorrencia ocorrencia={oc} nomes={nomes} fotos={fotos} />
+
+              {oc.privacidade === 'pessoal' && <ConversaOcorrencia ocorrencia={oc} />}
 
               {!concluida && (
                 <section className="go-acoes">
