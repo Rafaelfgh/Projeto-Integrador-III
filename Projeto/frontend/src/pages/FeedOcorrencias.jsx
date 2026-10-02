@@ -10,6 +10,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { contemPalavrao, MSG_PALAVRAO } from '../utils/palavroes';
 import { useCategorias } from '../hooks/useCategorias';
 import { supabase } from '../backend/supabaseClient';
+import { EVENTO_CONTADORES } from '../hooks/useContadoresGestao';
 import { useVisualizadorImagem } from '../contexts/visualizadorImagem';
 import AtualizacaoOcorrencia from '../components/AtualizacaoOcorrencia';
 import GerenciarOcorrencia from '../components/GerenciarOcorrencia';
@@ -118,6 +119,12 @@ const FeedOcorrencias = () => {
   }, [currentUser?.condominio_id]);
 
   useEffect(() => { fetchTudo(); }, [fetchTudo]);
+
+  // Recarrega quando uma ocorrência muda em outro ponto da tela (ex.: Gerenciar aberto pela notificação)
+  useEffect(() => {
+    window.addEventListener(EVENTO_CONTADORES, fetchTudo);
+    return () => window.removeEventListener(EVENTO_CONTADORES, fetchTudo);
+  }, [fetchTudo]);
 
   const toggleExpandido = (id) => setExpandido(prev => ({ ...prev, [id]: !prev[id] }));
 

@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Bell, Check, Trash2, Loader2 } from 'lucide-react';
 import { useNotifications } from '../hooks/useNotifications';
+import { useAuth } from '../contexts/AuthContext';
+import { destinoDaNotificacao } from '../utils/destinoNotificacao';
 import '../pages/Dashboard.css';
 
 const formatRelativeTime = (dateString) => {
@@ -18,6 +21,17 @@ const formatRelativeTime = (dateString) => {
 const NotificationMenu = () => {
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const { notifications, unreadCount, loading, markAsRead, markAllAsRead, deleteNotification } = useNotifications();
+  const { currentUser } = useAuth();
+  const navigate = useNavigate();
+
+  // Clique: marca como lida e leva direto ao que a notificação fala (já abrindo o item)
+  const abrir = async (notif) => {
+    if (!notif.lida) markAsRead(notif.id);
+    const destino = await destinoDaNotificacao(notif, currentUser?.role);
+    if (!destino) return;
+    setNotificationsOpen(false);
+    navigate(destino);
+  };
 
   return (
     <div className="notification-wrapper">
@@ -55,9 +69,12 @@ const NotificationMenu = () => {
                 <div 
                   key={notif.id} 
                   className={`notification-item ${!notif.lida ? 'notif-unread' : ''}`}
-                  onClick={() => { if (!notif.lida) markAsRead(notif.id); }}
+                  onClick={() => abrir(notif)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => { if (e.key === 'Enter') abrir(notif); }}
                   style={{
-                    cursor: !notif.lida ? 'pointer' : 'default', display: 'flex', gap: '10px', alignItems: 'flex-start',
+                    cursor: 'pointer', display: 'flex', gap: '10px', alignItems: 'flex-start',
                     ...(notif.prioridade === 'urgente' ? { borderLeft: '3px solid #dc2626', background: !notif.lida ? '#fef2f2' : undefined } : {}),
                   }}
                 >

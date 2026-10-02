@@ -9,6 +9,7 @@ import GerenciarOcorrencia from '../components/GerenciarOcorrencia';
 import { useAuth } from '../contexts/AuthContext';
 import { useCategorias } from '../hooks/useCategorias';
 import { supabase } from '../backend/supabaseClient';
+import { EVENTO_CONTADORES } from '../hooks/useContadoresGestao';
 import { protocoloOcorrencia } from '../utils/protocolo';
 import { OCORRENCIA_CAMPOS, carregarNomes, assinarEvidencias } from '../services/ocorrenciaService';
 import './Dashboard.css';
@@ -91,6 +92,12 @@ const OcorrenciasGestao = ({ modo }) => {
   }, [currentUser, modo]);
 
   useEffect(() => { carregar(); }, [carregar]);
+
+  // Recarrega quando uma ocorrência muda em outro ponto da tela (ex.: Gerenciar aberto pela notificação)
+  useEffect(() => {
+    window.addEventListener(EVENTO_CONTADORES, carregar);
+    return () => window.removeEventListener(EVENTO_CONTADORES, carregar);
+  }, [carregar]);
 
   // Pessoais: subtelas por status, cada uma com a sua quantidade
   const SUBTELAS_PESSOAIS = [

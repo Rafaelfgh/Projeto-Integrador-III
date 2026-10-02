@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   Menu, Megaphone, CalendarDays, Clock, Plus, X, ImagePlus, Trash2, TimerOff, RefreshCw, Inbox, Loader2,
 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import NotificationMenu from '../components/NotificationMenu';
 import ContextBanner from '../components/ContextBanner';
@@ -12,6 +12,7 @@ import { useVisualizadorImagem } from '../contexts/visualizadorImagem';
 import { garantirSemPalavrao } from '../utils/palavroes';
 import { reduzirImagem } from '../utils/imagem';
 import Janela from '../components/Janela';
+import AvatarUsuario from '../components/AvatarUsuario';
 import './Dashboard.css';
 import './MuralAvisos.css';
 
@@ -235,6 +236,14 @@ const MuralAvisos = () => {
   const [confirmar,   setConfirmar]   = useState(null);
   const [agora,       setAgora]       = useState(() => Date.now());
 
+  // Link da notificação (?aviso=<id>): rola até o aviso e destaca
+  const [params] = useSearchParams();
+  const avisoDoLink = params.get('aviso');
+  useEffect(() => {
+    if (!avisoDoLink || avisos.length === 0) return;
+    document.getElementById(`aviso-${avisoDoLink}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, [avisoDoLink, avisos]);
+
   const carregar = useCallback(async () => {
     if (!currentUser?.condominio_id) return;
     setLoading(true);
@@ -294,9 +303,7 @@ const MuralAvisos = () => {
           <div className="header-right">
             <NotificationMenu />
             <div onClick={() => navigate('/perfil')} style={{ display:'flex', alignItems:'center', gap:'0.75rem', borderLeft:'1px solid #e2e8f0', paddingLeft:'1rem', cursor:'pointer' }}>
-              <div style={{ width:36, height:36, borderRadius:'50%', background:'var(--role-primary-color)', color:'white', display:'flex', alignItems:'center', justifyContent:'center', fontWeight:700 }}>
-                {currentUser?.name?.charAt(0) || 'U'}
-              </div>
+              <AvatarUsuario nome={currentUser?.name} foto={currentUser?.foto} tamanho={36} />
             </div>
           </div>
         </header>
@@ -345,7 +352,11 @@ const MuralAvisos = () => {
                 {lista.map(aviso => {
                   const evento = aviso.tipo === 'evento';
                   return (
-                    <article key={aviso.id} className={`av-card${evento ? ' av-card-evento' : ''}`}>
+                    <article
+                      key={aviso.id}
+                      id={`aviso-${aviso.id}`}
+                      className={`av-card${evento ? ' av-card-evento' : ''}${String(aviso.id) === avisoDoLink ? ' av-destaque' : ''}`}
+                    >
                       <header className="av-card-topo">
                         <span className={`av-tipo${evento ? ' av-tipo-evento' : ''}`}>
                           {evento ? <CalendarDays size={13} /> : <Megaphone size={13} />} {evento ? 'Evento' : 'Aviso'}

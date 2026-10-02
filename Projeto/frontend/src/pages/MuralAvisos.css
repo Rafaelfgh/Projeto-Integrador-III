@@ -249,3 +249,8 @@
   .av-card, .av-form { padding: 1rem; }
   .av-galeria-3 { grid-template-columns: 1fr 1fr; }
 }
+
+/* Aviso aberto pela notificação */
+.av-destaque {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--role-primary-color) 45%, transparent);
+}

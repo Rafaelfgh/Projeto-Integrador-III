@@ -63,7 +63,7 @@ const MinhasSolicitacoes = () => {
   const [nomes, setNomes] = useState({});
   const [fotos, setFotos] = useState({});
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { currentUser } = useAuth();
 
   // Close dropdown when clicking outside
@@ -172,9 +172,23 @@ const MinhasSolicitacoes = () => {
         const match = all.find(r => r.tipo === 'ocorrencia' && String(r.rawId) === String(ocorrenciaIdParam));
         if (match) setSelectedRequest(match);
       }
+      const reclamacaoIdParam = searchParams.get('reclamacaoId');
+      if (reclamacaoIdParam) {
+        const match = all.find(r => r.tipo === 'reclamacao' && String(r.rawId) === String(reclamacaoIdParam));
+        if (match) {
+          setAba('reclamacoes');
+          setSelectedRequest(match);
+        }
+      }
     }
     fetchMyRequests();
   }, [currentUser?.id, searchParams]);
+
+  // Fecha o detalhe e tira do endereço o link da notificação (para poder abrir de novo)
+  const fecharDetalhe = () => {
+    setSelectedRequest(null);
+    if (searchParams.get('ocorrenciaId') || searchParams.get('reclamacaoId')) setSearchParams({}, { replace: true });
+  };
 
   // Subtelas: Ocorrências (públicas ou pessoais) e Reclamações
   const ocorrencias  = requestsList.filter(req => req.tipo === 'ocorrencia');
@@ -440,9 +454,9 @@ const MinhasSolicitacoes = () => {
           icone={selectedRequest.tipo === 'reclamacao' ? ClipboardList : FileText}
           titulo={selectedRequest.title}
           subtitulo={selectedRequest.protocol}
-          onFechar={() => setSelectedRequest(null)}
+          onFechar={fecharDetalhe}
           fecharAoClicarFora
-          rodape={<button type="button" className="janela-btn janela-btn-sec" onClick={() => setSelectedRequest(null)}>Fechar</button>}
+          rodape={<button type="button" className="janela-btn janela-btn-sec" onClick={fecharDetalhe}>Fechar</button>}
         >
           <div>
             <span className={`ms-status ${getStatusClass(selectedRequest.status)}`} style={{ display: 'inline-flex' }}>

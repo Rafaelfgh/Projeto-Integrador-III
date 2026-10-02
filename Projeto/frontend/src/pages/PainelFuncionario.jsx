@@ -17,13 +17,14 @@ import {
   Megaphone,
 } from 'lucide-react';
 
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 
 import Sidebar from '../components/Sidebar';
 import NotificationMenu from '../components/NotificationMenu';
 import ContextBanner from '../components/ContextBanner';
 import AtualizacaoOcorrencia from '../components/AtualizacaoOcorrencia';
 import ConversaOcorrencia from '../components/ConversaOcorrencia';
+import AvatarUsuario from '../components/AvatarUsuario';
 
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../backend/supabaseClient';
@@ -448,6 +449,7 @@ const PainelFuncionario = () => {
   const [fotos,        setFotos]        = useState({});
   const [loading,      setLoading]      = useState(true);
   const [selecionada,  setSelecionada]  = useState(null);
+  const [params, setParams] = useSearchParams();
 
   // Atribuídas a mim (inclusive pessoais) + do mural da minha especialidade sem responsável
   const buscarTarefas = useCallback(async () => {
@@ -513,6 +515,17 @@ const PainelFuncionario = () => {
 
   useEffect(() => { buscarTarefas(); }, [buscarTarefas]);
 
+  const ocorrenciaDoLink = params.get('ocorrencia');
+  const aberta = selecionada || ocorrencias.find(o => String(o.id) === ocorrenciaDoLink) || null;
+  const fecharTarefa = () => {
+    setSelecionada(null);
+    if (ocorrenciaDoLink) {
+      const novos = new URLSearchParams(params);
+      novos.delete('ocorrencia');
+      setParams(novos, { replace: true });
+    }
+  };
+
   // Em aberto = tudo que não foi concluído. Concluídas = as que eu concluí ou que eram minhas.
   const tarefas    = useMemo(() => ocorrencias.filter(o => o.status !== 'Resolvida'), [ocorrencias]);
   const concluidas = useMemo(
@@ -555,9 +568,7 @@ const PainelFuncionario = () => {
               onClick={() => navigate('/perfil')}
               style={{ display:'flex', alignItems:'center', gap:'0.75rem', borderLeft:'1px solid #e2e8f0', paddingLeft:'1rem', cursor:'pointer' }}
             >
-              <div style={{ width:36, height:36, borderRadius:'50%', background:'var(--role-primary-color)', color:'white', display:'flex', alignItems:'center', justifyContent:'center', fontWeight:700 }}>
-                {currentUser?.name?.charAt(0) || 'F'}
-              </div>
+              <AvatarUsuario nome={currentUser?.name} foto={currentUser?.foto} tamanho={36} />
             </div>
           </div>
         </header>
@@ -656,11 +667,11 @@ const PainelFuncionario = () => {
         </div>
       </main>
 
-      {/* DRAWER */}
-      {selecionada && (
+      {/* DRAWER (também abre pelo link da notificação: ?ocorrencia=<id>) */}
+      {aberta && (
         <OcorrenciaDrawer
-          ocorrencia={selecionada}
-          onFechar={() => setSelecionada(null)}
+          ocorrencia={aberta}
+          onFechar={fecharTarefa}
           onAtualizada={buscarTarefas}
           currentUser={currentUser}
           nomes={nomes}

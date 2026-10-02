@@ -10,6 +10,7 @@ import ContextBanner from '../components/ContextBanner';
 import { useAuth } from '../contexts/AuthContext';
 import { useCategorias } from '../hooks/useCategorias';
 import { supabase } from '../backend/supabaseClient';
+import { EVENTO_CONTADORES } from '../hooks/useContadoresGestao';
 import { useVisualizadorImagem } from '../contexts/visualizadorImagem';
 import { protocoloOcorrencia } from '../utils/protocolo';
 import { OCORRENCIA_CAMPOS, carregarNomes, assinarEvidencias } from '../services/ocorrenciaService';
@@ -112,6 +113,12 @@ const OcorrenciasConcluidas = () => {
   }, [currentUser?.condominio_id, periodo]);
 
   useEffect(() => { carregar(); }, [carregar]);
+
+  // Recarrega quando uma ocorrência muda em outro ponto da tela (ex.: Gerenciar aberto pela notificação)
+  useEffect(() => {
+    window.addEventListener(EVENTO_CONTADORES, carregar);
+    return () => window.removeEventListener(EVENTO_CONTADORES, carregar);
+  }, [carregar]);
 
   const funcionarios = useMemo(
     () => [...new Set(itens.map(i => i.funcionarioNome).filter(Boolean))].sort(),

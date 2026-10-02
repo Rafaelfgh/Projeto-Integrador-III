@@ -20,3 +20,27 @@ export const reduzirImagem = async (arquivo, ladoMaximo = 1600, qualidade = 0.8)
     return arquivo;
   }
 };
+
+// Foto de perfil do funcionário no formato 3x4 (300x400 px): recorta o centro (um pouco
+// acima do meio, onde costuma estar o rosto) e reduz — nunca sobe uma foto gigante.
+// Devolve a imagem em base64 (data URL JPEG). Lança erro se o arquivo não for imagem.
+export const fotoRetrato = async (arquivo, largura = 300, altura = 400) => {
+  const bitmap = await createImageBitmap(arquivo);
+  const proporcao = largura / altura;
+  let recorteL = bitmap.width;
+  let recorteA = bitmap.height;
+  if (recorteL / recorteA > proporcao) recorteL = recorteA * proporcao;
+  else recorteA = recorteL / proporcao;
+  const x = (bitmap.width - recorteL) / 2;
+  const y = (bitmap.height - recorteA) * 0.3;
+
+  const canvas = document.createElement('canvas');
+  canvas.width = largura;
+  canvas.height = altura;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#ffffff'; // PNG transparente vira fundo branco (JPEG não tem transparência)
+  ctx.fillRect(0, 0, largura, altura);
+  ctx.drawImage(bitmap, x, y, recorteL, recorteA, 0, 0, largura, altura);
+  bitmap.close?.();
+  return canvas.toDataURL('image/jpeg', 0.85);
+};

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Menu, CheckCircle2, AlertCircle, Clock, BarChart3, X, Send, ShieldAlert,
   MapPin, FileText,
@@ -560,6 +560,8 @@ const DrawerReclamacao = ({ reclamacao, onFechar, currentUser, onRespondida }) =
 const PainelSindico = () => {
   const [sidebarOpen,      setSidebarOpen]      = useState(false);
   const [reclamacaoAberta, setReclamacaoAberta]  = useState(null);
+  const [todasReclamacoes, setTodasReclamacoes] = useState([]); // para abrir pelo link da notificação
+  const [params, setParams] = useSearchParams();
   const [respondidas,      setRespondidas]       = useState(new Set());
   const { currentUser } = useAuth();
   const navigate = useNavigate();
@@ -647,6 +649,7 @@ const PainelSindico = () => {
     }
 
     all.sort((a, b) => b.criado_em - a.criado_em);
+    setTodasReclamacoes(all.filter(x => x.isReclamacao));
 
     if (all.length > 0) {
       setOccurrencesList(all.slice(0, 15));
@@ -672,6 +675,19 @@ const PainelSindico = () => {
   }, [currentUser?.condominio_id]);
 
   React.useEffect(() => { fetchDados(); }, [fetchDados]);
+
+  const reclamacaoDoLink = params.get('reclamacao');
+  const reclamacaoMostrada = reclamacaoAberta
+    || todasReclamacoes.find(r => String(r.rawId) === reclamacaoDoLink)
+    || null;
+  const fecharReclamacao = () => {
+    setReclamacaoAberta(null);
+    if (reclamacaoDoLink) {
+      const novos = new URLSearchParams(params);
+      novos.delete('reclamacao');
+      setParams(novos, { replace: true });
+    }
+  };
 
   return (
     <div className="dashboard-layout">
@@ -887,11 +903,12 @@ const PainelSindico = () => {
         />
       )}
 
-      {/* Drawer de reclamação */}
-      {reclamacaoAberta && (
+      {/* Drawer de reclamação (também abre pelo link da notificação: ?reclamacao=<id>) */}
+      {reclamacaoMostrada && (
         <DrawerReclamacao
-          reclamacao={reclamacaoAberta}
-          onFechar={() => setReclamacaoAberta(null)}
+          key={reclamacaoMostrada.id}
+          reclamacao={reclamacaoMostrada}
+          onFechar={fecharReclamacao}
           currentUser={currentUser}
           onRespondida={(id) => setRespondidas(prev => new Set([...prev, id]))}
         />

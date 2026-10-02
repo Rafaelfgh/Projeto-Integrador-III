@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import AvatarUsuario from '../components/AvatarUsuario';
 import { useNavigate } from 'react-router-dom';
 import { 
   User, Shield, Bell, Activity, Menu, MapPin, 
@@ -188,13 +189,7 @@ const Perfil = () => {
                 paddingLeft:'1rem'
               }}
             >
-              <div style={{
-                width:36, height:36, borderRadius:'50%',
-                background:'var(--role-primary-color)', color:'white',
-                display:'flex', alignItems:'center', justifyContent:'center', fontWeight:700,
-              }}>
-                {currentUser?.name?.charAt(0) || 'U'}
-              </div>
+              <AvatarUsuario nome={currentUser?.name} foto={currentUser?.foto} tamanho={36} />
             </div>
           </div>
         </header>
@@ -209,10 +204,10 @@ const Perfil = () => {
                 <div className="perfil-avatar-wrapper">
                   <div className="perfil-avatar-circle">
                     <div className={`perfil-avatar-inner ${roleVars.avatarClass}`}>
-                      {currentUser.name.split(' ').map(n=>n[0]).join('').substring(0,2)}
-                    </div>
-                    <div className="perfil-avatar-badge">
-                      <Camera size={14} />
+                      {/* Funcionário: foto cadastrada pela gestão (ele não pode trocar) */}
+                      {currentUser.foto
+                        ? <AvatarUsuario nome={currentUser.name} foto={currentUser.foto} style={{ width: '100%', height: '100%' }} />
+                        : currentUser.name.split(' ').map(n => n[0]).join('').substring(0, 2)}
                     </div>
                   </div>
                 </div>

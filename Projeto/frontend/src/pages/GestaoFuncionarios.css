@@ -1,0 +1,287 @@
+/* Gestão de Funcionários (síndico e master) */
+
+.gf-container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 1.5rem 2rem 3rem;
+}
+
+.gf-barra {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.gf-busca {
+  flex: 1;
+  min-width: 220px;
+  max-width: 420px;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  height: 42px;
+  padding: 0 0.85rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #fff;
+  color: #94a3b8;
+}
+
+.gf-busca input {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  font: inherit;
+  font-size: 0.9rem;
+  color: #0f172a;
+}
+
+.gf-btn-pri {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  height: 42px;
+  padding: 0 1.1rem;
+  border: none;
+  border-radius: 10px;
+  background: var(--role-primary-color);
+  color: #fff;
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.gf-btn-pri:hover { filter: brightness(0.95); }
+
+.gf-total {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 1.25rem 0 0.75rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.gf-vazio {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 3rem 1rem;
+  color: #94a3b8;
+  font-size: 0.9rem;
+}
+
+.gf-grade {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+  gap: 1rem;
+}
+
+/* Todos os cartões com o mesmo tamanho: a área de especialidades reserva o espaço
+   das 10 especialidades juntas, então um funcionário com muitas não estica os vizinhos.
+   Medido pela largura interna do cartão: 4 linhas (103 px) a partir de 290 px,
+   3 linhas (76 px) a partir de 370 px. */
+.gf-card {
+  container-type: inline-size;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  padding: 1.1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.gf-card-inativo { opacity: 0.6; }
+
+.gf-card-topo {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0;
+  border: none;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+}
+
+.gf-card-nome { display: flex; flex-direction: column; min-width: 0; }
+.gf-card-nome strong { font-size: 0.95rem; color: #0f172a; }
+.gf-card-nome small {
+  font-size: 0.78rem;
+  color: #94a3b8;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.gf-sem { font-size: 0.78rem; color: #94a3b8; }
+
+.gf-card-esp {
+  min-height: 104px;
+  align-content: flex-start;
+}
+
+@container (min-width: 370px) {
+  .gf-card-esp { min-height: 78px; }
+}
+
+.gf-card-acoes {
+  margin-top: auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #f1f5f9;
+}
+
+.gf-acao {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  height: 30px;
+  padding: 0 0.7rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #fff;
+  color: #475569;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.gf-acao:hover { border-color: #cbd5e1; background: #f8fafc; }
+.gf-acao-perigo { color: #dc2626; border-color: #fecaca; }
+.gf-acao-perigo:hover { background: #fef2f2; border-color: #fca5a5; }
+
+/* Escolha de foto no cadastro */
+.gf-foto-campo {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.gf-foto-moldura {
+  flex-shrink: 0;
+  width: 84px;
+  height: 112px; /* 3x4 */
+  display: grid;
+  place-items: center;
+  border: 1px dashed #cbd5e1;
+  border-radius: 10px;
+  background: #f8fafc;
+  color: #94a3b8;
+  overflow: hidden;
+}
+
+.gf-foto-moldura img { width: 100%; height: 100%; object-fit: cover; }
+
+.gf-foto-acoes {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.4rem;
+}
+
+.gf-link {
+  border: none;
+  background: none;
+  padding: 0;
+  color: #dc2626;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* Ficha */
+.gf-ficha {
+  display: flex;
+  gap: 1.25rem;
+  align-items: flex-start;
+}
+
+.gf-ficha-lado {
+  flex-shrink: 0;
+  width: 132px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.gf-ficha-foto {
+  width: 132px;
+  height: 176px; /* 3x4 */
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  background: #dcfce7;
+  color: #16a34a;
+  font-size: 2.5rem;
+  font-weight: 700;
+  overflow: hidden;
+}
+
+.gf-ficha-foto img { width: 100%; height: 100%; object-fit: cover; }
+
+.gf-ficha-dados { flex: 1; min-width: 0; }
+
+/* Especialidades na ficha: bolhas inteiras (o texto não quebra no meio) */
+.gf-ficha-esp { gap: 0.4rem; margin-top: 0.35rem; }
+.gf-ficha-esp .esp-tag { font-size: 0.75rem; padding: 0.25rem 0.6rem; }
+
+@media (max-width: 520px) {
+  .gf-container { padding: 1rem; }
+  .gf-ficha { flex-direction: column; align-items: center; }
+  .gf-ficha-dados { width: 100%; }
+}
+
+/* ---------- Especialidades de funcionário (chips) ---------- */
+.esp-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.4rem;
+}
+.esp-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.35rem 0.7rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #475569;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.esp-chip:hover { border-color: #cbd5e1; background: #f8fafc; }
+.esp-chip.ativo {
+  border-color: #16a34a;
+  background: #f0fdf4;
+  color: #15803d;
+  font-weight: 600;
+}
+.esp-chip:disabled { opacity: 0.6; cursor: default; }
+.esp-tags { display: flex; flex-wrap: wrap; gap: 0.3rem; }
+.esp-tag {
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  background: #f1f5f9;
+  color: #475569;
+  font-size: 0.72rem;
+  font-weight: 600;
+  white-space: nowrap;
+}

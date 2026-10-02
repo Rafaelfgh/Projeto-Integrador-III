@@ -1,11 +1,14 @@
 import React from 'react';
 import {
-  LayoutDashboard, FileEdit, FileWarning, Activity, ClipboardList, Building, BarChart, LogOut, Settings, Users, PenTool, Shield, UserPlus, Package, Clock, ShieldCheck, Map, MessageSquare, Calendar, Star, Vote, CheckSquare, FileText, CheckCircle2, ChevronRight, Home, Hourglass, Megaphone, ScanSearch
+  LayoutDashboard, FileEdit, FileWarning, Activity, ClipboardList, Building, BarChart, LogOut, Settings, Users, PenTool, Shield, UserPlus, Package, Clock, ShieldCheck, Map, MessageSquare, Calendar, Star, Vote, CheckSquare, FileText, CheckCircle2, ChevronRight, Home, Hourglass, Megaphone, ScanSearch, Mail
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useContadoresGestao } from '../hooks/useContadoresGestao';
+import { useRecadosNaoLidos } from '../hooks/useRecadosNaoLidos';
 import ContextBanner from './ContextBanner';
+import AvatarUsuario from './AvatarUsuario';
+import AbrirOcorrenciaPorLink from './AbrirOcorrenciaPorLink';
 
 const CONTEXT_OPTIONS = [
   { key: 'MASTER', label: 'Master', description: 'Governança Global', color: '#7c3aed', bgActive: 'rgba(124,58,237,0.12)', borderActive: 'rgba(124,58,237,0.4)' },
@@ -21,6 +24,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
   const currentPath = location.pathname;
   const ehGestao = visualContext === 'SINDICO' || visualContext === 'MASTER';
   const contadores = useContadoresGestao(ehGestao);
+  const recados = useRecadosNaoLidos(ehGestao || visualContext === 'FUNCIONARIO');
 
   const handleLogout = () => {
     logout();
@@ -54,6 +58,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
 
   return (
     <>
+      <AbrirOcorrenciaPorLink />
       <aside className={`dashboard-sidebar ${sidebarOpen ? 'sidebar-open' : 'sidebar-closed'}`}>
 
         {/* ── Header ── */}
@@ -101,6 +106,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
               <p className="nav-section-title">Operações</p>
               <nav className="nav-list">
                 {navItem('/painel-funcionario', PenTool, 'Minhas Tarefas Técnicas')}
+                {navItem('/recados', Mail, 'Recados', null, recados.total)}
                 {navItem('/avisos', Megaphone, 'Mural de Avisos')}
               </nav>
             </div>
@@ -118,6 +124,8 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
                 {navItem('/ocorrencias-pessoais', Home, 'Ocorrências Pessoais', null, contadores.pessoais)}
                 {navItem('/andamento-prolongado', Hourglass, 'Em andamento +2 dias')}
                 {navItem('/ocorrencias-concluidas', CheckCircle2, 'Ocorrências Concluídas')}
+                {navItem('/funcionarios', ShieldCheck, 'Gestão de Funcionários')}
+                {navItem('/recados', Mail, 'Recados', null, recados.total)}
               </nav>
             </div>
           )}
@@ -145,9 +153,8 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
                 <a href="#" className={`nav-item ${currentPath === '/painel-master' && location.search === '?tab=usuarios' ? 'nav-item-active' : 'nav-item-inactive'}`} onClick={(e) => { e.preventDefault(); handleNavClick('/painel-master?tab=usuarios'); }}>
                   <Users className="nav-icon" /><span>Gestão de Moradores</span>
                 </a>
-                <a href="#" className={`nav-item ${currentPath === '/painel-master' && location.search === '?tab=funcionarios' ? 'nav-item-active' : 'nav-item-inactive'}`} onClick={(e) => { e.preventDefault(); handleNavClick('/painel-master?tab=funcionarios'); }}>
-                  <ShieldCheck className="nav-icon" /><span>Gestão de Funcionários</span>
-                </a>
+                {navItem('/funcionarios', ShieldCheck, 'Gestão de Funcionários')}
+                {navItem('/recados', Mail, 'Recados', null, recados.total)}
                 {navItem('/ocorrencias-analise', ScanSearch, 'Para análise', null, contadores.analise)}
                 {navItem('/ocorrencias-pessoais', Home, 'Ocorrências Pessoais', null, contadores.pessoais)}
                 {navItem('/andamento-prolongado', Hourglass, 'Em andamento +2 dias')}
@@ -161,7 +168,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
         {/* ── Footer ── */}
         <div className="sidebar-footer">
           <div className="sidebar-user-info">
-            <div className="sidebar-avatar-mini">{currentUser?.name?.charAt(0) || 'U'}</div>
+            <AvatarUsuario className="sidebar-avatar-mini" nome={currentUser?.name} foto={currentUser?.foto} />
             <div className="sidebar-user-details">
               <span className="sidebar-user-name">{currentUser?.name || 'Usuário'}</span>
               <span className="sidebar-user-role">

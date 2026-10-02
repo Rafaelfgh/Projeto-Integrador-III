@@ -10,20 +10,7 @@ import Janela from '../components/Janela';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../backend/supabaseClient';
 import { useCategorias } from '../hooks/useCategorias';
-import { somenteLetras, mascaraEmail, emailValido, valorDigitado, TAMANHO } from '../utils/mascaras';
 import './PainelMaster.css';
-
-// Mensagem de erro vinda da Edge Function (o corpo traz { error })
-const erroDaFuncao = async (error, data) => {
-  if (data?.error) return data.error;
-  try {
-    const corpo = await error?.context?.json();
-    if (corpo?.error) return corpo.error;
-  } catch {
-    // resposta sem corpo JSON
-  }
-  return error?.message || 'Erro desconhecido';
-};
 
 // Cada sub-aba da Gestão de Moradores mostra um status
 const STATUS_DA_ABA = { ativos: 'ATIVO', pendentes: 'PENDENTE', bloqueados: 'BLOQUEADO' };
@@ -38,31 +25,29 @@ const PainelMaster = () => {
   const searchParams = new URLSearchParams(location.search);
   const activeTab = searchParams.get('tab') || 'overview';
 
+  // A gestão de funcionários virou página própria (/funcionarios), usada também pelo síndico
+  useEffect(() => {
+    if (activeTab === 'funcionarios') navigate('/funcionarios', { replace: true });
+  }, [activeTab, navigate]);
+
   const [users, setUsers] = useState([]);
   const [ocorrencias, setOcorrencias] = useState([]);
   const [loadingData, setLoadingData] = useState(true);
 
   // Modals state (For Users)
-  const [showCreateModal, setShowCreateModal] = useState(false);
   const [papelEdit, setPapelEdit] = useState(null); // { user, acao: 'promover' | 'revogar' }
   const [salvandoPapel, setSalvandoPapel] = useState(false);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [userToDelete, setUserToDelete] = useState(null);
-  const [removendo, setRemovendo] = useState(false);
 
-  const [moradoresSubTab, setMoradoresSubTab] = useState('ativos');
+  const [moradoresSubTab, setMoradoresSubTab] = useState(() => {
+    const sub = new URLSearchParams(window.location.search).get('sub');
+    return ['ativos', 'pendentes', 'bloqueados'].includes(sub) ? sub : 'ativos';
+  });
 
   // Forms states
-  const [newFunc, setNewFunc] = useState({ nome: '', email: '', cpf: '', senha: 'Mudar@123', especialidades: [] });
-  const { categorias, rotulo } = useCategorias();
-  const [espEdit, setEspEdit] = useState(null); // { user, selecionadas }
-  const [espSalvando, setEspSalvando] = useState(false);
+  const { rotulo } = useCategorias();
 
-  // Estados do modal de cadastro de funcionário
-  const [createSubmitting, setCreateSubmitting] = useState(false);
-  const [createSuccess, setCreateSuccess] = useState(false);
   const [feedbackModal, setFeedbackModal] = useState({ show: false, title: '', message: '', type: 'success' });
 
   // Avisos na janela padrão (no lugar do alerta do navegador)
@@ -160,60 +145,6 @@ const PainelMaster = () => {
     }
   };
 
-  const handleDeleteFuncionario = (user) => {
-    setUserToDelete(user);
-    setShowDeleteModal(true);
-  };
-
-  const confirmDeleteFuncionario = async () => {
-    if (!userToDelete || removendo) return;
-    setRemovendo(true);
-    try {
-      // A Edge Function apaga a conta de login junto (sem deixar conta órfã)
-      const { data, error } = await supabase.functions.invoke('gerenciar-funcionario', {
-        body: { acao: 'remover', funcionario_id: userToDelete.id },
-      });
-      if (error || data?.error) throw new Error(await erroDaFuncao(error, data));
-      setUsers(users.filter(u => u.id !== userToDelete.id));
-    } catch (e) {
-      avisar('Não foi possível remover o funcionário', e.message);
-    } finally {
-      setRemovendo(false);
-      setShowDeleteModal(false);
-      setUserToDelete(null);
-    }
-  };
-
-  const alternarEspecialidade = (lista, slug) =>
-    lista.includes(slug) ? lista.filter(c => c !== slug) : [...lista, slug];
-
-  const salvarEspecialidades = async () => {
-    if (!espEdit) return;
-    const { user, selecionadas } = espEdit;
-    const atuais = user.especialidades || [];
-    const remover = atuais.filter(c => !selecionadas.includes(c));
-    const adicionar = selecionadas.filter(c => !atuais.includes(c));
-    setEspSalvando(true);
-    try {
-      if (remover.length > 0) {
-        const { error } = await supabase.from('funcionario_especialidades')
-          .delete().eq('funcionario_id', user.id).in('categoria', remover);
-        if (error) throw error;
-      }
-      if (adicionar.length > 0) {
-        const { error } = await supabase.from('funcionario_especialidades')
-          .insert(adicionar.map(categoria => ({ funcionario_id: user.id, categoria })));
-        if (error) throw error;
-      }
-      setUsers(users.map(u => u.id === user.id ? { ...u, especialidades: selecionadas } : u));
-      setEspEdit(null);
-    } catch (err) {
-      avisar('Não foi possível salvar as especialidades', err.message);
-    } finally {
-      setEspSalvando(false);
-    }
-  };
-
   // Nomear ou revogar síndico: sempre confirma na janela antes de salvar
   const handleRoleChange = (userId, newRole) => {
     const alvo = users.find(u => u.id === userId);
@@ -246,56 +177,6 @@ const PainelMaster = () => {
       avisar(acao === 'promover' ? 'Não foi possível nomear o síndico' : 'Não foi possível revogar o síndico', err.message);
     } finally {
       setSalvandoPapel(false);
-    }
-  };
-
-  const handleCreateUser = async (e) => {
-    e.preventDefault();
-    if (!emailValido(newFunc.email)) {
-      setFeedbackModal({ show: true, title: 'E-mail inválido', message: 'Informe um e-mail válido (ex.: nome@gmail.com).', type: 'error' });
-      return;
-    }
-    setCreateSubmitting(true);
-    setCreateSuccess(false);
-    try {
-      // Conta criada no servidor (Edge Function com a API admin): não troca a sessão do Master
-      const { data, error } = await supabase.functions.invoke('gerenciar-funcionario', {
-        body: {
-          acao: 'criar',
-          nome: newFunc.nome,
-          email: newFunc.email,
-          senha: newFunc.senha,
-          especialidades: newFunc.especialidades,
-        },
-      });
-      if (error || data?.error) throw new Error(await erroDaFuncao(error, data));
-
-      setCreateSuccess(true);
-      setUsers([{ id: data.id, nome: data.nome, email: data.email, role: 'FUNCIONARIO', status: 'ATIVO', condominio_id: data.condominio_id, especialidades: data.especialidades }, ...users]);
-
-      setTimeout(() => {
-        setShowCreateModal(false);
-        setCreateSuccess(false);
-        setNewFunc({ nome: '', email: '', cpf: '', senha: 'Mudar@123', especialidades: [] });
-        
-        setFeedbackModal({
-          show: true,
-          title: 'Cadastro Realizado',
-          message: `Funcionário criado! Ele entra com a senha provisória ${newFunc.senha} e será avisado para trocá-la no primeiro acesso.`,
-          type: 'success'
-        });
-      }, 1500);
-
-    } catch(err) {
-      console.error(err);
-      setFeedbackModal({
-        show: true,
-        title: 'Falha no Cadastro',
-        message: 'Erro ao criar funcionário: ' + err.message,
-        type: 'error'
-      });
-    } finally {
-      setCreateSubmitting(false);
     }
   };
 
@@ -682,225 +563,9 @@ const PainelMaster = () => {
             );
           })()}
 
-          {activeTab === 'funcionarios' && (() => {
-            const list = users.filter(u => u.role === 'FUNCIONARIO');
-            const lActive = list.filter(u => u.status === 'ATIVO').length;
-            const lPending = list.filter(u => u.status === 'PENDENTE').length;
-            const lBlocked = list.filter(u => u.status === 'BLOQUEADO').length;
-
-            return (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div>
-                    <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#0f172a', margin: '0 0 2px' }}>Gestão de Funcionários</h3>
-                    <p style={{ fontSize: '12px', color: '#94a3b8', margin: 0 }}>Gerencie o corpo técnico e operacional do seu condomínio.</p>
-                  </div>
-                  <button
-                    onClick={() => setShowCreateModal(true)}
-                    style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'var(--role-primary-color)', color: 'white', border: 'none', borderRadius: '8px', padding: '0.5rem 1.1rem', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer' }}
-                  >
-                    <UserPlus size={16} /> Cadastrar Funcionário
-                  </button>
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '14px', maxWidth: '300px' }}>
-                  <div style={{ background: '#f8fafc', borderRadius: '10px', padding: '16px 20px' }}>
-                    <p style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', color: '#94a3b8', letterSpacing: '0.07em', margin: '0 0 6px' }}>TOTAL FUNCIONÁRIOS</p>
-                    <p style={{ fontSize: '28px', fontWeight: 600, color: '#475569', margin: 0, lineHeight: 1 }}>{list.length}</p>
-                  </div>
-                </div>
-
-                <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '12px', overflow: 'hidden' }}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                    <thead>
-                      <tr style={{ background: '#f8fafc' }}>
-                        {['Funcionário', 'Especialidades', 'Ações'].map(h => (
-                          <th key={h} style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: '#94a3b8', letterSpacing: '0.06em', textAlign: 'left', padding: '12px 16px', borderBottom: '1px solid #e2e8f0' }}>{h}</th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {list.map((user, i) => {
-                        const rc = roleColor[user.role] || '#475569';
-                        const rl = roleLabel[user.role] || user.role;
-                        const sc = statusColor[user.status] || { text: '#475569', bg: '#f1f5f9' };
-                        const isBlocked = user.status === 'BLOQUEADO';
-                        return (
-                          <tr key={user.id}
-                            style={{ background: isBlocked ? '#fffafa' : 'white', transition: 'background 0.1s', opacity: isBlocked ? 0.7 : 1 }}
-                            onMouseEnter={e => { if (!isBlocked) e.currentTarget.style.background = '#fafafa'; }}
-                            onMouseLeave={e => { e.currentTarget.style.background = isBlocked ? '#fffafa' : 'white'; }}
-                          >
-                            <td style={{ padding: '14px 16px', borderBottom: '1px solid #f1f5f9' }}>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                <div
-                                  onClick={() => handleViewDetails(user)}
-                                  style={{ width: 36, height: 36, borderRadius: '50%', background: isBlocked ? '#e2e8f0' : `${rc}18`, color: isBlocked ? '#94a3b8' : rc, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '14px', flexShrink: 0, cursor: 'pointer', transition: 'all 0.2s', boxShadow: '0 0 0 2px transparent' }}
-                                  onMouseEnter={e => e.currentTarget.style.boxShadow = `0 0 0 2px ${isBlocked ? '#94a3b8' : rc}40`}
-                                  onMouseLeave={e => e.currentTarget.style.boxShadow = '0 0 0 2px transparent'}
-                                >
-                                  {(user.nome || user.name || 'F').charAt(0)}
-                                </div>
-                                <div>
-                                  <p style={{ margin: 0, fontSize: '13px', fontWeight: 600, color: '#0f172a' }}>{user.nome || user.name}</p>
-                                  <p style={{ margin: 0, fontSize: '12px', color: '#94a3b8' }}>{user.email}</p>
-                                </div>
-                              </div>
-                            </td>
-                            <td style={{ padding: '14px 16px', borderBottom: '1px solid #f1f5f9' }}>
-                              <div className="esp-tags">
-                                {(user.especialidades || []).length > 0
-                                  ? user.especialidades.map(c => <span key={c} className="esp-tag">{rotulo(c)}</span>)
-                                  : <span style={{ fontSize: '12px', color: '#94a3b8' }}>Nenhuma</span>}
-                              </div>
-                            </td>
-                            <td style={{ padding: '14px 16px', borderBottom: '1px solid #f1f5f9' }}>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-                                <button onClick={() => setEspEdit({ user, selecionadas: user.especialidades || [] })} style={{ fontSize: '11px', fontWeight: 700, color: '#1d4ed8', background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '6px', padding: '4px 10px', cursor: 'pointer' }}>
-                                  Especialidades
-                                </button>
-                                <button onClick={() => handleDeleteFuncionario(user)} style={{ fontSize: '11px', fontWeight: 700, color: '#dc2626', background: '#fee2e2', border: '1px solid #fecaca', borderRadius: '6px', padding: '4px 10px', cursor: 'pointer' }}>
-                                  Remover
-                                </button>
-                              </div>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                      {list.length === 0 && (
-                        <tr><td colSpan="4" style={{ padding: '20px', textAlign: 'center', color: '#94a3b8', fontSize: '13px' }}>Nenhum funcionário cadastrado neste condomínio.</td></tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            );
-          })()}
 
         </div>
       </main>
-
-      {showCreateModal && (
-        <Janela
-          as="form"
-          onSubmit={handleCreateUser}
-          icone={UserPlus}
-          titulo="Cadastrar funcionário"
-          subtitulo="Ele entra com a senha provisória e troca no primeiro acesso."
-          largura="grande"
-          bloqueada={createSubmitting || createSuccess}
-          onFechar={() => setShowCreateModal(false)}
-          rodape={<>
-            <button type="button" className="janela-btn janela-btn-sec" onClick={() => setShowCreateModal(false)} disabled={createSubmitting || createSuccess}>
-              Cancelar
-            </button>
-            <button type="submit" className={`janela-btn ${createSuccess ? 'janela-btn-sucesso' : 'janela-btn-pri'}`} disabled={createSubmitting || createSuccess}>
-              {createSuccess ? <><Check size={16} /> Criado!</>
-                : createSubmitting ? <><Loader2 size={16} className="janela-girando" /> Criando...</>
-                : <><UserPlus size={16} /> Cadastrar funcionário</>}
-            </button>
-          </>}
-        >
-          <div className="janela-campo">
-            <label htmlFor="func-nome">Nome completo</label>
-            <input
-              id="func-nome"
-              type="text"
-              className="janela-input"
-              value={newFunc.nome}
-              maxLength={TAMANHO.nome}
-              onChange={e => setNewFunc({ ...newFunc, nome: valorDigitado(e, somenteLetras) })}
-              onCompositionEnd={e => setNewFunc({ ...newFunc, nome: somenteLetras(e.target.value) })}
-              required
-              disabled={createSubmitting || createSuccess}
-            />
-          </div>
-
-          <div className="janela-grade">
-            <div className="janela-campo">
-              <label htmlFor="func-email">E-mail (login)</label>
-              <input
-                id="func-email"
-                type="email"
-                className="janela-input"
-                value={newFunc.email}
-                maxLength={TAMANHO.email}
-                onChange={e => setNewFunc({ ...newFunc, email: mascaraEmail(e.target.value) })}
-                required
-                disabled={createSubmitting || createSuccess}
-              />
-            </div>
-            <div className="janela-campo">
-              <label htmlFor="func-senha">Senha provisória</label>
-              <input
-                id="func-senha"
-                type="text"
-                className="janela-input"
-                value={newFunc.senha}
-                onChange={e => setNewFunc({ ...newFunc, senha: e.target.value })}
-                required
-                disabled={createSubmitting || createSuccess}
-              />
-            </div>
-          </div>
-
-          <div className="janela-campo">
-            <span className="janela-rotulo">Especialidades <span>(recebe as ocorrências dessas categorias)</span></span>
-            <div className="esp-grid">
-              {categorias.map(c => {
-                const ativo = newFunc.especialidades.includes(c.slug);
-                return (
-                  <button
-                    type="button"
-                    key={c.slug}
-                    className={`esp-chip${ativo ? ' ativo' : ''}`}
-                    aria-pressed={ativo}
-                    disabled={createSubmitting || createSuccess}
-                    onClick={() => setNewFunc({ ...newFunc, especialidades: alternarEspecialidade(newFunc.especialidades, c.slug) })}
-                  >
-                    {ativo && <Check size={13} />} {c.icone} {c.nome}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        </Janela>
-      )}
-
-      {espEdit && (
-        <Janela
-          icone={Wrench}
-          titulo="Especialidades"
-          subtitulo={espEdit.user.nome}
-          bloqueada={espSalvando}
-          onFechar={() => setEspEdit(null)}
-          rodape={<>
-            <button type="button" className="janela-btn janela-btn-sec" onClick={() => setEspEdit(null)} disabled={espSalvando}>Cancelar</button>
-            <button type="button" className="janela-btn janela-btn-pri" onClick={salvarEspecialidades} disabled={espSalvando}>
-              {espSalvando ? <><Loader2 size={16} className="janela-girando" /> Salvando...</> : 'Salvar'}
-            </button>
-          </>}
-        >
-          <p className="janela-texto">O funcionário é notificado das novas ocorrências dessas categorias e as vê no painel dele.</p>
-          <div className="esp-grid">
-            {categorias.map(c => {
-              const ativo = espEdit.selecionadas.includes(c.slug);
-              return (
-                <button
-                  type="button"
-                  key={c.slug}
-                  className={`esp-chip${ativo ? ' ativo' : ''}`}
-                  aria-pressed={ativo}
-                  disabled={espSalvando}
-                  onClick={() => setEspEdit({ ...espEdit, selecionadas: alternarEspecialidade(espEdit.selecionadas, c.slug) })}
-                >
-                  {ativo && <Check size={13} />} {c.icone} {c.nome}
-                </button>
-              );
-            })}
-          </div>
-        </Janela>
-      )}
 
       {papelEdit && (() => {
         const promover = papelEdit.acao === 'promover';
@@ -940,33 +605,6 @@ const PainelMaster = () => {
           </Janela>
         );
       })()}
-
-      {showDeleteModal && userToDelete && (
-        <Janela
-          icone={Trash2}
-          tom="perigo"
-          titulo="Remover funcionário"
-          subtitulo="Esta ação não pode ser desfeita."
-          largura="pequena"
-          bloqueada={removendo}
-          onFechar={() => { setShowDeleteModal(false); setUserToDelete(null); }}
-          rodape={<>
-            <button type="button" className="janela-btn janela-btn-sec" onClick={() => { setShowDeleteModal(false); setUserToDelete(null); }} disabled={removendo}>Cancelar</button>
-            <button type="button" className="janela-btn janela-btn-perigo" onClick={confirmDeleteFuncionario} disabled={removendo}>
-              {removendo ? <><Loader2 size={16} className="janela-girando" /> Removendo...</> : <><Trash2 size={16} /> Remover</>}
-            </button>
-          </>}
-        >
-          <div className="janela-pessoa">
-            <span className="janela-avatar" style={{ background: `${roleColor.FUNCIONARIO}18`, color: roleColor.FUNCIONARIO }}>{(userToDelete.nome || 'F').charAt(0)}</span>
-            <div>
-              <p className="janela-pessoa-nome">{userToDelete.nome}</p>
-              <p className="janela-pessoa-sub">{(userToDelete.especialidades || []).map(c => rotulo(c)).join(' · ') || 'Funcionário'}</p>
-            </div>
-          </div>
-          <p className="janela-texto">O login e o cadastro dele são apagados. As ocorrências que ele atendeu continuam no sistema.</p>
-        </Janela>
-      )}
 
       {showDetailsModal && selectedUser && (() => {
         const userRole = selectedUser.role || 'MORADOR';

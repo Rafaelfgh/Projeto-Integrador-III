@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import {
   Menu, Search, Building2, MapPin, CalendarDays, User, Mail, Phone, IdCard, X, Check, Ban, RefreshCw, Inbox, Users,
 } from 'lucide-react';
+import { useSearchParams } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import NotificationMenu from '../components/NotificationMenu';
 import { useAuth } from '../contexts/AuthContext';
@@ -154,6 +155,7 @@ const PainelDev = () => {
   const [aba,         setAba]         = useState('PENDENTE');
   const [busca,       setBusca]       = useState('');
   const [aberto,      setAberto]      = useState(null);
+  const [params, setParams] = useSearchParams();
 
   const carregar = useCallback(async () => {
     setLoading(true);
@@ -175,6 +177,14 @@ const PainelDev = () => {
     c.master_email?.toLowerCase().includes(termo)
   );
 
+
+  // Abre também pelo link da notificação (?condominio=<id>); fechar tira o parâmetro
+  const condominioDoLink = params.get('condominio');
+  const abertoAtual = aberto || condominios.find(c => String(c.id) === condominioDoLink) || null;
+  const fecharFicha = () => {
+    setAberto(null);
+    if (condominioDoLink) setParams({}, { replace: true });
+  };
   return (
     <div className="dashboard-layout">
       {sidebarOpen && <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)} />}
@@ -252,11 +262,11 @@ const PainelDev = () => {
         </div>
       </main>
 
-      {aberto && (
+      {abertoAtual && (
         <FichaCondominio
-          condominio={aberto}
-          onFechar={() => setAberto(null)}
-          onDecidido={() => { setAberto(null); carregar(); }}
+          condominio={abertoAtual}
+          onFechar={fecharFicha}
+          onDecidido={() => { fecharFicha(); carregar(); }}
         />
       )}
     </div>

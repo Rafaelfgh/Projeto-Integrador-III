@@ -18,6 +18,8 @@ import OcorrenciasConcluidas from './pages/OcorrenciasConcluidas';
 import OcorrenciasGestao from './pages/OcorrenciasGestao';
 import MuralAvisos from './pages/MuralAvisos';
 import PainelDev from './pages/PainelDev';
+import GestaoFuncionarios from './pages/GestaoFuncionarios';
+import Recados from './pages/Recados';
 import ProtectedRoute from './components/ProtectedRoute';
 import { AuthProvider } from './contexts/AuthContext';
 import VisualizadorImagemProvider from './components/VisualizadorImagem';
@@ -56,6 +58,12 @@ function App() {
             <Route path="/ocorrencias-analise" element={<OcorrenciasGestao key="analise" modo="analise" />} />
             <Route path="/ocorrencias-pessoais" element={<OcorrenciasGestao key="pessoais" modo="pessoais" />} />
             <Route path="/andamento-prolongado" element={<OcorrenciasGestao key="prolongadas" modo="prolongadas" />} />
+            <Route path="/funcionarios" element={<GestaoFuncionarios />} />
+          </Route>
+
+          {/* Recados: a gestão envia, os funcionários respondem */}
+          <Route element={<ProtectedRoute allowedRoles={['SINDICO', 'MASTER', 'FUNCIONARIO']} />}>
+            <Route path="/recados" element={<Recados />} />
           </Route>
           
           {/* Painel de Governança Global (Master) */}
