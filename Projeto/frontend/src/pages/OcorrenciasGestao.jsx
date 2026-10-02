@@ -167,7 +167,7 @@ const OcorrenciasGestao = ({ modo }) => {
                         <span><UserCog size={14} /> {item.atribuido_a ? nomes[item.atribuido_a] || 'Funcionário' : 'Sem responsável'}</span>
                         {modo === 'prolongadas' && (
                           <span className="oc-duracao">
-                            <Hourglass size={14} /> Em andamento há {diasDesde(item.andamento_em)} dias · por {nomes[item.andamento_por] || 'Administração'}
+                            <Hourglass size={14} /> Em andamento há {diasDesde(item.andamento_em)} dias · por {item.andamento_por_nome || nomes[item.andamento_por] || 'Administração'}
                           </span>
                         )}
                       </div>

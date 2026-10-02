@@ -26,6 +26,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useCategorias } from '../hooks/useCategorias';
 import { supabase } from '../backend/supabaseClient';
 import { garantirSemPalavrao } from '../utils/palavroes';
+import { reduzirImagem } from '../utils/imagem';
 import './Dashboard.css';
 import './Ocorrencia.css';
 
@@ -105,12 +106,14 @@ const Ocorrencia = () => {
       // 1. Upload dos anexos
       const uploadedUrls = [];
       for (const fileObj of files) {
-        const fileExt = fileObj.name.split('.').pop();
+        // Fotos são reduzidas antes do envio (vídeo, áudio e PDF vão como estão)
+        const arquivo = fileObj.file.type?.startsWith('image/') ? await reduzirImagem(fileObj.file) : fileObj.file;
+        const fileExt = arquivo.name.split('.').pop();
         const fileName = `${currentUser.id}-${Math.random().toString(36).substr(2, 9)}.${fileExt}`;
         
         const { error: uploadError } = await supabase.storage
           .from('anexos')
-          .upload(fileName, fileObj.file);
+          .upload(fileName, arquivo);
           
         if (uploadError) {
           console.error('Erro no upload', uploadError);

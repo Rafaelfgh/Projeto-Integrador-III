@@ -13,6 +13,13 @@
   --role-primary-color: #ea580c;
 }
 
+/* Telas públicas (login, cadastro de morador e de condomínio) são sempre laranja,
+   seja qual for o perfil da última sessão — a cor do perfil vale só dentro do sistema. */
+.login-page,
+.nc-page {
+  --role-primary-color: #ea580c;
+}
+
 @layer utilities {
   .neon-glow {
     text-shadow: 0 0 10px rgba(234, 88, 12, 0.7), 0 0 20px rgba(234, 88, 12, 0.5), 0 0 30px rgba(234, 88, 12, 0.3);

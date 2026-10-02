@@ -58,15 +58,13 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
 
         {/* ── Header ── */}
         <div className="sidebar-header">
-          <div className="sidebar-logo-img-box">
-            <img
-              src="/Design_sem_nome-removebg-preview.png"
-              alt="Habitare"
-              className="sidebar-logo-img"
-            />
-          </div>
+          {/* Logo sem caixa, como parte do fundo; a cópia de cima só pulsa na transparência */}
+          <span className="sidebar-logo">
+            <img src="/logo_habitare.png" alt="" className="sidebar-logo-img" />
+            <img src="/logo_habitare.png" alt="" aria-hidden="true" className="sidebar-logo-img sidebar-brilho" />
+          </span>
           <div className="sidebar-title-group">
-            <h1>Habitare</h1>
+            <h1 data-texto="Habitare">Habitare</h1>
           </div>
         </div>
 

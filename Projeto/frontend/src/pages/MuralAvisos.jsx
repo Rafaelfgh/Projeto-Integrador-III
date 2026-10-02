@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
-  Menu, Megaphone, CalendarDays, Clock, Plus, X, ImagePlus, Trash2, TimerOff, RefreshCw, Inbox,
+  Menu, Megaphone, CalendarDays, Clock, Plus, X, ImagePlus, Trash2, TimerOff, RefreshCw, Inbox, Loader2,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
@@ -10,6 +10,8 @@ import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../backend/supabaseClient';
 import { useVisualizadorImagem } from '../contexts/visualizadorImagem';
 import { garantirSemPalavrao } from '../utils/palavroes';
+import { reduzirImagem } from '../utils/imagem';
+import Janela from '../components/Janela';
 import './Dashboard.css';
 import './MuralAvisos.css';
 
@@ -81,9 +83,10 @@ const NovoAviso = ({ condominioId, onPublicado, onCancelar }) => {
     try {
       await garantirSemPalavrao(form.titulo, form.conteudo);
       for (const img of imagens) {
-        const ext = img.file.name.split('.').pop()?.toLowerCase() || 'jpg';
+        const arquivo = await reduzirImagem(img.file);
+        const ext = arquivo.name.split('.').pop()?.toLowerCase() || 'jpg';
         const caminho = `${condominioId}/${crypto.randomUUID()}.${ext}`;
-        const { error } = await supabase.storage.from('avisos').upload(caminho, img.file);
+        const { error } = await supabase.storage.from('avisos').upload(caminho, arquivo);
         if (error) throw new Error(`Falha ao enviar a imagem ${img.file.name}: ${error.message}`);
         caminhos.push(caminho);
       }
@@ -110,12 +113,22 @@ const NovoAviso = ({ condominioId, onPublicado, onCancelar }) => {
   };
 
   return (
-    <form className="av-form" onSubmit={publicar}>
-      <div className="av-form-topo">
-        <h3>Novo no mural</h3>
-        <button type="button" className="av-icone" onClick={onCancelar} aria-label="Fechar"><X size={18} /></button>
-      </div>
-
+    <Janela
+      as="form"
+      onSubmit={publicar}
+      icone={form.tipo === 'evento' ? CalendarDays : Megaphone}
+      titulo="Novo no mural"
+      subtitulo="Todos os moradores são avisados quando você publicar."
+      largura="grande"
+      bloqueada={enviando}
+      onFechar={onCancelar}
+      rodape={<>
+        <button type="button" className="janela-btn janela-btn-sec" onClick={onCancelar} disabled={enviando}>Cancelar</button>
+        <button type="submit" className="janela-btn janela-btn-pri" disabled={enviando}>
+          {enviando ? <><Loader2 size={16} className="janela-girando" /> Publicando...</> : <><Megaphone size={16} /> Publicar no mural</>}
+        </button>
+      </>}
+    >
       <div className="av-tipos" role="radiogroup" aria-label="Tipo">
         {[{ v: 'aviso', r: 'Aviso' }, { v: 'evento', r: 'Evento' }].map(({ v, r }) => (
           <button
@@ -131,38 +144,45 @@ const NovoAviso = ({ condominioId, onPublicado, onCancelar }) => {
         ))}
       </div>
 
-      <label className="av-rotulo" htmlFor="av-titulo">Título</label>
-      <input
-        id="av-titulo"
-        required
-        maxLength={150}
-        value={form.titulo}
-        onChange={(e) => alterar('titulo', e.target.value)}
-        placeholder={form.tipo === 'evento' ? 'Ex.: Festa junina no salão de festas' : 'Ex.: Garagem do Bloco B será lavada'}
-      />
+      <div className="janela-campo">
+        <label htmlFor="av-titulo">Título</label>
+        <input
+          id="av-titulo"
+          className="janela-input"
+          required
+          maxLength={150}
+          value={form.titulo}
+          onChange={(e) => alterar('titulo', e.target.value)}
+          placeholder={form.tipo === 'evento' ? 'Ex.: Festa junina no salão de festas' : 'Ex.: Garagem do Bloco B será lavada'}
+        />
+      </div>
 
-      <label className="av-rotulo" htmlFor="av-conteudo">Texto</label>
-      <textarea
-        id="av-conteudo"
-        required
-        maxLength={MAX_TEXTO}
-        value={form.conteudo}
-        onChange={(e) => alterar('conteudo', e.target.value)}
-        placeholder="Escreva o aviso do jeito que preferir."
-      />
-      <span className="av-contador">{form.conteudo.length}/{MAX_TEXTO}</span>
+      <div className="janela-campo">
+        <label htmlFor="av-conteudo">Texto</label>
+        <textarea
+          id="av-conteudo"
+          className="janela-input"
+          required
+          maxLength={MAX_TEXTO}
+          value={form.conteudo}
+          onChange={(e) => alterar('conteudo', e.target.value)}
+          placeholder="Escreva o aviso do jeito que preferir."
+        />
+        <span className="janela-ajuda" style={{ textAlign: 'right' }}>{form.conteudo.length}/{MAX_TEXTO}</span>
+      </div>
 
-      <div className="av-datas">
+      <div className="janela-grade">
         {form.tipo === 'evento' && (
-          <div>
-            <label className="av-rotulo" htmlFor="av-evento">Data do evento</label>
-            <input id="av-evento" type="datetime-local" required value={form.dataEvento} onChange={(e) => alterarDataEvento(e.target.value)} />
+          <div className="janela-campo">
+            <label htmlFor="av-evento">Data do evento</label>
+            <input id="av-evento" className="janela-input" type="datetime-local" required value={form.dataEvento} onChange={(e) => alterarDataEvento(e.target.value)} />
           </div>
         )}
-        <div>
-          <label className="av-rotulo" htmlFor="av-expira">Sai do mural em</label>
+        <div className="janela-campo">
+          <label htmlFor="av-expira">Sai do mural em</label>
           <input
             id="av-expira"
+            className="janela-input"
             type="datetime-local"
             required
             value={form.expiraEm}
@@ -171,34 +191,29 @@ const NovoAviso = ({ condominioId, onPublicado, onCancelar }) => {
         </div>
       </div>
 
-      <label className="av-rotulo">Imagens (até {MAX_IMAGENS})</label>
-      <div className="av-imagens-form">
-        {imagens.map(img => (
-          <div key={img.id} className="av-thumb">
-            <img src={img.url} alt="" />
-            <button type="button" onClick={() => setImagens(prev => prev.filter(i => i.id !== img.id))} aria-label="Remover imagem">
-              <X size={12} />
+      <div className="janela-campo">
+        <span className="janela-rotulo">Imagens <span>(até {MAX_IMAGENS})</span></span>
+        <div className="av-imagens-form">
+          {imagens.map(img => (
+            <div key={img.id} className="av-thumb">
+              <img src={img.url} alt="" />
+              <button type="button" onClick={() => setImagens(prev => prev.filter(i => i.id !== img.id))} aria-label="Remover imagem" disabled={enviando}>
+                <X size={12} />
+              </button>
+            </div>
+          ))}
+          {imagens.length < MAX_IMAGENS && (
+            <button type="button" className="av-add-imagem" onClick={() => fileRef.current?.click()} disabled={enviando}>
+              <ImagePlus size={20} />
+              <span>Adicionar</span>
             </button>
-          </div>
-        ))}
-        {imagens.length < MAX_IMAGENS && (
-          <button type="button" className="av-add-imagem" onClick={() => fileRef.current?.click()}>
-            <ImagePlus size={20} />
-            <span>Adicionar</span>
-          </button>
-        )}
-        <input ref={fileRef} type="file" accept="image/*" multiple hidden onChange={(e) => { adicionarImagens(e.target.files); e.target.value = ''; }} />
+          )}
+          <input ref={fileRef} type="file" accept="image/*" multiple hidden onChange={(e) => { adicionarImagens(e.target.files); e.target.value = ''; }} />
+        </div>
       </div>
 
-      {erro && <p className="av-erro" role="alert">{erro}</p>}
-
-      <div className="av-form-acoes">
-        <button type="button" className="av-btn av-btn-sec" onClick={onCancelar}>Cancelar</button>
-        <button type="submit" className="av-btn av-btn-pri" disabled={enviando}>
-          {enviando ? 'Publicando...' : 'Publicar no mural'}
-        </button>
-      </div>
-    </form>
+      {erro && <p className="janela-erro" role="alert">{erro}</p>}
+    </Janela>
   );
 };
 

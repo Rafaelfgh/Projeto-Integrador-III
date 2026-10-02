@@ -32,6 +32,7 @@ import { supabase } from '../backend/supabaseClient';
 import { useVisualizadorImagem } from '../contexts/visualizadorImagem';
 import AtualizacaoOcorrencia from '../components/AtualizacaoOcorrencia';
 import ConversaOcorrencia from '../components/ConversaOcorrencia';
+import Janela from '../components/Janela';
 import { carregarNomes, assinarEvidencias } from '../services/ocorrenciaService';
 import { protocoloOcorrencia, protocoloReclamacao } from '../utils/protocolo';
 import './Dashboard.css';
@@ -433,39 +434,18 @@ const MinhasSolicitacoes = () => {
         </div>
       </main>
 
-      {/* Modal de Acompanhamento */}
+      {/* Janela de acompanhamento */}
       {selectedRequest && (
-        <div
-          style={{
-            position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.5)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            zIndex: 1000, padding: '1rem',
-          }}
-          onClick={() => setSelectedRequest(null)}
+        <Janela
+          icone={selectedRequest.tipo === 'reclamacao' ? ClipboardList : FileText}
+          titulo={selectedRequest.title}
+          subtitulo={selectedRequest.protocol}
+          onFechar={() => setSelectedRequest(null)}
+          fecharAoClicarFora
+          rodape={<button type="button" className="janela-btn janela-btn-sec" onClick={() => setSelectedRequest(null)}>Fechar</button>}
         >
-          <div
-            style={{
-              background: 'white', borderRadius: '1rem', maxWidth: 520, width: '100%',
-              maxHeight: '85vh', overflowY: 'auto', padding: '1.75rem',
-              boxShadow: '0 20px 40px rgba(0,0,0,0.2)',
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
-              <div>
-                <span style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 600 }}>{selectedRequest.protocol}</span>
-                <h3 style={{ fontSize: '1.25rem', fontWeight: 700, margin: '0.25rem 0 0' }}>{selectedRequest.title}</h3>
-              </div>
-              <button
-                onClick={() => setSelectedRequest(null)}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', padding: 4 }}
-                aria-label="Fechar"
-              >
-                <X size={20} />
-              </button>
-            </div>
-
-            <span className={`ms-status ${getStatusClass(selectedRequest.status)}`} style={{ display: 'inline-flex', marginTop: '0.5rem' }}>
+          <div>
+            <span className={`ms-status ${getStatusClass(selectedRequest.status)}`} style={{ display: 'inline-flex' }}>
               {selectedRequest.status}
             </span>
 
@@ -538,7 +518,7 @@ const MinhasSolicitacoes = () => {
               <CalendarDays size={14} /> Registrado em {selectedRequest.date} às {selectedRequest.time}
             </div>
           </div>
-        </div>
+        </Janela>
       )}
     </div>
   );

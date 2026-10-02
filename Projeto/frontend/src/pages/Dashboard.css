@@ -62,40 +62,71 @@
 .sidebar-header {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  justify-content: center;
+  gap: 0.6rem;
   padding: 1.5rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-/* ── Logo Habitare na Sidebar ── */
-.sidebar-logo-img-box {
-  width: 52px;
-  height: 52px;
-  border-radius: 10px;
-  overflow: hidden;
+/* ── Marca Habitare na Sidebar ──
+   Logo sem caixa (só o laranja sobre o fundo escuro) e brilho leve, igual ao login:
+   o brilho fixo é calculado uma vez; o pulso é uma cópia por cima que só muda de
+   transparência (animar desfoque/sombra direto trava a tela). */
+.sidebar-logo {
+  position: relative;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: #1e293b;
-  box-shadow: 0 4px 12px rgba(234, 88, 12, 0.4);
   flex-shrink: 0;
 }
 
 .sidebar-logo-img {
-  width: 48px;
-  height: 48px;
-  object-fit: contain;
-  filter: drop-shadow(0 0 4px rgba(255, 120, 0, 0.6));
+  display: block;
+  height: 34px;
+  width: auto;
+  filter: drop-shadow(0 0 3px rgba(255, 122, 0, 0.35));
+}
+
+.sidebar-logo .sidebar-brilho {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  filter: drop-shadow(0 0 8px rgba(255, 115, 0, 0.45));
+  opacity: 0;
+  will-change: opacity;
+  animation: marca-pulso 4s ease-in-out infinite alternate;
 }
 
 .sidebar-title-group h1 {
+  position: relative;
+  margin: 0;
   color: #F47920;
   font-weight: 700;
-  font-size: 1.1rem;
-  line-height: 1.2;
-  text-shadow: 0 0 8px rgba(255, 120, 0, 0.9),
-               0 0 16px rgba(255, 100, 0, 0.6),
-               0 0 30px rgba(255, 80, 0, 0.3);
+  font-size: 1.25rem;
+  line-height: 1;
+  letter-spacing: 0.01em;
+  text-shadow: 0 0 4px rgba(255, 122, 0, 0.35);
+}
+
+/* Pulso do texto: cópia transparente só com a sombra, animada na transparência */
+.sidebar-title-group h1::after {
+  content: attr(data-texto);
+  position: absolute;
+  inset: 0;
+  color: transparent;
+  text-shadow: 0 0 10px rgba(255, 115, 0, 0.55);
+  opacity: 0;
+  will-change: opacity;
+  pointer-events: none;
+  animation: marca-pulso 4s ease-in-out infinite alternate;
+}
+
+@keyframes marca-pulso {
+  from { opacity: 0; }
+  to   { opacity: 0.8; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sidebar-logo .sidebar-brilho,
+  .sidebar-title-group h1::after { animation: none; }
 }
 
 .dashboard-pm-subtitle {
@@ -263,8 +294,6 @@
 
 .main-header {
   background-color: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
   border-bottom: 1px solid rgba(226, 232, 240, 0.8);
   padding: 1rem 2rem;
   display: flex;

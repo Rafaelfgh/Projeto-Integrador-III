@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   Menu, Search, CheckCircle2, Clock, UserCog, User, CalendarDays, Timer,
-  ChevronDown, ChevronUp, Lock, Pin, RefreshCw, Image as ImageIcon, Trophy
+  ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Lock, Pin, RefreshCw, Image as ImageIcon, Trophy
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
@@ -22,6 +22,9 @@ const PERIODOS = [
   { key: '365',   label: 'Último ano' },
   { key: 'todas', label: 'Todo o período' },
 ];
+
+// Abre só com as concluídas dos últimos 30 dias (o período filtra já no banco) e pagina a lista
+const POR_PAGINA = 20;
 
 const PAPEL_LABEL = { MASTER: 'Master', SINDICO: 'Síndico', FUNCIONARIO: 'Funcionário', MORADOR: 'Morador', SISTEMA: 'Sistema' };
 
@@ -51,18 +54,22 @@ const OcorrenciasConcluidas = () => {
   const [busca,       setBusca]       = useState('');
   const [categoria,   setCategoria]   = useState('todas');
   const [funcionario, setFuncionario] = useState('todos');
-  const [periodo,     setPeriodo]     = useState('todas');
+  const [periodo,     setPeriodo]     = useState('30');
+  const [pagina,      setPagina]      = useState(1);
 
   const carregar = useCallback(async () => {
     if (!currentUser?.condominio_id) return;
     setLoading(true);
 
-    const { data: occ, error } = await supabase
+    let consulta = supabase
       .from('Ocorrencias')
       .select(`${OCORRENCIA_CAMPOS}, Moradores(nome, bloco, apartamento)`)
       .eq('condominio_id', currentUser.condominio_id)
-      .eq('status', 'Resolvida')
-      .order('concluida_em', { ascending: false, nullsFirst: false });
+      .eq('status', 'Resolvida');
+    if (periodo !== 'todas') {
+      consulta = consulta.gte('concluida_em', new Date(Date.now() - Number(periodo) * 864e5).toISOString());
+    }
+    const { data: occ, error } = await consulta.order('concluida_em', { ascending: false, nullsFirst: false });
     if (error) console.error('Erro ao buscar concluídas:', error);
     const lista = occ || [];
 
@@ -96,13 +103,13 @@ const OcorrenciasConcluidas = () => {
       anexos:          Array.isArray(o.anexos) ? o.anexos : [],
       moradorNome:     o.Moradores?.nome || 'Morador',
       unidade:         o.Moradores ? `Bloco ${o.Moradores.bloco} · Apt ${o.Moradores.apartamento}` : '',
-      funcionarioNome: o.concluida_por ? (mapaNomes[o.concluida_por] || 'Administração') : null,
+      funcionarioNome: o.concluida_por ? (o.concluida_por_nome || mapaNomes[o.concluida_por] || 'Administração') : null,
       duracaoMs:       o.concluida_em ? new Date(o.concluida_em) - new Date(o.created_at) : null,
     })));
     setFotos(mapaFotos);
 
     setLoading(false);
-  }, [currentUser?.condominio_id]);
+  }, [currentUser?.condominio_id, periodo]);
 
   useEffect(() => { carregar(); }, [carregar]);
 
@@ -121,6 +128,10 @@ const OcorrenciasConcluidas = () => {
       (!limite || (i.concluida_em && new Date(i.concluida_em).getTime() >= limite))
     );
   }, [itens, busca, categoria, funcionario, periodo]);
+
+  const totalPaginas = Math.max(1, Math.ceil(filtrados.length / POR_PAGINA));
+  const paginaAtual  = Math.min(pagina, totalPaginas);
+  const visiveis     = filtrados.slice((paginaAtual - 1) * POR_PAGINA, paginaAtual * POR_PAGINA);
 
   // Indicadores do período filtrado
   const indicadores = useMemo(() => {
@@ -195,18 +206,18 @@ const OcorrenciasConcluidas = () => {
                   type="text"
                   placeholder="Buscar por título, descrição ou morador..."
                   value={busca}
-                  onChange={(e) => setBusca(e.target.value)}
+                  onChange={(e) => { setBusca(e.target.value); setPagina(1); }}
                 />
               </div>
-              <select value={categoria} onChange={(e) => setCategoria(e.target.value)}>
+              <select value={categoria} onChange={(e) => { setCategoria(e.target.value); setPagina(1); }}>
                 <option value="todas">Todas as categorias</option>
                 {categorias.map(c => <option key={c.slug} value={c.slug}>{c.icone} {c.nome}</option>)}
               </select>
-              <select value={funcionario} onChange={(e) => setFuncionario(e.target.value)}>
+              <select value={funcionario} onChange={(e) => { setFuncionario(e.target.value); setPagina(1); }}>
                 <option value="todos">Todos os funcionários</option>
                 {funcionarios.map(f => <option key={f} value={f}>{f}</option>)}
               </select>
-              <select value={periodo} onChange={(e) => setPeriodo(e.target.value)}>
+              <select value={periodo} onChange={(e) => { setPeriodo(e.target.value); setPagina(1); }}>
                 {PERIODOS.map(p => <option key={p.key} value={p.key}>{p.label}</option>)}
               </select>
             </section>
@@ -225,7 +236,7 @@ const OcorrenciasConcluidas = () => {
               </div>
             ) : (
               <div className="oc-lista">
-                {filtrados.map(item => {
+                {visiveis.map(item => {
                   const expandido = !!aberto[item.id];
                   const provas    = item.resolucao?.evidencias || [];
                   return (
@@ -323,6 +334,18 @@ const OcorrenciasConcluidas = () => {
                   );
                 })}
               </div>
+            )}
+
+            {!loading && totalPaginas > 1 && (
+              <nav className="oc-paginas" aria-label="Páginas">
+                <button onClick={() => setPagina(paginaAtual - 1)} disabled={paginaAtual === 1}>
+                  <ChevronLeft size={16} /> Anterior
+                </button>
+                <span>Página {paginaAtual} de {totalPaginas} · {filtrados.length} ocorrências</span>
+                <button onClick={() => setPagina(paginaAtual + 1)} disabled={paginaAtual === totalPaginas}>
+                  Próxima <ChevronRight size={16} />
+                </button>
+              </nav>
             )}
           </div>
         </div>

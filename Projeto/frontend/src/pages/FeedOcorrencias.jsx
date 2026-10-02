@@ -106,7 +106,7 @@ const FeedOcorrencias = () => {
       anexos:          Array.isArray(o.anexos) ? o.anexos : [],
       moradorNome:     mapaNomes[o.morador_id] || 'Morador',
       funcionarioNome: o.atribuido_a ? (mapaNomes[o.atribuido_a] || null) : null,
-      concluidaPor:    o.concluida_por ? (mapaNomes[o.concluida_por] || 'Administração') : null,
+      concluidaPor:    o.concluida_por ? (o.concluida_por_nome || mapaNomes[o.concluida_por] || 'Administração') : null,
     })));
 
     const porOcorrencia = {};

@@ -17,7 +17,7 @@ const AtualizacaoOcorrencia = ({ ocorrencia, nomes = {}, fotos = {} }) => {
     return (
       <div className="atu atu-concluida">
         <span className="atu-rotulo">
-          <CheckCircle2 size={13} /> Concluída por {nome(ocorrencia.concluida_por)} · {formatar(ocorrencia.concluida_em)}
+          <CheckCircle2 size={13} /> Concluída por {ocorrencia.concluida_por_nome || nome(ocorrencia.concluida_por)} · {formatar(ocorrencia.concluida_em)}
         </span>
         {ocorrencia.conclusao_descricao && <p className="atu-texto">{ocorrencia.conclusao_descricao}</p>}
         {provas.length > 0 && (
@@ -44,7 +44,7 @@ const AtualizacaoOcorrencia = ({ ocorrencia, nomes = {}, fotos = {} }) => {
     return (
       <div className="atu atu-andamento">
         <span className="atu-rotulo">
-          <Wrench size={13} /> Em andamento · {nome(ocorrencia.andamento_por)} · {formatar(ocorrencia.andamento_em)}
+          <Wrench size={13} /> Em andamento · {ocorrencia.andamento_por_nome || nome(ocorrencia.andamento_por)} · {formatar(ocorrencia.andamento_em)}
         </span>
         <p className="atu-texto">{ocorrencia.andamento_descricao}</p>
       </div>

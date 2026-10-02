@@ -5,7 +5,6 @@ import { useAuth } from '../contexts/AuthContext';
 import { useVisualizadorImagem } from '../contexts/visualizadorImagem';
 import { assinarEvidencias, enviarEvidencias } from '../services/ocorrenciaService';
 import { contemPalavrao, MSG_PALAVRAO } from '../utils/palavroes';
-import { reduzirImagem } from '../utils/imagem';
 import './ConversaOcorrencia.css';
 
 // Conversa das ocorrências pessoais: morador, síndico/master e funcionário atribuído.
@@ -81,8 +80,7 @@ export default function ConversaOcorrencia({ ocorrencia }) {
     setErro(null);
     try {
       if (await contemPalavrao(t)) throw new Error(MSG_PALAVRAO);
-      const arquivos = await Promise.all(fotos.map(f => reduzirImagem(f.file)));
-      const caminhos = await enviarEvidencias(currentUser.condominio_id, ocorrencia.id, arquivos, 'conversa');
+      const caminhos = await enviarEvidencias(currentUser.condominio_id, ocorrencia.id, fotos.map(f => f.file), 'conversa');
       const { error } = await supabase
         .from('ocorrencia_comentarios')
         .insert({ ocorrencia_id: ocorrencia.id, texto: t, fotos: caminhos });

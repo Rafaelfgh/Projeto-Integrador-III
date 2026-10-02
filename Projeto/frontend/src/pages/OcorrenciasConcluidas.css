@@ -331,3 +331,33 @@
   cursor: pointer;
 }
 .oc-btn-gerenciar:hover { background: #4338ca; }
+
+/* Paginação (20 por página) */
+.oc-paginas {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin: 1.25rem 0 0.5rem;
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+.oc-paginas button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  height: 36px;
+  padding: 0 0.9rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #fff;
+  color: #334155;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.oc-paginas button:hover:not(:disabled) { border-color: var(--role-primary-color); color: var(--role-primary-color); }
+.oc-paginas button:disabled { opacity: 0.45; cursor: not-allowed; }

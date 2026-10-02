@@ -71,6 +71,12 @@ const Login = () => {
             alt="Portal do Morador"
             className="login-logo-img"
           />
+          <img
+            src="/Design_sem_nome-removebg-preview.png"
+            alt=""
+            aria-hidden="true"
+            className="login-logo-img login-logo-brilho"
+          />
         </div>
       </div>
 

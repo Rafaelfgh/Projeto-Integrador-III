@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Menu, Search, UserCheck, Shield, User, Building, MoreVertical, Check, X, Users, UserPlus, FileText, Ban, Edit2, Key, LayoutDashboard, Clock, Settings, AlertTriangle, Eye, TrendingUp, TrendingDown, DollarSign, AlertCircle, Loader2, Trash2
+  Menu, Search, UserCheck, Shield, User, Building, MoreVertical, Check, X, Users, UserPlus, FileText, Ban, Edit2, Key, LayoutDashboard, Clock, Settings, AlertTriangle, Eye, TrendingUp, TrendingDown, DollarSign, AlertCircle, Loader2, Trash2, ShieldOff, Wrench
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import NotificationMenu from '../components/NotificationMenu';
 import ContextBanner from '../components/ContextBanner';
+import Janela from '../components/Janela';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../backend/supabaseClient';
 import { useCategorias } from '../hooks/useCategorias';
-import { somenteLetras, mascaraCPF, mascaraEmail, emailValido, valorDigitado, TAMANHO } from '../utils/mascaras';
+import { somenteLetras, mascaraEmail, emailValido, valorDigitado, TAMANHO } from '../utils/mascaras';
 import './PainelMaster.css';
 
 // Mensagem de erro vinda da Edge Function (o corpo traz { error })
@@ -43,13 +44,13 @@ const PainelMaster = () => {
 
   // Modals state (For Users)
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [showPromoteModal, setShowPromoteModal] = useState(false);
-  const [userToPromote, setUserToPromote] = useState(null);
+  const [papelEdit, setPapelEdit] = useState(null); // { user, acao: 'promover' | 'revogar' }
+  const [salvandoPapel, setSalvandoPapel] = useState(false);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
+  const [removendo, setRemovendo] = useState(false);
 
   const [moradoresSubTab, setMoradoresSubTab] = useState('ativos');
 
@@ -58,12 +59,15 @@ const PainelMaster = () => {
   const { categorias, rotulo } = useCategorias();
   const [espEdit, setEspEdit] = useState(null); // { user, selecionadas }
   const [espSalvando, setEspSalvando] = useState(false);
-  const [userToEdit, setUserToEdit] = useState(null);
 
   // Estados do modal de cadastro de funcionário
   const [createSubmitting, setCreateSubmitting] = useState(false);
   const [createSuccess, setCreateSuccess] = useState(false);
   const [feedbackModal, setFeedbackModal] = useState({ show: false, title: '', message: '', type: 'success' });
+
+  // Avisos na janela padrão (no lugar do alerta do navegador)
+  const avisar = (title, message, type = 'error') => setFeedbackModal({ show: true, title, message, type });
+  const fecharAviso = () => setFeedbackModal({ show: false, title: '', message: '', type: 'success' });
 
   // User Stats
   const totalUsers = users.length;
@@ -134,7 +138,7 @@ const PainelMaster = () => {
 
       setUsers(users.map(u => u.id === user.id ? { ...u, status: 'ATIVO' } : u));
     } catch (e) {
-      alert('Erro ao aprovar usuário: ' + e.message);
+      avisar('Não foi possível aprovar', e.message);
     }
   };
 
@@ -152,7 +156,7 @@ const PainelMaster = () => {
 
       setUsers(users.map(u => u.id === user.id ? { ...u, status: newStatus } : u));
     } catch (e) {
-      alert('Erro ao atualizar status: ' + e.message);
+      avisar('Não foi possível atualizar o status', e.message);
     }
   };
 
@@ -162,7 +166,8 @@ const PainelMaster = () => {
   };
 
   const confirmDeleteFuncionario = async () => {
-    if (!userToDelete) return;
+    if (!userToDelete || removendo) return;
+    setRemovendo(true);
     try {
       // A Edge Function apaga a conta de login junto (sem deixar conta órfã)
       const { data, error } = await supabase.functions.invoke('gerenciar-funcionario', {
@@ -171,8 +176,9 @@ const PainelMaster = () => {
       if (error || data?.error) throw new Error(await erroDaFuncao(error, data));
       setUsers(users.filter(u => u.id !== userToDelete.id));
     } catch (e) {
-      alert('Erro ao excluir funcionário: ' + e.message);
+      avisar('Não foi possível remover o funcionário', e.message);
     } finally {
+      setRemovendo(false);
       setShowDeleteModal(false);
       setUserToDelete(null);
     }
@@ -202,53 +208,44 @@ const PainelMaster = () => {
       setUsers(users.map(u => u.id === user.id ? { ...u, especialidades: selecionadas } : u));
       setEspEdit(null);
     } catch (err) {
-      alert('Erro ao salvar especialidades: ' + err.message);
+      avisar('Não foi possível salvar as especialidades', err.message);
     } finally {
       setEspSalvando(false);
     }
   };
 
-  const handleRoleChange = async (userId, newRole) => {
-    const userToChange = users.find(u => u.id === userId);
-    if (!userToChange) return;
+  // Nomear ou revogar síndico: sempre confirma na janela antes de salvar
+  const handleRoleChange = (userId, newRole) => {
+    const alvo = users.find(u => u.id === userId);
+    if (!alvo) return;
 
     if (newRole === 'SINDICO') {
-      const currentSindico = users.find(u => u.role === 'SINDICO');
-      if (currentSindico && currentSindico.id !== userId) {
-        alert('Já existe um Síndico ativo neste condomínio. Remova o síndico atual (volte para Morador) antes de promover outro.');
+      const atual = users.find(u => u.role === 'SINDICO');
+      if (atual && atual.id !== userId) {
+        avisar('Já existe um síndico', `${atual.nome} é o síndico atual. Volte ${atual.nome} para morador antes de nomear outra pessoa.`);
         return;
       }
-
-      setUserToPromote(userToChange);
-      setShowPromoteModal(true);
-    } else if (newRole === 'MORADOR' && userToChange.role === 'SINDICO') {
-      try {
-        const { error } = await supabase.from('Gestao_Sindicos').update({ ativo: false }).eq('morador_id', userId);
-        if (error) throw error;
-
-        setUsers(users.map(u => u.id === userId ? { ...u, role: 'MORADOR' } : u));
-      } catch (err) {
-        alert('Erro ao remover síndico. Detalhes: ' + err.message);
-      }
+      setPapelEdit({ user: alvo, acao: 'promover' });
+    } else if (newRole === 'MORADOR' && alvo.role === 'SINDICO') {
+      setPapelEdit({ user: alvo, acao: 'revogar' });
     }
   };
 
-  const confirmPromotion = async () => {
-    if (!userToPromote) return;
+  const confirmarPapel = async () => {
+    if (!papelEdit || salvandoPapel) return;
+    const { user, acao } = papelEdit;
+    setSalvandoPapel(true);
     try {
-      const { error } = await supabase.from('Gestao_Sindicos').insert({
-        morador_id: userToPromote.id,
-        condominio_id: userToPromote.condominio_id,
-        ativo: true
-      });
+      const { error } = acao === 'promover'
+        ? await supabase.from('Gestao_Sindicos').insert({ morador_id: user.id, condominio_id: user.condominio_id, ativo: true })
+        : await supabase.from('Gestao_Sindicos').update({ ativo: false }).eq('morador_id', user.id);
       if (error) throw error;
-
-
-      setUsers(users.map(u => u.id === userToPromote.id ? { ...u, role: 'SINDICO' } : u));
-      setShowPromoteModal(false);
-      setUserToPromote(null);
+      setUsers(users.map(u => (u.id === user.id ? { ...u, role: acao === 'promover' ? 'SINDICO' : 'MORADOR' } : u)));
+      setPapelEdit(null);
     } catch (err) {
-      alert('Erro ao promover a síndico. Detalhes: ' + err.message);
+      avisar(acao === 'promover' ? 'Não foi possível nomear o síndico' : 'Não foi possível revogar o síndico', err.message);
+    } finally {
+      setSalvandoPapel(false);
     }
   };
 
@@ -302,24 +299,6 @@ const PainelMaster = () => {
     }
   };
 
-  const handleEditSubmit = (e) => {
-    e.preventDefault();
-    setUsers(users.map(u => u.id === userToEdit.id ? { ...u, nome: userToEdit.nome, email: userToEdit.email, cpf: userToEdit.cpf } : u));
-    setShowEditModal(false);
-    setUserToEdit(null);
-  };
-
-  const handleViewAs = (user) => {
-    if (window.confirm(`Entrar no modo supervisão como ${user.nome}? Você terá acesso ao painel equivalente a este usuário.`)) {
-      alert(`Redirecionando para o painel de ${user.role}... (Simulação)`);
-      let route = '/';
-      if (user.role === 'SINDICO') route = '/painel-sindico';
-      else if (user.role === 'FUNCIONARIO') route = '/painel-funcionario';
-      else if (user.role === 'MORADOR') route = '/dashboard';
-      navigate(route);
-    }
-  };
-
   const handleViewDetails = (user) => {
     setSelectedUser(user);
     setShowDetailsModal(true);
@@ -330,11 +309,11 @@ const PainelMaster = () => {
   const statusColor = { ATIVO: { text: '#16a34a', bg: '#dcfce7' }, PENDENTE: { text: '#d97706', bg: '#fef3c7' }, BLOQUEADO: { text: '#dc2626', bg: '#fee2e2' } };
 
   // Ocorrencias KPIs
-  const pipeRecebida = ocorrencias.filter(o => o.status === 'Recebida').length;
-  const pipeAnalise = ocorrencias.filter(o => o.status === 'Em análise').length;
-  const pipeAguardando = ocorrencias.filter(o => o.status === 'Aguardando').length;
-  const pipeExecucao = ocorrencias.filter(o => o.status === 'Em execução').length;
-  const pipeConcluida = ocorrencias.filter(o => o.status === 'Concluída').length;
+  // Status reais do banco: Aberta, Em Análise, Em Andamento e Resolvida (exibida como "Concluída")
+  const pipeAberta    = ocorrencias.filter(o => o.status === 'Aberta').length;
+  const pipeAnalise   = ocorrencias.filter(o => o.status === 'Em Análise').length;
+  const pipeAndamento = ocorrencias.filter(o => o.status === 'Em Andamento').length;
+  const pipeConcluida = ocorrencias.filter(o => o.status === 'Resolvida').length;
   const totalOcc = ocorrencias.length || 1;
 
   if (loadingData) {
@@ -395,7 +374,7 @@ const PainelMaster = () => {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px' }}>
                 {[
-                  { label: 'OCORRÊNCIAS ABERTAS', value: String(ocorrencias.filter(o => o.status !== 'Concluída').length), trend: 'requerem atenção', trendColor: '#f59e0b' },
+                  { label: 'OCORRÊNCIAS ABERTAS', value: String(ocorrencias.length - pipeConcluida), trend: 'requerem atenção', trendColor: '#f59e0b' },
                   { label: 'TOTAL DE OCORRÊNCIAS', value: String(ocorrencias.length), trend: 'registradas no sistema', trendColor: '#16a34a' },
                   { label: 'USUÁRIOS CADASTRADOS', value: String(totalUsers), trend: `${pendingUsers} pendentes de aprovação`, trendColor: pendingUsers > 0 ? '#f59e0b' : '#16a34a' },
                 ].map((k, i) => (
@@ -413,10 +392,9 @@ const PainelMaster = () => {
                   <p style={{ fontSize: '12px', color: '#94a3b8', margin: '0 0 24px' }}>Todas as ocorrências do sistema por status.</p>
                   <div style={{ display: 'flex', alignItems: 'flex-end', gap: '10px', height: '130px' }}>
                     {[
-                      { label: 'Recebida', value: pipeRecebida, color: '#9CA3AF' },
+                      { label: 'Aberta', value: pipeAberta, color: '#9CA3AF' },
                       { label: 'Em análise', value: pipeAnalise, color: '#3B82F6' },
-                      { label: 'Aguardando', value: pipeAguardando, color: '#F59E0B' },
-                      { label: 'Em execução', value: pipeExecucao, color: '#8B5CF6' },
+                      { label: 'Em andamento', value: pipeAndamento, color: '#F59E0B' },
                       { label: 'Concluída', value: pipeConcluida, color: '#10B981' },
                     ].map((col, i) => {
                       const barH = Math.max(10, Math.round((col.value / totalOcc) * 100));
@@ -438,7 +416,7 @@ const PainelMaster = () => {
                   <p style={{ fontSize: '12px', color: '#94a3b8', margin: '0 0 24px' }}>Atividades recentes registradas.</p>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                     {ocorrencias.slice(0, 3).map((occ, i) => (
-                      <div key={i} style={{ borderLeft: `4px solid ${occ.status === 'Concluída' ? '#10B981' : '#f59e0b'}`, paddingLeft: '12px' }}>
+                      <div key={i} style={{ borderLeft: `4px solid ${occ.status === 'Resolvida' ? '#10B981' : '#f59e0b'}`, paddingLeft: '12px' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '4px' }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                             <span style={{ fontSize: '13px', fontWeight: 700, color: '#0f172a' }}>{occ.titulo}</span>
@@ -803,423 +781,257 @@ const PainelMaster = () => {
       </main>
 
       {showCreateModal && (
-        <div className="gu-modal-overlay">
-          <div className="gu-modal">
-            <div className="gu-modal-header">
-              <h2>Cadastrar Funcionário</h2>
-              <button onClick={() => setShowCreateModal(false)} disabled={createSubmitting || createSuccess}><X size={20} /></button>
-            </div>
-            <form onSubmit={handleCreateUser} className="gu-modal-form">
-              <div className="gu-form-group">
-                <label>Nome Completo</label>
-                <input 
-                  type="text" 
-                  value={newFunc.nome} 
-                  maxLength={TAMANHO.nome}
-                  onChange={e => setNewFunc({ ...newFunc, nome: valorDigitado(e, somenteLetras) })} 
-                  onCompositionEnd={e => setNewFunc({ ...newFunc, nome: somenteLetras(e.target.value) })}
-                  required 
-                  className="gu-input"
-                  disabled={createSubmitting || createSuccess}
-                />
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
-                <div className="gu-form-group" style={{ marginBottom: 0 }}>
-                  <label>E-mail (Login)</label>
-                  <input 
-                    type="email" 
-                    value={newFunc.email} 
-                    maxLength={TAMANHO.email}
-                    onChange={e => setNewFunc({ ...newFunc, email: mascaraEmail(e.target.value) })} 
-                    required 
-                    className="gu-input"
-                    disabled={createSubmitting || createSuccess}
-                  />
-                </div>
-                <div className="gu-form-group" style={{ marginBottom: 0 }}>
-                  <label>Senha Inicial</label>
-                  <input 
-                    type="text" 
-                    value={newFunc.senha} 
-                    onChange={e => setNewFunc({ ...newFunc, senha: e.target.value })} 
-                    required 
-                    className="gu-input"
-                    disabled={createSubmitting || createSuccess}
-                  />
-                </div>
-              </div>
-
-              <div className="gu-form-group" style={{ marginBottom: '1.5rem' }}>
-                <label>Especialidades <span style={{ fontWeight: 400, color: '#94a3b8' }}>(recebe as ocorrências dessas categorias)</span></label>
-                <div className="esp-grid">
-                  {categorias.map(c => {
-                    const ativo = newFunc.especialidades.includes(c.slug);
-                    return (
-                      <button
-                        type="button"
-                        key={c.slug}
-                        className={`esp-chip${ativo ? ' ativo' : ''}`}
-                        aria-pressed={ativo}
-                        disabled={createSubmitting || createSuccess}
-                        onClick={() => setNewFunc({ ...newFunc, especialidades: alternarEspecialidade(newFunc.especialidades, c.slug) })}
-                      >
-                        {ativo && <Check size={13} />} {c.icone} {c.nome}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-              <div className="gu-modal-footer">
-                <button 
-                  type="button" 
-                  className="btn-secondary" 
-                  onClick={() => setShowCreateModal(false)}
-                  disabled={createSubmitting || createSuccess}
-                >
-                  Cancelar
-                </button>
-                <button 
-                  type="submit" 
-                  className={`btn-primary${createSuccess ? ' btn-success-state' : ''}`}
-                  disabled={createSubmitting || createSuccess}
-                >
-                  {createSuccess ? (
-                    <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
-                      <Check size={18} /> Criado!
-                    </span>
-                  ) : createSubmitting ? (
-                    <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
-                      <span className="btn-spinner" /> Criando...
-                    </span>
-                  ) : (
-                    'Criar Funcionário'
-                  )}
-                </button>
-              </div>
-            </form>
+        <Janela
+          as="form"
+          onSubmit={handleCreateUser}
+          icone={UserPlus}
+          titulo="Cadastrar funcionário"
+          subtitulo="Ele entra com a senha provisória e troca no primeiro acesso."
+          largura="grande"
+          bloqueada={createSubmitting || createSuccess}
+          onFechar={() => setShowCreateModal(false)}
+          rodape={<>
+            <button type="button" className="janela-btn janela-btn-sec" onClick={() => setShowCreateModal(false)} disabled={createSubmitting || createSuccess}>
+              Cancelar
+            </button>
+            <button type="submit" className={`janela-btn ${createSuccess ? 'janela-btn-sucesso' : 'janela-btn-pri'}`} disabled={createSubmitting || createSuccess}>
+              {createSuccess ? <><Check size={16} /> Criado!</>
+                : createSubmitting ? <><Loader2 size={16} className="janela-girando" /> Criando...</>
+                : <><UserPlus size={16} /> Cadastrar funcionário</>}
+            </button>
+          </>}
+        >
+          <div className="janela-campo">
+            <label htmlFor="func-nome">Nome completo</label>
+            <input
+              id="func-nome"
+              type="text"
+              className="janela-input"
+              value={newFunc.nome}
+              maxLength={TAMANHO.nome}
+              onChange={e => setNewFunc({ ...newFunc, nome: valorDigitado(e, somenteLetras) })}
+              onCompositionEnd={e => setNewFunc({ ...newFunc, nome: somenteLetras(e.target.value) })}
+              required
+              disabled={createSubmitting || createSuccess}
+            />
           </div>
-        </div>
+
+          <div className="janela-grade">
+            <div className="janela-campo">
+              <label htmlFor="func-email">E-mail (login)</label>
+              <input
+                id="func-email"
+                type="email"
+                className="janela-input"
+                value={newFunc.email}
+                maxLength={TAMANHO.email}
+                onChange={e => setNewFunc({ ...newFunc, email: mascaraEmail(e.target.value) })}
+                required
+                disabled={createSubmitting || createSuccess}
+              />
+            </div>
+            <div className="janela-campo">
+              <label htmlFor="func-senha">Senha provisória</label>
+              <input
+                id="func-senha"
+                type="text"
+                className="janela-input"
+                value={newFunc.senha}
+                onChange={e => setNewFunc({ ...newFunc, senha: e.target.value })}
+                required
+                disabled={createSubmitting || createSuccess}
+              />
+            </div>
+          </div>
+
+          <div className="janela-campo">
+            <span className="janela-rotulo">Especialidades <span>(recebe as ocorrências dessas categorias)</span></span>
+            <div className="esp-grid">
+              {categorias.map(c => {
+                const ativo = newFunc.especialidades.includes(c.slug);
+                return (
+                  <button
+                    type="button"
+                    key={c.slug}
+                    className={`esp-chip${ativo ? ' ativo' : ''}`}
+                    aria-pressed={ativo}
+                    disabled={createSubmitting || createSuccess}
+                    onClick={() => setNewFunc({ ...newFunc, especialidades: alternarEspecialidade(newFunc.especialidades, c.slug) })}
+                  >
+                    {ativo && <Check size={13} />} {c.icone} {c.nome}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </Janela>
       )}
 
       {espEdit && (
-        <div className="gu-modal-overlay">
-          <div className="gu-modal">
-            <div className="gu-modal-header">
-              <h2>Especialidades de {espEdit.user.nome}</h2>
-              <button onClick={() => setEspEdit(null)} disabled={espSalvando}><X size={20} /></button>
-            </div>
-            <div className="gu-modal-form">
-              <p style={{ fontSize: '13px', color: '#64748b', margin: '0 0 1rem' }}>
-                O funcionário é notificado das novas ocorrências dessas categorias e as vê no painel dele.
-              </p>
-              <div className="esp-grid">
-                {categorias.map(c => {
-                  const ativo = espEdit.selecionadas.includes(c.slug);
-                  return (
-                    <button
-                      type="button"
-                      key={c.slug}
-                      className={`esp-chip${ativo ? ' ativo' : ''}`}
-                      aria-pressed={ativo}
-                      onClick={() => setEspEdit({ ...espEdit, selecionadas: alternarEspecialidade(espEdit.selecionadas, c.slug) })}
-                    >
-                      {ativo && <Check size={13} />} {c.icone} {c.nome}
-                    </button>
-                  );
-                })}
-              </div>
-              <div className="gu-modal-footer" style={{ marginTop: '1.5rem' }}>
-                <button type="button" className="btn-secondary" onClick={() => setEspEdit(null)} disabled={espSalvando}>Cancelar</button>
-                <button type="button" className="btn-primary" onClick={salvarEspecialidades} disabled={espSalvando}>
-                  {espSalvando ? 'Salvando...' : 'Salvar'}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {showEditModal && userToEdit && (
-        <div className="gu-modal-overlay">
-          <div className="gu-modal">
-            <div className="gu-modal-header">
-              <h2>Editar Cadastro Básico</h2>
-              <button onClick={() => setShowEditModal(false)}><X size={20} /></button>
-            </div>
-            <form onSubmit={handleEditSubmit} className="gu-modal-form">
-              <div className="gu-form-group"><label>Nome Completo</label><input type="text" value={userToEdit.nome || userToEdit.name} maxLength={TAMANHO.nome} onChange={e => setUserToEdit({ ...userToEdit, nome: valorDigitado(e, somenteLetras) })} onCompositionEnd={e => setUserToEdit({ ...userToEdit, nome: somenteLetras(e.target.value) })} required className="gu-input" /></div>
-              <div className="gu-form-group"><label>E-mail / Login</label><input type="email" value={userToEdit.email} maxLength={TAMANHO.email} onChange={e => setUserToEdit({ ...userToEdit, email: mascaraEmail(e.target.value) })} required className="gu-input" /></div>
-              <div className="gu-form-group"><label>CPF</label><input type="text" value={userToEdit.cpf} inputMode="numeric" maxLength={TAMANHO.cpf} onChange={e => setUserToEdit({ ...userToEdit, cpf: mascaraCPF(e.target.value) })} required className="gu-input" /></div>
-              <div className="gu-modal-footer">
-                <button type="button" className="btn-secondary" onClick={() => setShowEditModal(false)}>Cancelar</button>
-                <button type="submit" className="btn-primary">Sobrescrever</button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {showPromoteModal && userToPromote && (
-        <div className="gu-modal-overlay">
-          <div className="gu-modal" style={{ maxWidth: '400px' }}>
-            <div className="gu-modal-header" style={{ borderBottom: 'none', paddingBottom: 0 }}>
-              <h2 style={{ fontSize: '18px', color: '#0f172a' }}>Confirmar Promoção</h2>
-              <button onClick={() => { setShowPromoteModal(false); setUserToPromote(null); }}><X size={20} /></button>
-            </div>
-            <div style={{ padding: '20px' }}>
-              <p style={{ fontSize: '14px', color: '#475569', margin: '0 0 20px', lineHeight: '1.5' }}>
-                Tem certeza que deseja promover este morador a <strong>Síndico</strong>?
-              </p>
-
-              <div style={{ background: '#f8fafc', padding: '16px', borderRadius: '8px', marginBottom: '24px' }}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '13px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span style={{ color: '#64748b' }}>Nome:</span>
-                    <span style={{ fontWeight: 600, color: '#0f172a' }}>{userToPromote.nome || userToPromote.name}</span>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span style={{ color: '#64748b' }}>CPF:</span>
-                    <span style={{ fontWeight: 600, color: '#0f172a' }}>{userToPromote.cpf || 'Não informado'}</span>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span style={{ color: '#64748b' }}>Bloco:</span>
-                    <span style={{ fontWeight: 600, color: '#0f172a' }}>{userToPromote.bloco || '-'}</span>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span style={{ color: '#64748b' }}>Ap:</span>
-                    <span style={{ fontWeight: 600, color: '#0f172a' }}>{userToPromote.apartamento || '-'}</span>
-                  </div>
-                </div>
-              </div>
-
-              <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+        <Janela
+          icone={Wrench}
+          titulo="Especialidades"
+          subtitulo={espEdit.user.nome}
+          bloqueada={espSalvando}
+          onFechar={() => setEspEdit(null)}
+          rodape={<>
+            <button type="button" className="janela-btn janela-btn-sec" onClick={() => setEspEdit(null)} disabled={espSalvando}>Cancelar</button>
+            <button type="button" className="janela-btn janela-btn-pri" onClick={salvarEspecialidades} disabled={espSalvando}>
+              {espSalvando ? <><Loader2 size={16} className="janela-girando" /> Salvando...</> : 'Salvar'}
+            </button>
+          </>}
+        >
+          <p className="janela-texto">O funcionário é notificado das novas ocorrências dessas categorias e as vê no painel dele.</p>
+          <div className="esp-grid">
+            {categorias.map(c => {
+              const ativo = espEdit.selecionadas.includes(c.slug);
+              return (
                 <button
-                  onClick={() => { setShowPromoteModal(false); setUserToPromote(null); }}
-                  style={{ padding: '8px 16px', background: 'transparent', border: '1px solid #e2e8f0', borderRadius: '6px', color: '#64748b', fontWeight: 500, fontFamily: 'inherit', fontSize: '14px', cursor: 'pointer' }}
+                  type="button"
+                  key={c.slug}
+                  className={`esp-chip${ativo ? ' ativo' : ''}`}
+                  aria-pressed={ativo}
+                  disabled={espSalvando}
+                  onClick={() => setEspEdit({ ...espEdit, selecionadas: alternarEspecialidade(espEdit.selecionadas, c.slug) })}
                 >
-                  Cancelar
+                  {ativo && <Check size={13} />} {c.icone} {c.nome}
                 </button>
-                <button
-                  onClick={confirmPromotion}
-                  style={{ padding: '8px 16px', background: 'var(--role-primary-color)', border: 'none', borderRadius: '6px', color: 'white', fontWeight: 500, fontFamily: 'inherit', fontSize: '14px', cursor: 'pointer' }}
-                >
-                  Confirmar Promoção
-                </button>
+              );
+            })}
+          </div>
+        </Janela>
+      )}
+
+      {papelEdit && (() => {
+        const promover = papelEdit.acao === 'promover';
+        const alvo = papelEdit.user;
+        const cor = roleColor[alvo.role] || roleColor.MORADOR;
+        return (
+          <Janela
+            icone={promover ? Shield : ShieldOff}
+            tom={promover ? 'padrao' : 'perigo'}
+            titulo={promover ? 'Nomear síndico' : 'Revogar síndico'}
+            subtitulo={promover
+              ? 'O morador passa a ter acesso à gestão do condomínio.'
+              : 'Ele volta a ser morador e perde o acesso à gestão.'}
+            largura="pequena"
+            bloqueada={salvandoPapel}
+            onFechar={() => setPapelEdit(null)}
+            rodape={<>
+              <button type="button" className="janela-btn janela-btn-sec" onClick={() => setPapelEdit(null)} disabled={salvandoPapel}>Cancelar</button>
+              <button type="button" className={`janela-btn ${promover ? 'janela-btn-pri' : 'janela-btn-perigo'}`} onClick={confirmarPapel} disabled={salvandoPapel}>
+                {salvandoPapel ? <><Loader2 size={16} className="janela-girando" /> Salvando...</>
+                  : promover ? <><Shield size={16} /> Nomear síndico</> : <><ShieldOff size={16} /> Revogar síndico</>}
+              </button>
+            </>}
+          >
+            <div className="janela-pessoa">
+              <span className="janela-avatar" style={{ background: `${cor}18`, color: cor }}>{(alvo.nome || 'M').charAt(0)}</span>
+              <div>
+                <p className="janela-pessoa-nome">{alvo.nome}</p>
+                <p className="janela-pessoa-sub">Bloco {alvo.bloco || '—'} · Apto {alvo.apartamento || '—'}{alvo.cpf ? ` · CPF ${alvo.cpf}` : ''}</p>
               </div>
             </div>
-          </div>
-        </div>
-      )}
+            <p className="janela-texto">
+              {promover
+                ? <>O síndico acompanha ocorrências e reclamações, encaminha tarefas aos funcionários e publica avisos. <strong>Só pode haver um síndico por vez.</strong></>
+                : <>O que ele registrou como síndico (encaminhamentos, pronunciamentos, respostas) continua no histórico.</>}
+            </p>
+          </Janela>
+        );
+      })()}
 
       {showDeleteModal && userToDelete && (
-        <div className="gu-modal-overlay">
-          <div className="gu-modal" style={{ maxWidth: '420px' }}>
-            <div className="gu-modal-header" style={{ borderBottom: 'none', paddingBottom: 0 }}>
-              <h2 style={{ fontSize: '18px', color: '#0f172a', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 32, height: 32, borderRadius: '50%', background: '#fee2e2' }}>
-                  <AlertTriangle size={16} color="#dc2626" />
-                </span>
-                Remover Funcionário
-              </h2>
-              <button onClick={() => { setShowDeleteModal(false); setUserToDelete(null); }}><X size={20} /></button>
-            </div>
-            <div style={{ padding: '20px' }}>
-              <p style={{ fontSize: '14px', color: '#475569', margin: '0 0 20px', lineHeight: '1.6' }}>
-                Tem certeza que deseja remover <strong style={{ color: '#0f172a' }}>{userToDelete.nome}</strong> do sistema? Esta ação não pode ser desfeita.
-              </p>
-
-              <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', padding: '14px 16px', borderRadius: '8px', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <div style={{ width: 36, height: 36, borderRadius: '50%', background: '#16a34a18', color: '#16a34a', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '14px', flexShrink: 0 }}>
-                  {(userToDelete.nome || 'F').charAt(0)}
-                </div>
-                <div>
-                  <p style={{ margin: 0, fontSize: '13px', fontWeight: 600, color: '#0f172a' }}>{userToDelete.nome}</p>
-                  <p style={{ margin: 0, fontSize: '12px', color: '#94a3b8' }}>{(userToDelete.especialidades || []).map(c => rotulo(c)).join(' · ') || 'Funcionário'}</p>
-                </div>
-              </div>
-
-              <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
-                <button
-                  onClick={() => { setShowDeleteModal(false); setUserToDelete(null); }}
-                  style={{ padding: '8px 16px', background: 'transparent', border: '1px solid #e2e8f0', borderRadius: '6px', color: '#64748b', fontWeight: 500, fontFamily: 'inherit', fontSize: '14px', cursor: 'pointer' }}
-                >
-                  Cancelar
-                </button>
-                <button
-                  onClick={confirmDeleteFuncionario}
-                  style={{ padding: '8px 16px', background: 'var(--role-primary-color)', border: 'none', borderRadius: '6px', color: 'white', fontWeight: 500, fontFamily: 'inherit', fontSize: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
-                >
-                  <Trash2 size={14} /> Confirmar Remoção
-                </button>
-              </div>
+        <Janela
+          icone={Trash2}
+          tom="perigo"
+          titulo="Remover funcionário"
+          subtitulo="Esta ação não pode ser desfeita."
+          largura="pequena"
+          bloqueada={removendo}
+          onFechar={() => { setShowDeleteModal(false); setUserToDelete(null); }}
+          rodape={<>
+            <button type="button" className="janela-btn janela-btn-sec" onClick={() => { setShowDeleteModal(false); setUserToDelete(null); }} disabled={removendo}>Cancelar</button>
+            <button type="button" className="janela-btn janela-btn-perigo" onClick={confirmDeleteFuncionario} disabled={removendo}>
+              {removendo ? <><Loader2 size={16} className="janela-girando" /> Removendo...</> : <><Trash2 size={16} /> Remover</>}
+            </button>
+          </>}
+        >
+          <div className="janela-pessoa">
+            <span className="janela-avatar" style={{ background: `${roleColor.FUNCIONARIO}18`, color: roleColor.FUNCIONARIO }}>{(userToDelete.nome || 'F').charAt(0)}</span>
+            <div>
+              <p className="janela-pessoa-nome">{userToDelete.nome}</p>
+              <p className="janela-pessoa-sub">{(userToDelete.especialidades || []).map(c => rotulo(c)).join(' · ') || 'Funcionário'}</p>
             </div>
           </div>
-        </div>
+          <p className="janela-texto">O login e o cadastro dele são apagados. As ocorrências que ele atendeu continuam no sistema.</p>
+        </Janela>
       )}
 
       {showDetailsModal && selectedUser && (() => {
         const userRole = selectedUser.role || 'MORADOR';
         const userRoleColor = roleColor[userRole] || '#475569';
-        const userRoleLabel = roleLabel[userRole] || userRole;
         const userStatusColor = statusColor[selectedUser.status] || { text: '#475569', bg: '#f1f5f9' };
+        const ehFuncionario = userRole === 'FUNCIONARIO';
+        const fechar = () => { setShowDetailsModal(false); setSelectedUser(null); };
 
         return (
-          <div className="gu-modal-overlay">
-            <div className="gu-modal" style={{ maxWidth: '500px' }}>
-              <div className="gu-modal-header">
-                <h2>Detalhes do {userRole === 'FUNCIONARIO' ? 'Funcionário' : userRole === 'SINDICO' ? 'Síndico' : 'Morador'}</h2>
-                <button
-                  onClick={() => { setShowDetailsModal(false); setSelectedUser(null); }}
-                  onMouseEnter={e => e.currentTarget.style.color = '#dc2626'}
-                  onMouseLeave={e => e.currentTarget.style.color = 'inherit'}
-                  style={{ transition: 'color 0.2s' }}
-                >
-                  <X size={20} />
-                </button>
-              </div>
-              <div style={{ padding: '24px' }}>
-                {/* Avatar e Nome */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px', paddingBottom: '24px', borderBottom: '1px solid #e2e8f0' }}>
-                  <div style={{ width: 60, height: 60, borderRadius: '50%', background: `${userRoleColor}18`, color: userRoleColor, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '24px', flexShrink: 0 }}>
-                    {(selectedUser.nome || selectedUser.name || 'U').charAt(0)}
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <h3 style={{ fontSize: '18px', fontWeight: 700, color: '#0f172a', margin: '0 0 4px' }}>
-                      {selectedUser.nome || selectedUser.name}
-                    </h3>
-                    <p style={{ fontSize: '12px', color: '#94a3b8', margin: '0 0 8px' }}>
-                      {selectedUser.email}
-                    </p>
-                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                      <span style={{ fontSize: '11px', fontWeight: 700, color: userRoleColor, background: `${userRoleColor}15`, border: `1px solid ${userRoleColor}40`, borderRadius: '6px', padding: '4px 10px', display: 'inline-block' }}>
-                        {userRoleLabel}
-                      </span>
-                      <span style={{ fontSize: '11px', fontWeight: 700, color: userStatusColor.text, background: userStatusColor.bg, padding: '3px 10px', borderRadius: '99px', display: 'inline-block' }}>
-                        {selectedUser.status}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Informações Pessoais */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '20px' }}>
-                  <div>
-                    <p style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: '#94a3b8', letterSpacing: '0.05em', margin: '0 0 6px' }}>CPF</p>
-                    <p style={{ fontSize: '13px', color: '#0f172a', fontWeight: 500, margin: 0 }}>
-                      {selectedUser.cpf || 'Não informado'}
-                    </p>
-                  </div>
-                  {userRole === 'FUNCIONARIO' && (
-                    <div>
-                      <p style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: '#94a3b8', letterSpacing: '0.05em', margin: '0 0 6px' }}>Especialidades</p>
-                      <p style={{ fontSize: '13px', color: '#0f172a', fontWeight: 500, margin: 0 }}>
-                        {(selectedUser.especialidades || []).map(c => rotulo(c)).join(' · ') || 'Nenhuma'}
-                      </p>
-                    </div>
-                  )}
-                  {userRole !== 'FUNCIONARIO' && (
-                    <div>
-                      <p style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: '#94a3b8', letterSpacing: '0.05em', margin: '0 0 6px' }}>Telefone</p>
-                      <p style={{ fontSize: '13px', color: '#0f172a', fontWeight: 500, margin: 0 }}>
-                        {selectedUser.telefone || 'Não informado'}
-                      </p>
-                    </div>
-                  )}
-                </div>
-
-                {/* Bloco e Apartamento (apenas para moradores e síndicos) */}
-                {userRole !== 'FUNCIONARIO' && (
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '20px', paddingBottom: '20px', borderBottom: '1px solid #e2e8f0' }}>
-                    <div>
-                      <p style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: '#94a3b8', letterSpacing: '0.05em', margin: '0 0 6px' }}>Bloco</p>
-                      <p style={{ fontSize: '13px', color: '#0f172a', fontWeight: 500, margin: 0 }}>
-                        {selectedUser.bloco || 'Não informado'}
-                      </p>
-                    </div>
-                    <div>
-                      <p style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: '#94a3b8', letterSpacing: '0.05em', margin: '0 0 6px' }}>Apartamento</p>
-                      <p style={{ fontSize: '13px', color: '#0f172a', fontWeight: 500, margin: 0 }}>
-                        {selectedUser.apartamento || 'Não informado'}
-                      </p>
-                    </div>
-                  </div>
-                )}
-
-                {/* Informações adicionais */}
-                <div>
-                  <p style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: '#94a3b8', letterSpacing: '0.05em', margin: '0 0 12px' }}>Informações Adicionais</p>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                    <div style={{ background: '#f8fafc', padding: '12px', borderRadius: '8px' }}>
-                      <p style={{ fontSize: '10px', color: '#64748b', margin: '0 0 4px' }}>Data de Cadastro</p>
-                      <p style={{ fontSize: '12px', fontWeight: 600, color: '#0f172a', margin: 0 }}>
-                        {selectedUser.created_at ? new Date(selectedUser.created_at).toLocaleDateString('pt-BR') : 'Não disponível'}
-                      </p>
-                    </div>
-                    <div style={{ background: '#f8fafc', padding: '12px', borderRadius: '8px' }}>
-                      <p style={{ fontSize: '10px', color: '#64748b', margin: '0 0 4px' }}>Condomínio ID</p>
-                      <p style={{ fontSize: '12px', fontWeight: 600, color: '#0f172a', margin: 0 }}>
-                        {selectedUser.condominio_id || 'Não disponível'}
-                      </p>
-                    </div>
-                  </div>
+          <Janela
+            icone={Eye}
+            titulo={`Detalhes do ${ehFuncionario ? 'funcionário' : userRole === 'SINDICO' ? 'síndico' : 'morador'}`}
+            onFechar={fechar}
+            fecharAoClicarFora
+            rodape={<button type="button" className="janela-btn janela-btn-sec" onClick={fechar}>Fechar</button>}
+          >
+            <div className="janela-pessoa">
+              <span className="janela-avatar" style={{ background: `${userRoleColor}18`, color: userRoleColor }}>
+                {(selectedUser.nome || selectedUser.name || 'U').charAt(0)}
+              </span>
+              <div style={{ minWidth: 0 }}>
+                <p className="janela-pessoa-nome">{selectedUser.nome || selectedUser.name}</p>
+                <p className="janela-pessoa-sub">{selectedUser.email}</p>
+                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 6 }}>
+                  <span className="janela-etiqueta" style={{ color: userRoleColor, background: `${userRoleColor}15` }}>{roleLabel[userRole] || userRole}</span>
+                  <span className="janela-etiqueta" style={{ color: userStatusColor.text, background: userStatusColor.bg }}>{selectedUser.status}</span>
                 </div>
               </div>
             </div>
-          </div>
+
+            <dl className="janela-ficha">
+              {ehFuncionario ? (
+                <div style={{ gridColumn: '1 / -1' }}>
+                  <dt>Especialidades</dt>
+                  <dd>{(selectedUser.especialidades || []).map(c => rotulo(c)).join(' · ') || 'Nenhuma'}</dd>
+                </div>
+              ) : (
+                <>
+                  <div><dt>CPF</dt><dd>{selectedUser.cpf || 'Não informado'}</dd></div>
+                  <div><dt>Telefone</dt><dd>{selectedUser.telefone || 'Não informado'}</dd></div>
+                  <div><dt>Bloco</dt><dd>{selectedUser.bloco || 'Não informado'}</dd></div>
+                  <div><dt>Apartamento</dt><dd>{selectedUser.apartamento || 'Não informado'}</dd></div>
+                </>
+              )}
+              <div>
+                <dt>Cadastrado em</dt>
+                <dd>{selectedUser.created_at ? new Date(selectedUser.created_at).toLocaleDateString('pt-BR') : 'Não disponível'}</dd>
+              </div>
+            </dl>
+          </Janela>
         );
       })()}
 
-      {/* Modal de Feedback Customizado */}
       {feedbackModal.show && (
-        <div className="gu-modal-overlay" style={{ zIndex: 9999 }}>
-          <style>
-            {`
-              .btn-feedback-success {
-                background-color: var(--role-primary-color) !important;
-                transition: all 0.2s;
-              }
-              .btn-feedback-success:hover {
-                background-color: #9333ea !important;
-              }
-              .btn-feedback-error {
-                background-color: #9333ea !important;
-                transition: all 0.2s;
-              }
-              .btn-feedback-error:hover {
-                background-color: #7e22ce !important;
-              }
-            `}
-          </style>
-          <div className="gu-modal" style={{ maxWidth: '400px', textAlign: 'center', padding: '30px 20px' }}>
-            <div style={{ 
-              width: '60px', 
-              height: '60px', 
-              borderRadius: '50%', 
-              background: feedbackModal.type === 'success' ? '#d1fae5' : '#f3e8ff',
-              display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: 'center',
-              margin: '0 auto 16px',
-              color: feedbackModal.type === 'success' ? '#10b981' : '#9333ea'
-            }}>
-              {feedbackModal.type === 'success' ? <Check size={32} /> : <X size={32} />}
-            </div>
-            <h2 style={{ fontSize: '1.25rem', fontWeight: 600, color: '#0f172a', marginBottom: '8px' }}>
-              {feedbackModal.title}
-            </h2>
-            <p style={{ color: '#64748b', fontSize: '0.95rem', marginBottom: '24px', lineHeight: 1.5 }}>
-              {feedbackModal.message}
-            </p>
-            <button 
-              className={`btn-primary ${feedbackModal.type === 'success' ? 'btn-feedback-success' : 'btn-feedback-error'}`}
-              style={{ width: '100%', border: 'none' }}
-              onClick={() => setFeedbackModal({ show: false, title: '', message: '', type: 'success' })}
-            >
-              Entendido
-            </button>
-          </div>
-        </div>
+        <Janela
+          icone={feedbackModal.type === 'success' ? Check : AlertCircle}
+          tom={feedbackModal.type === 'success' ? 'sucesso' : 'erro'}
+          titulo={feedbackModal.title}
+          largura="pequena"
+          onFechar={fecharAviso}
+          fecharAoClicarFora
+          rodape={<button type="button" className="janela-btn janela-btn-pri janela-btn-largo" onClick={fecharAviso}>Entendido</button>}
+        >
+          <p className="janela-texto">{feedbackModal.message}</p>
+        </Janela>
       )}
 
     </div>

@@ -1,11 +1,12 @@
 import { supabase } from '../backend/supabaseClient';
+import { reduzirImagem } from '../utils/imagem';
 
 // Colunas usadas nas telas de ocorrência (inclui andamento e conclusão)
 export const OCORRENCIA_CAMPOS =
   'id, titulo, descricao, categoria, status, privacidade, created_at, updated_at, anexos, ' +
   'atribuido_a, morador_id, pronunciamento, pronunciamento_em, analise_em, analise_por, analise_motivo, ' +
-  'andamento_descricao, andamento_em, andamento_por, ' +
-  'conclusao_descricao, conclusao_evidencias, concluida_em, concluida_por';
+  'andamento_descricao, andamento_em, andamento_por, andamento_por_nome, ' +
+  'conclusao_descricao, conclusao_evidencias, concluida_em, concluida_por, concluida_por_nome';
 
 // Mínimo de caracteres exigido pelo banco para descrever andamento/conclusão
 export const MIN_DESCRICAO = 5;
@@ -37,11 +38,12 @@ export const assinarEvidencias = async (caminhos) => {
   return Object.fromEntries((data || []).filter(d => d.signedUrl).map(d => [d.path, d.signedUrl]));
 };
 
-// Envia fotos para <condominio>/<ocorrencia>/[subpasta/]<arquivo> e devolve os caminhos
+// Envia fotos (reduzidas) para <condominio>/<ocorrencia>/[subpasta/]<arquivo> e devolve os caminhos
 // (subpasta 'conversa' = fotos da conversa das ocorrências pessoais)
-export const enviarEvidencias = async (condominioId, ocorrenciaId, arquivos, subpasta = '') => {
+export const enviarEvidencias = async (condominioId, ocorrenciaId, originais, subpasta = '') => {
   const caminhos = [];
-  for (const arquivo of arquivos) {
+  for (const original of originais) {
+    const arquivo = await reduzirImagem(original);
     const ext = arquivo.name.split('.').pop()?.toLowerCase() || 'jpg';
     const pasta = subpasta ? `${condominioId}/${ocorrenciaId}/${subpasta}` : `${condominioId}/${ocorrenciaId}`;
     const caminho = `${pasta}/${crypto.randomUUID()}.${ext}`;
