@@ -7,10 +7,67 @@ import Sidebar from '../components/Sidebar';
 import NotificationMenu from '../components/NotificationMenu';
 import ContextBanner from '../components/ContextBanner';
 import Janela from '../components/Janela';
+import { rotuloBloco, VAZIO_UNIDADE, partesDoApartamento } from '../utils/unidades';
+import SeletorUnidade from '../components/SeletorUnidade';
+import { avisarMudancaOcorrencias as atualizarContadores } from '../hooks/useContadoresGestao';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../backend/supabaseClient';
 import { useCategorias } from '../hooks/useCategorias';
 import './PainelMaster.css';
+
+// Tabelas de pessoas (síndico atual e moradores): colunas de largura fixa, títulos e
+// conteúdos centralizados nas colunas de dados e etiquetas/botões com a mesma largura
+// mínima — o tamanho não muda conforme o valor (ATIVO, PENDENTE, BLOQUEADO...).
+const COLUNAS_PESSOAS = [
+  { titulo: 'Morador', largura: '30%' },
+  { titulo: 'Documentos / Und.', largura: '22%' },
+  { titulo: 'Perfil', largura: '14%' },
+  { titulo: 'Status', largura: '14%' },
+  { titulo: 'Ações', largura: '20%' }, // botões empilhados (Liberar sobre Recusar)
+];
+
+const estiloTd = (centro) => ({
+  padding: centro ? '14px 8px' : '14px 16px', borderBottom: '1px solid #f1f5f9', verticalAlign: 'middle', textAlign: centro ? 'center' : 'left',
+});
+
+// Etiquetas e botões de perfil, status e ações: mesma largura mínima ("↑ Desbloquear" é o maior)
+// e mesma letra da etiqueta de status (fonte do site, maiúsculas, 11 px, negrito) — botões e
+// listas usariam a fonte padrão do navegador.
+const ETIQUETA = {
+  display: 'inline-block', minWidth: 100, boxSizing: 'border-box', textAlign: 'center', textAlignLast: 'center',
+  fontFamily: 'inherit', textTransform: 'uppercase',
+};
+
+// Lista de perfil (Morador/Síndico) em formato de bolha: seta desenhada na cor do perfil,
+// com folga da borda (a seta padrão do navegador fica colada e não aceita espaçamento)
+const seletorPerfil = (cor) => {
+  const seta = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'><path d='M3 4.5l3 3 3-3' fill='none' stroke='${cor}' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/></svg>`;
+  return {
+    appearance: 'none',
+    WebkitAppearance: 'none',
+    backgroundColor: `color-mix(in srgb, ${cor} 14%, #fff)`,
+    backgroundImage: `url("data:image/svg+xml,${encodeURIComponent(seta)}")`,
+    backgroundRepeat: 'no-repeat',
+    backgroundPosition: 'right 10px center',
+    backgroundSize: '10px',
+    padding: '3px 26px 3px 12px',
+  };
+};
+
+const CabecalhoPessoas = () => (
+  <>
+    <colgroup>
+      {COLUNAS_PESSOAS.map(c => <col key={c.titulo} style={{ width: c.largura }} />)}
+    </colgroup>
+    <thead>
+      <tr style={{ background: '#f8fafc' }}>
+        {COLUNAS_PESSOAS.map((c, i) => (
+          <th key={c.titulo} style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: '#94a3b8', letterSpacing: '0.06em', textAlign: i === 0 ? 'left' : 'center', padding: i === 0 ? '12px 16px' : '12px 8px', borderBottom: '1px solid #e2e8f0' }}>{c.titulo}</th>
+        ))}
+      </tr>
+    </thead>
+  </>
+);
 
 // Cada sub-aba da Gestão de Moradores mostra um status
 const STATUS_DA_ABA = { ativos: 'ATIVO', pendentes: 'PENDENTE', bloqueados: 'BLOQUEADO' };
@@ -39,6 +96,30 @@ const PainelMaster = () => {
   const [salvandoPapel, setSalvandoPapel] = useState(false);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
+
+  // Filtro Bloco → Andar → Apartamento da Gestão de Moradores (vazio = todos)
+  const [blocosCond, setBlocosCond] = useState([]);
+  const [filtroUnidade, setFiltroUnidade] = useState(VAZIO_UNIDADE);
+
+  useEffect(() => {
+    if (!currentUser?.condominio_id || currentUser.role !== 'MASTER') return undefined;
+    let ativo = true;
+    supabase.rpc('blocos_do_condominio', { p_condominio_id: currentUser.condominio_id }).then(({ data, error }) => {
+      if (error) console.error('Erro ao carregar blocos:', error);
+      if (ativo) setBlocosCond(data || []);
+    });
+    return () => { ativo = false; };
+  }, [currentUser?.condominio_id, currentUser?.role]);
+
+  const filtrando = !!filtroUnidade.bloco;
+  const passaFiltro = (u) => {
+    if (!filtroUnidade.bloco) return true;
+    if ((u.bloco || '').trim().toLowerCase() !== filtroUnidade.bloco.toLowerCase()) return false;
+    const partes = partesDoApartamento(u.apartamento);
+    if (filtroUnidade.andar && partes?.andar !== filtroUnidade.andar) return false;
+    if (filtroUnidade.apto && partes?.apto !== filtroUnidade.apto) return false;
+    return true;
+  };
 
   const [moradoresSubTab, setMoradoresSubTab] = useState(() => {
     const sub = new URLSearchParams(window.location.search).get('sub');
@@ -122,6 +203,7 @@ const PainelMaster = () => {
       if (error) throw error;
 
       setUsers(users.map(u => u.id === user.id ? { ...u, status: 'ATIVO' } : u));
+      atualizarContadores();
     } catch (e) {
       avisar('Não foi possível aprovar', e.message);
     }
@@ -140,6 +222,7 @@ const PainelMaster = () => {
       if (error) throw error;
 
       setUsers(users.map(u => u.id === user.id ? { ...u, status: newStatus } : u));
+      atualizarContadores();
     } catch (e) {
       avisar('Não foi possível atualizar o status', e.message);
     }
@@ -318,6 +401,7 @@ const PainelMaster = () => {
           {activeTab === 'usuarios' && (() => {
             const list = users.filter(u => u.role !== 'FUNCIONARIO');
             const hasActiveSindico = list.some(u => u.role === 'SINDICO');
+            const moradoresDaAba = list.filter(u => u.role !== 'SINDICO' && u.status === STATUS_DA_ABA[moradoresSubTab] && passaFiltro(u));
             const lActive = list.filter(u => u.status === 'ATIVO').length;
             const lPending = list.filter(u => u.status === 'PENDENTE').length;
             const lBlocked = list.filter(u => u.status === 'BLOQUEADO').length;
@@ -361,6 +445,29 @@ const PainelMaster = () => {
                   ))}
                 </div>
 
+                {/* Filtro Bloco → Andar → Apartamento (cada um libera o próximo, igual ao cadastro) */}
+                {blocosCond.length > 0 && (
+                  <div className="pm-filtro">
+                    <span className="pm-filtro-titulo">Filtrar por apartamento</span>
+                    <div className="pm-filtro-campos">
+                      <SeletorUnidade
+                        blocos={blocosCond}
+                        valor={filtroUnidade}
+                        onChange={setFiltroUnidade}
+                        idBase="filtro-morador"
+                        obrigatorio={false}
+                        classes={{ grupo: 'pm-filtro-grupo', rotulo: 'pm-filtro-rotulo', select: 'pm-filtro-select' }}
+                        vazios={{ bloco: 'Todos os blocos', andar: 'Todos os andares', apto: 'Todos' }}
+                      />
+                    </div>
+                    {filtrando && (
+                      <button type="button" className="pm-filtro-limpar" onClick={() => setFiltroUnidade(VAZIO_UNIDADE)}>
+                        Limpar filtro
+                      </button>
+                    )}
+                  </div>
+                )}
+
                 {/* ── Seção Síndico Atual (só aparece na aba Ativos e quando existe síndico) ── */}
                 {moradoresSubTab === 'ativos' && (() => {
                   const sindico = list.find(u => u.role === 'SINDICO');
@@ -372,23 +479,10 @@ const PainelMaster = () => {
                       <p style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: '#94a3b8', letterSpacing: '0.08em', margin: '0 0 8px' }}>Síndico Atual</p>
                       <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '12px', overflow: 'hidden', marginBottom: '20px' }}>
                         <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
-                          <colgroup>
-                            <col style={{ width: '28%' }} />
-                            <col style={{ width: '22%' }} />
-                            <col style={{ width: '16%' }} />
-                            <col style={{ width: '14%' }} />
-                            <col style={{ width: '20%' }} />
-                          </colgroup>
-                          <thead>
-                            <tr style={{ background: '#f8fafc' }}>
-                              {['Morador', 'Documentos / Und.', 'Perfil', 'Status', 'Ações'].map(h => (
-                                <th key={h} style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: '#94a3b8', letterSpacing: '0.06em', textAlign: 'left', padding: '12px 16px', borderBottom: '1px solid #e2e8f0' }}>{h}</th>
-                              ))}
-                            </tr>
-                          </thead>
+                          <CabecalhoPessoas />
                           <tbody>
                             <tr style={{ background: '#f5f3ff' }}>
-                              <td style={{ padding: '14px 16px', borderBottom: '1px solid #f1f5f9' }}>
+                              <td style={estiloTd(false)}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                                   <div
                                     onClick={() => handleViewDetails(sindico)}
@@ -404,26 +498,26 @@ const PainelMaster = () => {
                                   </div>
                                 </div>
                               </td>
-                              <td style={{ padding: '14px 16px', borderBottom: '1px solid #f1f5f9', fontSize: '12px', color: '#64748b' }}>
+                              <td style={{ ...estiloTd(true), fontSize: '12px', color: '#64748b' }}>
                                 {sindico.cpf}<br />
-                                {sindico.bloco && <span style={{ fontSize: '10px', background: '#f1f5f9', padding: '2px 4px', borderRadius: '4px', display: 'inline-block', marginTop: '4px' }}>Bl. {sindico.bloco} Apt. {sindico.apartamento}</span>}
+                                {sindico.bloco && <span style={{ fontSize: '10px', background: '#f1f5f9', padding: '2px 8px', borderRadius: '4px', display: 'inline-block', marginTop: '4px' }}>{rotuloBloco(sindico.bloco)} · Apto {sindico.apartamento}</span>}
                               </td>
-                              <td style={{ padding: '14px 16px', borderBottom: '1px solid #f1f5f9' }}>
+                              <td style={estiloTd(true)}>
                                 <select
                                   value="SINDICO"
                                   onChange={(e) => handleRoleChange(sindico.id, e.target.value)}
-                                  style={{ fontSize: '11px', fontWeight: 700, color: rc, background: `${rc}15`, border: `1px solid ${rc}40`, borderRadius: '6px', padding: '4px 8px', cursor: 'pointer' }}
+                                  style={{ ...ETIQUETA, ...seletorPerfil(rc), fontSize: '11px', fontWeight: 700, color: rc, border: 'none', borderRadius: '99px', cursor: 'pointer' }}
                                 >
                                   <option value="MORADOR">Morador</option>
                                   <option value="SINDICO">Síndico</option>
                                 </select>
                               </td>
-                              <td style={{ padding: '14px 16px', borderBottom: '1px solid #f1f5f9' }}>
-                                <span style={{ fontSize: '11px', fontWeight: 700, color: sc.text, background: sc.bg, padding: '3px 10px', borderRadius: '99px' }}>{sindico.status}</span>
+                              <td style={estiloTd(true)}>
+                                <span style={{ ...ETIQUETA, fontSize: '11px', fontWeight: 700, color: sc.text, background: sc.bg, padding: '3px 10px', borderRadius: '99px' }}>{sindico.status}</span>
                               </td>
-                              <td style={{ padding: '14px 16px', borderBottom: '1px solid #f1f5f9' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                  <button disabled style={{ fontSize: '11px', fontWeight: 700, color: '#94a3b8', background: '#f1f5f9', border: '1px solid #e2e8f0', borderRadius: '6px', padding: '4px 10px', cursor: 'not-allowed', opacity: 0.6 }}>
+                              <td style={estiloTd(true)}>
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                                  <button disabled style={{ ...ETIQUETA, fontSize: '11px', fontWeight: 700, color: '#94a3b8', background: '#f1f5f9', border: 'none', borderRadius: '99px', padding: '3px 10px', cursor: 'not-allowed', opacity: 0.6 }}>
                                     ✕ Bloquear
                                   </button>
                                   <div style={{ position: 'relative', display: 'inline-flex' }}
@@ -469,22 +563,9 @@ const PainelMaster = () => {
                   )}
                   <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '12px', overflow: 'hidden' }}>
                     <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
-                      <colgroup>
-                        <col style={{ width: '28%' }} />
-                        <col style={{ width: '22%' }} />
-                        <col style={{ width: '16%' }} />
-                        <col style={{ width: '14%' }} />
-                        <col style={{ width: '20%' }} />
-                      </colgroup>
-                      <thead>
-                        <tr style={{ background: '#f8fafc' }}>
-                          {['Morador', 'Documentos / Und.', 'Perfil', 'Status', 'Ações'].map(h => (
-                            <th key={h} style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: '#94a3b8', letterSpacing: '0.06em', textAlign: 'left', padding: '12px 16px', borderBottom: '1px solid #e2e8f0' }}>{h}</th>
-                          ))}
-                        </tr>
-                      </thead>
+                      <CabecalhoPessoas />
                       <tbody>
-                        {list.filter(u => u.role !== 'SINDICO' && u.status === STATUS_DA_ABA[moradoresSubTab]).map((user, i) => {
+                        {moradoresDaAba.map((user, i) => {
                           const rc = roleColor[user.role] || '#475569';
                           const rl = roleLabel[user.role] || user.role;
                           const sc = statusColor[user.status] || { text: '#475569', bg: '#f1f5f9' };
@@ -496,7 +577,7 @@ const PainelMaster = () => {
                               onMouseEnter={e => { if (!isBlocked) e.currentTarget.style.background = '#fafafa'; }}
                               onMouseLeave={e => { e.currentTarget.style.background = isBlocked ? '#fffafa' : 'white'; }}
                             >
-                              <td style={{ padding: '14px 16px', borderBottom: '1px solid #f1f5f9' }}>
+                              <td style={estiloTd(false)}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                                   <div
                                     onClick={() => handleViewDetails(user)}
@@ -512,34 +593,37 @@ const PainelMaster = () => {
                                   </div>
                                 </div>
                               </td>
-                              <td style={{ padding: '14px 16px', borderBottom: '1px solid #f1f5f9', fontSize: '12px', color: '#64748b' }}>
+                              <td style={{ ...estiloTd(true), fontSize: '12px', color: '#64748b' }}>
                                 {user.cpf}<br />
-                                {user.bloco && <span style={{ fontSize: '10px', background: '#f1f5f9', padding: '2px 4px', borderRadius: '4px', display: 'inline-block', marginTop: '4px' }}>Bl. {user.bloco} Apt. {user.apartamento}</span>}
+                                {user.bloco && <span style={{ fontSize: '10px', background: '#f1f5f9', padding: '2px 8px', borderRadius: '4px', display: 'inline-block', marginTop: '4px' }}>{rotuloBloco(user.bloco)} · Apto {user.apartamento}</span>}
                               </td>
-                              <td style={{ padding: '14px 16px', borderBottom: '1px solid #f1f5f9' }}>
+                              <td style={estiloTd(true)}>
                                 {canPromote ? (
                                   <select
                                     value="MORADOR"
                                     onChange={(e) => handleRoleChange(user.id, e.target.value)}
-                                    style={{ fontSize: '11px', fontWeight: 700, color: rc, background: `${rc}15`, border: `1px solid ${rc}40`, borderRadius: '6px', padding: '4px 8px', cursor: 'pointer' }}
+                                    style={{ ...ETIQUETA, ...seletorPerfil(rc), fontSize: '11px', fontWeight: 700, color: rc, border: 'none', borderRadius: '99px', cursor: 'pointer' }}
                                   >
                                     <option value="MORADOR">Morador</option>
                                     <option value="SINDICO">Síndico</option>
                                   </select>
                                 ) : (
-                                  <span style={{ fontSize: '11px', fontWeight: 700, color: rc, background: `${rc}15`, border: `1px solid ${rc}40`, borderRadius: '6px', padding: '4px 8px', display: 'inline-block' }}>{rl}</span>
+                                  <span style={{ ...ETIQUETA, fontSize: '11px', fontWeight: 700, color: rc, background: `color-mix(in srgb, ${rc} 14%, #fff)`, border: 'none', borderRadius: '99px', padding: '3px 10px' }}>{rl}</span>
                                 )}
                               </td>
-                              <td style={{ padding: '14px 16px', borderBottom: '1px solid #f1f5f9' }}>
-                                <span style={{ fontSize: '11px', fontWeight: 700, color: sc.text, background: sc.bg, padding: '3px 10px', borderRadius: '99px' }}>{user.status}</span>
+                              <td style={estiloTd(true)}>
+                                <span style={{ ...ETIQUETA, fontSize: '11px', fontWeight: 700, color: sc.text, background: sc.bg, padding: '3px 10px', borderRadius: '99px' }}>{user.status}</span>
                               </td>
-                              <td style={{ padding: '14px 16px', borderBottom: '1px solid #f1f5f9' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                              <td style={estiloTd(true)}>
+                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
                                   {user.status === 'PENDENTE' && (
-                                    <button onClick={() => handleApprove(user)} style={{ fontSize: '11px', fontWeight: 700, color: '#16a34a', background: '#dcfce7', border: '1px solid #bbf7d0', borderRadius: '6px', padding: '4px 10px', cursor: 'pointer' }}>✓ Liberar</button>
+                                    <button onClick={() => handleApprove(user)} style={{ ...ETIQUETA, fontSize: '11px', fontWeight: 700, color: '#16a34a', background: '#dcfce7', border: 'none', borderRadius: '99px', padding: '3px 10px', cursor: 'pointer' }}>✓ Liberar</button>
+                                  )}
+                                  {user.status === 'PENDENTE' && (
+                                    <button onClick={() => handleBlock(user)} title="Recusar o pedido (vai para Bloqueados)" style={{ ...ETIQUETA, fontSize: '11px', fontWeight: 700, color: '#dc2626', background: '#fee2e2', border: 'none', borderRadius: '99px', padding: '3px 10px', cursor: 'pointer' }}>✕ Recusar</button>
                                   )}
                                   {user.status !== 'PENDENTE' && user.id !== currentUser?.id && (
-                                    <button onClick={() => handleBlock(user)} style={{ fontSize: '11px', fontWeight: 700, color: isBlocked ? '#16a34a' : '#dc2626', background: isBlocked ? '#dcfce7' : '#fee2e2', border: `1px solid ${isBlocked ? '#bbf7d0' : '#fecaca'}`, borderRadius: '6px', padding: '4px 10px', cursor: 'pointer' }}>
+                                    <button onClick={() => handleBlock(user)} style={{ ...ETIQUETA, fontSize: '11px', fontWeight: 700, color: isBlocked ? '#16a34a' : '#dc2626', background: isBlocked ? '#dcfce7' : '#fee2e2', border: 'none', borderRadius: '99px', padding: '3px 10px', cursor: 'pointer' }}>
                                       {isBlocked ? '↑ Desbloquear' : '✕ Bloquear'}
                                     </button>
                                   )}
@@ -548,9 +632,10 @@ const PainelMaster = () => {
                             </tr>
                           );
                         })}
-                        {list.filter(u => u.role !== 'SINDICO' && u.status === STATUS_DA_ABA[moradoresSubTab]).length === 0 && (
+                        {moradoresDaAba.length === 0 && (
                           <tr><td colSpan="5" style={{ padding: '20px', textAlign: 'center', color: '#94a3b8', fontSize: '13px' }}>
-                            {moradoresSubTab === 'pendentes' ? 'Nenhum pedido de acesso pendente.'
+                            {filtrando ? 'Nenhum morador nesse bloco, andar ou apartamento.'
+                              : moradoresSubTab === 'pendentes' ? 'Nenhum pedido de acesso pendente.'
                               : moradoresSubTab === 'bloqueados' ? 'Nenhum morador bloqueado.'
                               : 'Nenhum morador ativo neste condomínio.'}
                           </td></tr>

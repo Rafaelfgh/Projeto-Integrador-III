@@ -20,6 +20,7 @@ import MuralAvisos from './pages/MuralAvisos';
 import PainelDev from './pages/PainelDev';
 import GestaoFuncionarios from './pages/GestaoFuncionarios';
 import Recados from './pages/Recados';
+import BlocosCondominio from './pages/BlocosCondominio';
 import ProtectedRoute from './components/ProtectedRoute';
 import { AuthProvider } from './contexts/AuthContext';
 import VisualizadorImagemProvider from './components/VisualizadorImagem';
@@ -69,6 +70,7 @@ function App() {
           {/* Painel de Governança Global (Master) */}
           <Route element={<ProtectedRoute allowedRoles={['MASTER']} />}>
             <Route path="/painel-master" element={<PainelMaster />} />
+            <Route path="/blocos" element={<BlocosCondominio />} />
           </Route>
           
           {/* Equipe Habitare: aprovação de condomínios */}

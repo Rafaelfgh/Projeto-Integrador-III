@@ -627,3 +627,73 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Gestão de Moradores: filtro Bloco → Andar → Apartamento */
+.pm-filtro {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 0.75rem 1rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.pm-filtro-titulo {
+  align-self: center;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #94a3b8;
+}
+
+.pm-filtro-campos {
+  flex: 1;
+  min-width: 280px;
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1fr;
+  gap: 0.6rem;
+}
+
+.pm-filtro-grupo { display: flex; flex-direction: column; gap: 0.3rem; }
+.pm-filtro-rotulo { font-size: 12px; font-weight: 600; color: #475569; }
+
+.pm-filtro-select {
+  height: 36px;
+  padding: 0 0.6rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #fff;
+  font: inherit;
+  font-size: 13px;
+  color: #0f172a;
+}
+
+.pm-filtro-select:focus {
+  outline: none;
+  border-color: var(--role-primary-color);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--role-primary-color) 15%, transparent);
+}
+
+.pm-filtro-select:disabled { background: #f1f5f9; color: #94a3b8; cursor: not-allowed; }
+
+.pm-filtro-limpar {
+  height: 36px;
+  padding: 0 0.85rem;
+  border: none;
+  border-radius: 8px;
+  background: #f1f5f9;
+  color: #475569;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.pm-filtro-limpar:hover { background: #e2e8f0; }
+
+@media (max-width: 640px) {
+  .pm-filtro-campos { grid-template-columns: 1fr; }
+}

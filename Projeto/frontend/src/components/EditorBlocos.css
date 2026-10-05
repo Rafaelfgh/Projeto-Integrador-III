@@ -1,0 +1,159 @@
+/* Editor de blocos (cadastro do condomínio e aba "Blocos" do master) */
+
+.eb { display: flex; flex-direction: column; gap: 0.75rem; }
+
+.eb-lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.eb-bloco {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.7rem 0.9rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #f8fafc;
+}
+
+.eb-bloco-icone {
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--role-primary-color) 12%, #fff);
+  color: var(--role-primary-color);
+}
+
+.eb-bloco-texto { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.eb-bloco-texto strong { font-size: 0.95rem; color: #0f172a; }
+.eb-bloco-texto small { font-size: 0.78rem; color: #64748b; }
+
+.eb-remover {
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border: none;
+  border-radius: 8px;
+  background: none;
+  color: #64748b;
+  cursor: pointer;
+}
+
+.eb-remover:hover:not(:disabled) { color: #dc2626; background: #fef2f2; }
+
+.eb-adicionar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  height: 44px;
+  border: 1.5px dashed color-mix(in srgb, var(--role-primary-color) 55%, #cbd5e1);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--role-primary-color) 5%, #fff);
+  color: var(--role-primary-color);
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.eb-adicionar:hover:not(:disabled) { background: color-mix(in srgb, var(--role-primary-color) 10%, #fff); }
+
+.eb-painel {
+  padding: 1rem;
+  border: 1px solid color-mix(in srgb, var(--role-primary-color) 35%, #e2e8f0);
+  border-radius: 12px;
+  background: #fff;
+  animation: eb-abrir 0.18s ease-out;
+}
+
+@keyframes eb-abrir { from { opacity: 0; transform: translateY(-4px); } }
+
+.eb-campos {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: 0.75rem;
+  align-items: end; /* rótulo que quebra em 2 linhas não desalinha os campos */
+}
+
+.eb-campo { display: flex; flex-direction: column; gap: 0.35rem; }
+.eb-campo span { font-size: 0.8rem; font-weight: 600; color: #334155; }
+
+.eb-campo input {
+  height: 42px;
+  padding: 0 0.75rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  font: inherit;
+  font-size: 0.9rem;
+  color: #0f172a;
+  background: #fff;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.eb-campo input:focus {
+  outline: none;
+  border-color: var(--role-primary-color);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--role-primary-color) 18%, transparent);
+}
+
+.eb-previa {
+  margin: 0.75rem 0 0;
+  font-size: 0.8rem;
+  color: #64748b;
+  line-height: 1.45;
+}
+
+.eb-botoes {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 0.85rem;
+}
+
+.eb-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  height: 38px;
+  padding: 0 1rem;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.eb-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+.eb-btn-sec { background: #fff; border-color: #e2e8f0; color: #475569; }
+.eb-btn-pri { background: var(--role-primary-color); color: #fff; }
+
+.eb-erro {
+  margin: 0;
+  padding: 0.6rem 0.8rem;
+  border: 1px solid #fecaca;
+  border-radius: 10px;
+  background: #fef2f2;
+  color: #b91c1c;
+  font-size: 0.85rem;
+}
+
+.eb-girando { animation: eb-girar 0.9s linear infinite; }
+@keyframes eb-girar { to { transform: rotate(360deg); } }
+
+@media (max-width: 560px) {
+  .eb-campos { grid-template-columns: 1fr 1fr; }
+  .eb-campo-nome { grid-column: 1 / -1; }
+}

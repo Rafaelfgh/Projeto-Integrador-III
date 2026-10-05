@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { 
   FileText,
   Settings,
@@ -17,7 +17,8 @@ import {
   Film,
   CheckCircle2,
   Trash2,
-  AlertTriangle
+  AlertTriangle,
+  Home
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import NotificationMenu from '../components/NotificationMenu';
@@ -27,6 +28,8 @@ import { supabase } from '../backend/supabaseClient';
 import { mascaraBloco, somenteNumeros, TAMANHO } from '../utils/mascaras';
 import { garantirSemPalavrao } from '../utils/palavroes';
 import { reduzirImagem } from '../utils/imagem';
+import SeletorUnidade from '../components/SeletorUnidade';
+import { VAZIO_UNIDADE, apartamentoEscolhido, descreverUnidade } from '../utils/unidades';
 import './Dashboard.css';
 import './Ocorrencia.css';
 
@@ -40,6 +43,19 @@ const Reclamacao = () => {
   const inputRef = useRef(null);
   const navigate = useNavigate();
   const { currentUser } = useAuth();
+  const [blocos,       setBlocos]       = useState(null);          // blocos do condomínio (null = carregando)
+  const [unidade,      setUnidade]      = useState(VAZIO_UNIDADE); // apartamento denunciado
+
+  useEffect(() => {
+    if (!currentUser?.condominio_id) return undefined;
+    let ativo = true;
+    supabase.rpc('blocos_do_condominio', { p_condominio_id: currentUser.condominio_id })
+      .then(({ data, error }) => {
+        if (error) console.error('Erro ao carregar blocos:', error);
+        if (ativo) setBlocos(data || []);
+      });
+    return () => { ativo = false; };
+  }, [currentUser?.condominio_id]);
 
   const handleDrag = (e) => {
     e.preventDefault(); e.stopPropagation();
@@ -69,6 +85,10 @@ const Reclamacao = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (blocos === null) {
+      setErroEnvio('Aguarde: os blocos do condomínio ainda estão carregando.');
+      return;
+    }
     setIsSubmitting(true);
 
     try {
@@ -178,16 +198,45 @@ const Reclamacao = () => {
                       </select>
                     </div>
 
-                    {/* Bloco e Apartamento separados — gravam nas colunas corretas do banco */}
-                    <div className="saas-input-group">
-                      <label>Bloco do Denunciado <span className="req">*</span></label>
-                      <input type="text" name="bloco_denunciado" placeholder="Ex: A" maxLength={TAMANHO.bloco} required onInput={(e) => { e.currentTarget.value = mascaraBloco(e.currentTarget.value); }} />
-                    </div>
+                    {/* Apartamento denunciado: Bloco → Andar → Apartamento (condomínios com blocos cadastrados) */}
+                    {blocos === null || blocos.length > 0 ? (
+                      <>
+                        <SeletorUnidade
+                          blocos={blocos || []}
+                          valor={unidade}
+                          onChange={setUnidade}
+                          idBase="denunciado"
+                          desativado={isSubmitting}
+                          carregando={blocos === null}
+                          classes={{ grupo: 'saas-input-group', select: 'saas-select' }}
+                          rotulos={{
+                            bloco: <>Bloco do Denunciado <span className="req">*</span></>,
+                            andar: <>Andar <span className="req">*</span></>,
+                            apto: <>Apartamento do Denunciado <span className="req">*</span></>,
+                          }}
+                        />
+                        <input type="hidden" name="bloco_denunciado" value={unidade.bloco} />
+                        <input type="hidden" name="apartamento_denunciado" value={apartamentoEscolhido(unidade)} />
+                        {apartamentoEscolhido(unidade) && (
+                          <p className="unidade-escolhida" aria-live="polite">
+                            <Home size={16} /> {descreverUnidade(unidade.bloco, apartamentoEscolhido(unidade))}
+                          </p>
+                        )}
+                      </>
+                    ) : (
+                      <>
+                      {/* Bloco e Apartamento separados — gravam nas colunas corretas do banco */}
+                      <div className="saas-input-group">
+                        <label>Bloco do Denunciado <span className="req">*</span></label>
+                        <input type="text" name="bloco_denunciado" placeholder="Ex: A" maxLength={TAMANHO.bloco} required onInput={(e) => { e.currentTarget.value = mascaraBloco(e.currentTarget.value); }} />
+                      </div>
 
-                    <div className="saas-input-group">
-                      <label>Apartamento do Denunciado <span className="req">*</span></label>
-                      <input type="text" name="apartamento_denunciado" placeholder="Ex: 204" inputMode="numeric" maxLength={TAMANHO.apartamento} required onInput={(e) => { e.currentTarget.value = somenteNumeros(e.currentTarget.value, TAMANHO.apartamento); }} />
-                    </div>
+                      <div className="saas-input-group">
+                        <label>Apartamento do Denunciado <span className="req">*</span></label>
+                        <input type="text" name="apartamento_denunciado" placeholder="Ex: 204" inputMode="numeric" maxLength={TAMANHO.apartamento} required onInput={(e) => { e.currentTarget.value = somenteNumeros(e.currentTarget.value, TAMANHO.apartamento); }} />
+                      </div>
+                      </>
+                    )}
 
                     <div className="saas-input-group">
                       <label>Data da Violação <span className="req">*</span></label>

@@ -263,3 +263,12 @@
   font-size: 0.875rem;
   color: #64748b;
 }
+/* Login: parte preta e parte branca sempre do mesmo tamanho (metade cada) */
+@media (min-width: 768px) {
+  .login-left-panel,
+  .login-right-panel {
+    flex: 0 0 50%;
+    min-width: 0;
+    box-sizing: border-box;
+  }
+}

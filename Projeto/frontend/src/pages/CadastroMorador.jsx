@@ -1,96 +1,114 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { User, Mail, Lock, Building, Phone, Home, Loader2, Key, MapPin } from 'lucide-react';
+import { ArrowLeft, Check, Info, User, Building2, KeyRound, Loader2, Home } from 'lucide-react';
 import { supabase } from '../backend/supabaseClient';
 import {
-  somenteLetras, somenteNumeros, mascaraBloco, mascaraCPF, mascaraTelefone, mascaraEmail,
+  somenteLetras, mascaraCPF, mascaraTelefone, mascaraEmail,
   cpfCompleto, telefoneCompleto, emailValido, valorDigitado, TAMANHO,
 } from '../utils/mascaras';
+import SeletorUnidade from '../components/SeletorUnidade';
+import MarcaHabitare from '../components/MarcaHabitare';
+import { VAZIO_UNIDADE, apartamentoEscolhido, descreverUnidade } from '../utils/unidades';
+import './NovoCondominio.css';
 
 // Cada campo só aceita o tipo de dado que o modelo sugere (a senha é livre)
 const MASCARAS = {
   nome: somenteLetras,
   cpf: mascaraCPF,
   telefone: mascaraTelefone,
-  bloco: mascaraBloco,
-  apartamento: (v) => somenteNumeros(v, TAMANHO.apartamento),
   email: mascaraEmail,
 };
-import './Login.css';
 
+// Cadastro de morador, no mesmo molde do cadastro de condomínio (uma etapa só):
+// dados pessoais → condomínio e apartamento (UF → cidade → condomínio → bloco → andar →
+// apartamento, cada escolha libera a próxima) → acesso. O morador nasce pendente.
 const CadastroMorador = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     nome: '',
     cpf: '',
     telefone: '',
-    bloco: '',
-    apartamento: '',
     email: '',
     senha: '',
-    condominio_id: ''
+    condominio_id: '',
   });
-  const [cidades, setCidades] = useState([]);
+  const [todosCondominios, setTodosCondominios] = useState([]); // { id, nome, cidade, estado }
+  const [uf, setUf] = useState('');
   const [selectedCidade, setSelectedCidade] = useState('');
-  const [condominios, setCondominios] = useState([]);
+  const [blocosDe, setBlocosDe] = useState({ id: '', lista: [] }); // blocos já carregados (de qual condomínio)
+  const [unidade, setUnidade] = useState(VAZIO_UNIDADE); // Bloco → Andar → Apartamento
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState(null);
-  const [successMsg, setSuccessMsg] = useState(null);
+  const [enviado, setEnviado] = useState(false);
 
-  // Busca todas as cidades únicas que têm condomínios cadastrados
+  // Condomínios cadastrados (uma busca só): a tela filtra UF → cidade → condomínio
   useEffect(() => {
-    const fetchCidades = async () => {
-      const { data, error } = await supabase.from('Condominios').select('cidade');
-      if (error) console.error('Erro ao carregar cidades:', error);
-      if (data) {
-        const uniqueCidades = [...new Set(data.map(c => c.cidade).filter(Boolean))].sort();
-        setCidades(uniqueCidades);
-      }
-    };
-    fetchCidades();
+    supabase.from('Condominios').select('id, nome, cidade, estado').then(({ data, error }) => {
+      if (error) console.error('Erro ao carregar condomínios:', error);
+      setTodosCondominios(data || []);
+    });
   }, []);
 
-  // Busca os condomínios da cidade selecionada
+  const unicos = (lista) => [...new Set(lista.filter(Boolean))].sort((a, b) => a.localeCompare(b, 'pt-BR'));
+  const ufs = unicos(todosCondominios.map(c => c.estado));
+  const cidades = unicos(todosCondominios.filter(c => c.estado === uf).map(c => c.cidade));
+  const condominios = todosCondominios
+    .filter(c => c.estado === uf && c.cidade === selectedCidade)
+    .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
+
+  // Blocos do condomínio escolhido: enquanto não chegam, a tela mostra "carregando"
+  // (e não "sem blocos"), para não confundir quem está se cadastrando.
+  const blocosCarregados = !!formData.condominio_id && blocosDe.id === formData.condominio_id;
+  const carregandoBlocos = !!formData.condominio_id && !blocosCarregados;
+  const blocos = blocosCarregados ? blocosDe.lista : [];
+
+  // Trocar UF ou cidade limpa o que vem depois (condomínio, bloco, andar, apartamento)
+  const limparCondominio = () => {
+    setFormData(prev => ({ ...prev, condominio_id: '' }));
+    setUnidade(VAZIO_UNIDADE);
+  };
+
+  // Blocos do condomínio escolhido (a lista vem do banco; antes do login, por RPC)
   useEffect(() => {
-    const fetchCondominios = async () => {
-      if (!selectedCidade) {
-        setCondominios([]);
-        return;
-      }
-      const { data, error } = await supabase.from('Condominios').select('id, nome').eq('cidade', selectedCidade);
-      if (error) console.error('Erro ao carregar condomínios:', error);
-      if (data) setCondominios(data);
-    };
-    fetchCondominios();
-  }, [selectedCidade]);
+    const id = formData.condominio_id;
+    if (!id) return undefined;
+    let ativo = true;
+    supabase.rpc('blocos_do_condominio', { p_condominio_id: Number(id) })
+      .then(({ data, error }) => {
+        if (error) console.error('Erro ao carregar blocos:', error);
+        if (ativo) setBlocosDe({ id, lista: data || [] });
+      });
+    return () => { ativo = false; };
+  }, [formData.condominio_id]);
 
   const handleInputChange = (e) => {
     const { id, value } = e.target;
     const mascara = MASCARAS[id];
+    if (id === 'condominio_id') setUnidade(VAZIO_UNIDADE);
     setFormData(prev => ({ ...prev, [id]: mascara ? valorDigitado(e, mascara) : value }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
     setErrorMsg(null);
-    setSuccessMsg(null);
 
     const problema =
       !formData.nome.trim()                ? 'Informe seu nome.' :
       !cpfCompleto(formData.cpf)           ? 'O CPF precisa ter 11 números.' :
       !telefoneCompleto(formData.telefone) ? 'O telefone precisa ter DDD + 9 números.' :
-      !formData.condominio_id              ? 'Selecione um condomínio.' :
-      formData.bloco.length !== 1          ? 'O bloco é uma única letra.' :
-      !formData.apartamento                ? 'Informe o número do apartamento.' :
+      !formData.condominio_id              ? 'Selecione o estado, a cidade e o condomínio.' :
+      carregandoBlocos                     ? 'Aguarde: os blocos do condomínio ainda estão carregando.' :
+      blocos.length === 0                  ? 'Este condomínio ainda não cadastrou os blocos. Fale com a administração.' :
+      !apartamentoEscolhido(unidade)       ? 'Escolha o bloco, o andar e o apartamento.' :
       !emailValido(formData.email)         ? 'Informe um e-mail válido (ex.: nome@gmail.com).' :
+      formData.senha.length < 6            ? 'A senha precisa ter pelo menos 6 caracteres.' :
       null;
     if (problema) {
-       setErrorMsg(problema);
-       setLoading(false);
-       return;
+      setErrorMsg(problema);
+      return;
     }
 
+    setLoading(true);
     try {
       // A conta e o cadastro de morador (PENDENTE) são criados juntos pelo banco:
       // se o CPF ou o telefone já existirem, nada é criado.
@@ -103,9 +121,9 @@ const CadastroMorador = () => {
             nome: formData.nome,
             cpf: formData.cpf,
             telefone: formData.telefone,
-            bloco: formData.bloco,
-            apartamento: formData.apartamento,
-            condominio_id: parseInt(formData.condominio_id),
+            bloco: unidade.bloco,
+            apartamento: apartamentoEscolhido(unidade),
+            condominio_id: parseInt(formData.condominio_id, 10),
           },
         },
       });
@@ -116,12 +134,9 @@ const CadastroMorador = () => {
         throw authError;
       }
 
-      // Só entra depois que o Master aprovar
+      // Só entra depois que o cadastro for aprovado
       await supabase.auth.signOut();
-
-      setSuccessMsg('Cadastro realizado com sucesso! Aguarde a aprovação do seu síndico para acessar.');
-      setTimeout(() => navigate('/login'), 5000);
-      
+      setEnviado(true);
     } catch (error) {
       console.error('Erro no cadastro:', error);
       setErrorMsg(error.message || 'Erro inesperado ao realizar cadastro.');
@@ -130,167 +145,160 @@ const CadastroMorador = () => {
     }
   };
 
+  const campo = (rotulo, props, classe = '') => (
+    <div className={`nc-form-group ${classe}`}>
+      <label className="nc-label" htmlFor={props.id}>{rotulo}</label>
+      <input className="nc-input" value={formData[props.id]} onChange={handleInputChange} disabled={loading} {...props} />
+    </div>
+  );
+
   return (
-    <div className="login-page">
-      {/* Left Column (Logo Area) */}
-      <div className="login-left-panel">
-        <div className="login-logo-container">
-          <img
-            src="/Design_sem_nome-removebg-preview.png"
-            alt="Habitare"
-            className="login-logo-img"
-          />
-          <img
-            src="/Design_sem_nome-removebg-preview.png"
-            alt=""
-            aria-hidden="true"
-            className="login-logo-img login-logo-brilho"
-          />
+    <div className="nc-page">
+      <div className="nc-topbar">
+        <div className="nc-topbar-esquerda">
+          <MarcaHabitare brilho={false} />
+          <span className="nc-topbar-divisor" aria-hidden="true" />
+          <h1 className="nc-title">Cadastro de morador</h1>
         </div>
+        <button className="nc-btn-outline" onClick={() => navigate('/login')}>
+          <ArrowLeft size={16} /> Voltar
+        </button>
       </div>
 
-      {/* Right Column (Form Area) */}
-      <div className="login-right-panel" style={{ overflowY: 'auto', alignItems: 'flex-start', padding: '0 1.5rem' }}>
-        <div className="login-form-wrapper" style={{ margin: '6rem auto 4rem auto', maxWidth: '28rem' }}>
-          <div className="login-header" style={{ marginBottom: '1.5rem' }}>
-            <h1 className="login-title" style={{ fontSize: '1.8rem' }}>Cadastro de Morador</h1>
-            <p className="login-subtitle" style={{ fontSize: '0.85rem' }}>Preencha seus dados para solicitar acesso ao seu condomínio</p>
-          </div>
-
-          <form onSubmit={handleSubmit} className="login-form">
-            
-            {errorMsg && (
-              <div style={{ backgroundColor: '#fee2e2', color: '#b91c1c', padding: '1rem', borderRadius: '8px', marginBottom: '1.5rem', fontSize: '0.9rem' }}>
-                {errorMsg}
+      <div className="nc-content-container">
+        <div className="nc-card">
+          {enviado ? (
+            <div className="nc-success-state">
+              <div className="nc-success-icon">
+                <Check size={40} />
               </div>
-            )}
-            {successMsg && (
-              <div style={{ backgroundColor: '#dcfce7', color: '#15803d', padding: '1rem', borderRadius: '8px', marginBottom: '1.5rem', fontSize: '0.9rem', fontWeight: 600 }}>
-                {successMsg}
-              </div>
-            )}
-
-            <div className="input-group">
-              <label className="input-label" htmlFor="nome">Nome Completo</label>
-              <div className="input-container">
-                <input id="nome" type="text" maxLength={TAMANHO.nome} autoComplete="name" value={formData.nome} onChange={handleInputChange} onCompositionEnd={handleInputChange} placeholder="Seu nome" className="custom-input" required disabled={loading} />
-                <User className="input-icon" />
+              <h2>Cadastro enviado!</h2>
+              <p>
+                Seu cadastro foi enviado para a administração do condomínio. Assim que for aprovado,
+                você poderá entrar com o e-mail e a senha informados.
+              </p>
+              <div className="nc-success-actions">
+                <button className="nc-btn-primary" onClick={() => navigate('/login')}>
+                  Ir para o login
+                </button>
               </div>
             </div>
+          ) : (
+            <form onSubmit={handleSubmit} noValidate>
+              <h2 className="nc-step-title">Solicitar acesso</h2>
+              <p className="nc-step-subtitle">
+                Preencha seus dados e escolha o seu apartamento. A administração do condomínio
+                analisa o cadastro antes de liberar o acesso.
+              </p>
 
-            <div className="input-group">
-              <label className="input-label" htmlFor="cpf">CPF</label>
-              <div className="input-container">
-                <input id="cpf" type="text" inputMode="numeric" maxLength={TAMANHO.cpf} value={formData.cpf} onChange={handleInputChange} placeholder="000.000.000-00" className="custom-input" required disabled={loading} />
-                <User className="input-icon" />
+              {errorMsg && <div className="nc-erro" role="alert">{errorMsg}</div>}
+
+              <div className="nc-section-header">
+                <User size={18} />
+                <h3>Seus dados</h3>
               </div>
-            </div>
-
-            <div className="input-group">
-              <label className="input-label" htmlFor="telefone">Telefone</label>
-              <div className="input-container">
-                <input id="telefone" type="tel" inputMode="numeric" maxLength={TAMANHO.telefone} autoComplete="tel" value={formData.telefone} onChange={handleInputChange} placeholder="(00) 00000-0000" className="custom-input" required disabled={loading} />
-                <Phone className="input-icon" />
+              <div className="nc-form-grid">
+                {campo('Nome completo *', { id: 'nome', type: 'text', maxLength: TAMANHO.nome, autoComplete: 'name', onCompositionEnd: handleInputChange }, 'full-width')}
+                {campo('CPF *', { id: 'cpf', type: 'text', inputMode: 'numeric', maxLength: TAMANHO.cpf, placeholder: '000.000.000-00' })}
+                {campo('Telefone *', { id: 'telefone', type: 'tel', inputMode: 'numeric', maxLength: TAMANHO.telefone, autoComplete: 'tel', placeholder: '(00) 00000-0000' })}
               </div>
-            </div>
 
-            <div className="input-group">
-              <label className="input-label" htmlFor="cidade">Cidade do Condomínio</label>
-              <div className="input-container">
-                <select 
-                  id="cidade" 
-                  value={selectedCidade} 
-                  onChange={(e) => {
-                     setSelectedCidade(e.target.value);
-                     setFormData(prev => ({ ...prev, condominio_id: '' }));
-                  }} 
-                  className="custom-input" 
-                  required 
-                  disabled={loading} 
-                  style={{ appearance: 'none' }}
-                >
-                  <option value="" disabled>Selecione a cidade</option>
-                  {cidades.map(cid => (
-                    <option key={cid} value={cid}>{cid}</option>
-                  ))}
-                </select>
-                <MapPin className="input-icon" />
+              <div className="nc-divider"></div>
+
+              <div className="nc-section-header">
+                <Building2 size={18} />
+                <h3>Condomínio e apartamento</h3>
               </div>
-            </div>
-
-            <div className="input-group">
-              <label className="input-label" htmlFor="condominio_id">Condomínio</label>
-              <div className="input-container">
-                <select 
-                  id="condominio_id" 
-                  value={formData.condominio_id} 
-                  onChange={handleInputChange} 
-                  className="custom-input" 
-                  required 
-                  disabled={loading || !selectedCidade} 
-                  style={{ appearance: 'none' }}
-                >
-                  <option value="" disabled>
-                    {selectedCidade ? "Selecione o Condomínio" : "Selecione uma cidade primeiro"}
-                  </option>
-                  {condominios.map(c => (
-                    <option key={c.id} value={c.id}>{c.nome}</option>
-                  ))}
-                </select>
-                <Building className="input-icon" />
-              </div>
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-              <div className="input-group">
-                <label className="input-label" htmlFor="bloco">Bloco/Torre</label>
-                <div className="input-container">
-                  <input id="bloco" type="text" maxLength={TAMANHO.bloco} value={formData.bloco} onChange={handleInputChange} placeholder="Ex: A" className="custom-input" required disabled={loading} />
-                  <Building className="input-icon" />
+              <div className="nc-form-grid">
+                <div className="nc-form-group">
+                  <label className="nc-label" htmlFor="uf">Estado (UF) *</label>
+                  <select
+                    id="uf"
+                    className="nc-select"
+                    value={uf}
+                    onChange={(e) => { setUf(e.target.value); setSelectedCidade(''); limparCondominio(); }}
+                    disabled={loading}
+                  >
+                    <option value="" disabled>Selecione o estado</option>
+                    {ufs.map(sigla => <option key={sigla} value={sigla}>{sigla}</option>)}
+                  </select>
                 </div>
-              </div>
-              <div className="input-group">
-                <label className="input-label" htmlFor="apartamento">Apartamento</label>
-                <div className="input-container">
-                  <input id="apartamento" type="text" inputMode="numeric" maxLength={TAMANHO.apartamento} value={formData.apartamento} onChange={handleInputChange} placeholder="Ex: 101" className="custom-input" required disabled={loading} />
-                  <Home className="input-icon" />
+                <div className="nc-form-group">
+                  <label className="nc-label" htmlFor="cidade">Cidade *</label>
+                  <select
+                    id="cidade"
+                    className="nc-select"
+                    value={selectedCidade}
+                    onChange={(e) => { setSelectedCidade(e.target.value); limparCondominio(); }}
+                    disabled={loading || !uf}
+                  >
+                    <option value="" disabled>{uf ? 'Selecione a cidade' : ''}</option>
+                    {cidades.map(cid => <option key={cid} value={cid}>{cid}</option>)}
+                  </select>
                 </div>
-              </div>
-            </div>
-
-            <div className="input-group">
-              <label className="input-label" htmlFor="email">E-mail (Login)</label>
-              <div className="input-container">
-                <input id="email" type="email" maxLength={TAMANHO.email} autoComplete="email" value={formData.email} onChange={handleInputChange} placeholder="seu@email.com" className="custom-input" required disabled={loading} />
-                <Mail className="input-icon" />
-              </div>
-            </div>
-
-            <div className="input-group">
-              <label className="input-label" htmlFor="senha">Senha</label>
-              <div className="input-container">
-                <input id="senha" type="password" value={formData.senha} onChange={handleInputChange} placeholder="Mínimo 6 caracteres" minLength="6" className="custom-input" required disabled={loading} />
-                <Lock className="input-icon" />
-              </div>
-            </div>
-
-            <button type="submit" className="btn-primary" disabled={loading} style={{ marginTop: '1rem' }}>
-              {loading ? (
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
-                  <Loader2 className="input-icon" style={{ animation: 'spin 1s linear infinite', position: 'static', color: 'inherit' }} size={20} />
-                  Registrando...
+                <div className="nc-form-group full-width">
+                  <label className="nc-label" htmlFor="condominio_id">Condomínio *</label>
+                  <select
+                    id="condominio_id"
+                    className="nc-select"
+                    value={formData.condominio_id}
+                    onChange={handleInputChange}
+                    disabled={loading || !selectedCidade}
+                  >
+                    <option value="" disabled>{selectedCidade ? 'Selecione o condomínio' : ''}</option>
+                    {condominios.map(c => <option key={c.id} value={c.id}>{c.nome}</option>)}
+                  </select>
                 </div>
-              ) : (
-                'Solicitar Acesso'
-              )}
-            </button>
-          </form>
 
-          <div style={{ textAlign: 'center', marginTop: '1.5rem', borderTop: '1px solid #e2e8f0', paddingTop: '1rem' }}>
-            <Link to="/login" className="text-link" style={{ color: 'var(--role-primary-color)', fontSize: '0.85rem', fontWeight: 600 }}>
-               Já tenho uma conta. Voltar ao Login
-            </Link>
-          </div>
+                {/* Bloco (linha inteira) → Andar e Apartamento lado a lado; cada um libera o próximo */}
+                <div className="nc-unidade">
+                  <SeletorUnidade
+                    blocos={blocos}
+                    valor={unidade}
+                    onChange={setUnidade}
+                    desativado={loading || !formData.condominio_id}
+                    carregando={carregandoBlocos}
+                    classes={{ grupo: 'nc-form-group', rotulo: 'nc-label', select: 'nc-select' }}
+                    rotulos={{ bloco: 'Bloco *', andar: 'Andar *', apto: 'Apartamento *' }}
+                  />
+                </div>
+                {/* Confirmação do apartamento escolhido */}
+                {apartamentoEscolhido(unidade) && (
+                  <p className="nc-unidade-escolhida" aria-live="polite">
+                    <Home size={16} />
+                    <span>{descreverUnidade(unidade.bloco, apartamentoEscolhido(unidade))}</span>
+                  </p>
+                )}
+                {blocosCarregados && blocos.length === 0 && (
+                  <p className="nc-aviso full-width">Este condomínio ainda não cadastrou os blocos e apartamentos.</p>
+                )}
+              </div>
+
+              <div className="nc-divider"></div>
+
+              <div className="nc-section-header">
+                <KeyRound size={18} />
+                <h3>Acesso</h3>
+              </div>
+              <div className="nc-form-grid">
+                {campo('E-mail (login) *', { id: 'email', type: 'email', maxLength: TAMANHO.email, autoComplete: 'email', placeholder: 'seu@email.com' })}
+                {campo('Senha *', { id: 'senha', type: 'password', autoComplete: 'new-password', placeholder: 'Mínimo 6 caracteres' })}
+              </div>
+
+              <div className="nc-info-text">
+                <Info size={16} />
+                <span>Certifique-se de que os dados estão corretos.</span>
+              </div>
+
+              <button type="submit" className="nc-btn-primary" disabled={loading}>
+                {loading ? <Loader2 className="nc-icon-spin" size={20} /> : 'Solicitar acesso'}
+              </button>
+
+              <p className="nc-rodape">
+                Já tem uma conta? <Link to="/login">Voltar ao login</Link>
+              </p>
+            </form>
+          )}
         </div>
       </div>
     </div>

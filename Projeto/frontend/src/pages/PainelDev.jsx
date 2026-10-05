@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
-  Menu, Search, Building2, MapPin, CalendarDays, User, Mail, Phone, IdCard, X, Check, Ban, RefreshCw, Inbox, Users,
+  Menu, Search, Building2, MapPin, CalendarDays, User, Mail, Phone, IdCard, X, Check, Ban, RefreshCw, Inbox, Users, Layers,
 } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import NotificationMenu from '../components/NotificationMenu';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../backend/supabaseClient';
+import { resumoBloco } from '../utils/unidades';
 import './Dashboard.css';
 import './PainelDev.css';
 
@@ -36,6 +37,20 @@ const FichaCondominio = ({ condominio, onFechar, onDecidido }) => {
   const [motivo, setMotivo]     = useState('');
   const [enviando, setEnviando] = useState(false);
   const [erro, setErro]         = useState(null);
+  const [blocos, setBlocos]     = useState({ id: null, lista: [] }); // blocos deste condomínio
+
+  useEffect(() => {
+    let ativo = true;
+    supabase.rpc('blocos_do_condominio', { p_condominio_id: condominio.id }).then(({ data, error }) => {
+      if (error) console.error('Erro ao carregar blocos:', error);
+      if (ativo) setBlocos({ id: condominio.id, lista: data || [] });
+    });
+    return () => { ativo = false; };
+  }, [condominio.id]);
+
+  const carregouBlocos = blocos.id === condominio.id;
+  const listaBlocos = carregouBlocos ? blocos.lista : [];
+  const totalApartamentos = listaBlocos.reduce((soma, b) => soma + b.andares * b.aptos_por_andar, 0);
 
   const decidir = async (aprovar) => {
     setEnviando(true);
@@ -80,6 +95,27 @@ const FichaCondominio = ({ condominio, onFechar, onDecidido }) => {
               {condominio.decidido_em && (<><dt>Decidido em</dt><dd>{formatar(condominio.decidido_em)}</dd></>)}
               {condominio.motivo_recusa && (<><dt>Motivo da recusa</dt><dd>{condominio.motivo_recusa}</dd></>)}
             </dl>
+          </section>
+
+          <section className="dev-secao">
+            <h3><Layers size={15} /> Blocos e apartamentos</h3>
+            {!carregouBlocos ? (
+              <p className="dev-blocos-vazio">Carregando...</p>
+            ) : listaBlocos.length === 0 ? (
+              <p className="dev-blocos-vazio">Nenhum bloco cadastrado (cadastro anterior aos blocos).</p>
+            ) : (
+              <>
+                <div className="dev-blocos-totais">
+                  <div><strong>{listaBlocos.length}</strong><span>{listaBlocos.length === 1 ? 'bloco' : 'blocos'}</span></div>
+                  <div><strong>{totalApartamentos}</strong><span>apartamentos no total</span></div>
+                </div>
+                <ul className="dev-blocos-lista">
+                  {listaBlocos.map(b => (
+                    <li key={b.id}><strong>{b.nome}</strong><span>{resumoBloco(b)}</span></li>
+                  ))}
+                </ul>
+              </>
+            )}
           </section>
 
           <section className="dev-secao">

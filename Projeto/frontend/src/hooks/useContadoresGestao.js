@@ -8,9 +8,10 @@ export const EVENTO_CONTADORES = 'habitare:contadores';
 export const avisarMudancaOcorrencias = () => window.dispatchEvent(new Event(EVENTO_CONTADORES));
 
 // Quantidades das bolinhas do menu do síndico/master:
-// analise = ocorrências do mural em análise; pessoais = pessoais em análise.
+// analise = ocorrências do mural em análise; pessoais = pessoais em análise;
+// moradores_pendentes = moradores aguardando aprovação (bolinha do master).
 export const useContadoresGestao = (ativo) => {
-  const [contadores, setContadores] = useState({ analise: 0, pessoais: 0 });
+  const [contadores, setContadores] = useState({ analise: 0, pessoais: 0, moradores_pendentes: 0 });
   const { pathname } = useLocation();
 
   useEffect(() => {

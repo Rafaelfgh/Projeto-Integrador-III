@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-  LayoutDashboard, FileEdit, FileWarning, Activity, ClipboardList, Building, BarChart, LogOut, Settings, Users, PenTool, Shield, UserPlus, Package, Clock, ShieldCheck, Map, MessageSquare, Calendar, Star, Vote, CheckSquare, FileText, CheckCircle2, ChevronRight, Home, Hourglass, Megaphone, ScanSearch, Mail
+  LayoutDashboard, FileEdit, FileWarning, Activity, ClipboardList, Building, BarChart, LogOut, Settings, Users, PenTool, Shield, UserPlus, Package, Clock, ShieldCheck, Map, MessageSquare, Calendar, Star, Vote, CheckSquare, FileText, CheckCircle2, ChevronRight, Home, Hourglass, Megaphone, ScanSearch, Mail, Layers
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -8,6 +8,7 @@ import { useContadoresGestao } from '../hooks/useContadoresGestao';
 import { useRecadosNaoLidos } from '../hooks/useRecadosNaoLidos';
 import ContextBanner from './ContextBanner';
 import AvatarUsuario from './AvatarUsuario';
+import MarcaHabitare from './MarcaHabitare';
 import AbrirOcorrenciaPorLink from './AbrirOcorrenciaPorLink';
 
 const CONTEXT_OPTIONS = [
@@ -63,14 +64,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
 
         {/* ── Header ── */}
         <div className="sidebar-header">
-          {/* Logo sem caixa, como parte do fundo; a cópia de cima só pulsa na transparência */}
-          <span className="sidebar-logo">
-            <img src="/logo_habitare.png" alt="" className="sidebar-logo-img" />
-            <img src="/logo_habitare.png" alt="" aria-hidden="true" className="sidebar-logo-img sidebar-brilho" />
-          </span>
-          <div className="sidebar-title-group">
-            <h1 data-texto="Habitare">Habitare</h1>
-          </div>
+          <MarcaHabitare />
         </div>
 
         {/* ── Nav ── */}
@@ -152,8 +146,14 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
                 {navItem('/avisos', Megaphone, 'Mural de Avisos')}
                 <a href="#" className={`nav-item ${currentPath === '/painel-master' && location.search === '?tab=usuarios' ? 'nav-item-active' : 'nav-item-inactive'}`} onClick={(e) => { e.preventDefault(); handleNavClick('/painel-master?tab=usuarios'); }}>
                   <Users className="nav-icon" /><span>Gestão de Moradores</span>
+                  {contadores.moradores_pendentes > 0 && (
+                    <span className="nav-badge" aria-label={`${contadores.moradores_pendentes} moradores pendentes`}>
+                      {contadores.moradores_pendentes > 99 ? '99+' : contadores.moradores_pendentes}
+                    </span>
+                  )}
                 </a>
                 {navItem('/funcionarios', ShieldCheck, 'Gestão de Funcionários')}
+                {navItem('/blocos', Layers, 'Blocos do Condomínio')}
                 {navItem('/recados', Mail, 'Recados', null, recados.total)}
                 {navItem('/ocorrencias-analise', ScanSearch, 'Para análise', null, contadores.analise)}
                 {navItem('/ocorrencias-pessoais', Home, 'Ocorrências Pessoais', null, contadores.pessoais)}

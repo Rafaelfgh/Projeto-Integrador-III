@@ -1,0 +1,73 @@
+/* ── Marca Habitare ──
+   Logo sem caixa (só o laranja aparece sobre o fundo) e brilho leve, igual ao login:
+   o brilho fixo é calculado uma vez; o pulso é uma cópia por cima que só muda de
+   transparência (animar desfoque/sombra direto trava a tela). */
+.marca {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-shrink: 0;
+}
+
+.marca-logo {
+  position: relative;
+  display: flex;
+  flex-shrink: 0;
+}
+
+.marca-logo-img {
+  display: block;
+  height: 34px;
+  width: auto;
+  filter: drop-shadow(0 0 3px rgba(255, 122, 0, 0.35));
+}
+
+.marca-logo .marca-brilho {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  filter: drop-shadow(0 0 8px rgba(255, 115, 0, 0.45));
+  opacity: 0;
+  will-change: opacity;
+  animation: marca-pulso 4s ease-in-out infinite alternate;
+}
+
+.marca-nome {
+  position: relative;
+  margin: 0;
+  color: #F47920;
+  font-weight: 700;
+  font-size: 1.25rem;
+  line-height: 1;
+  letter-spacing: 0.01em;
+  text-shadow: 0 0 4px rgba(255, 122, 0, 0.35);
+}
+
+/* Pulso do texto: cópia transparente só com a sombra, animada na transparência */
+.marca-nome::after {
+  content: attr(data-texto);
+  position: absolute;
+  inset: 0;
+  color: transparent;
+  text-shadow: 0 0 10px rgba(255, 115, 0, 0.55);
+  opacity: 0;
+  will-change: opacity;
+  pointer-events: none;
+  animation: marca-pulso 4s ease-in-out infinite alternate;
+}
+
+@keyframes marca-pulso {
+  from { opacity: 0; }
+  to   { opacity: 0.8; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marca-logo .marca-brilho,
+  .marca-nome::after { animation: none; }
+}
+
+/* Sem brilho (telas de cadastro, fundo claro): logo e nome nítidos, sem pulso */
+.marca-limpa .marca-logo-img { filter: none; }
+.marca-limpa .marca-brilho { display: none; }
+.marca-limpa .marca-nome { text-shadow: none; }
+.marca-limpa .marca-nome::after { display: none; }
