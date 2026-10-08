@@ -1,12 +1,45 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Mail, Lock, User, Building, Loader2 } from 'lucide-react';
+import { Mail, Lock, User, Building, Loader2, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { carregarPerfil } from '../services/perfilService';
 import { supabase } from '../backend/supabaseClient';
+import LogoHabitareAnimada from '../components/LogoHabitareAnimada';
 import './Login.css';
 
+// A logo "surge" só na primeira vez que o login é aberto neste navegador
+const CHAVE_INTRO = 'habitare:intro-logo-vista';
+const deveAnimarLogo = () => {
+  try {
+    if (localStorage.getItem(CHAVE_INTRO)) return false;
+    localStorage.setItem(CHAVE_INTRO, '1');
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+// Faíscas com tamanho, lugar, velocidade, balanço e brilho sorteados,
+// para subirem cada uma no seu ritmo (nada de fila padronizada).
+const sorteia = (min, max) => min + Math.random() * (max - min);
+const FAISCAS = Array.from({ length: 6 }, () => {
+  const duracao = sorteia(12, 20);
+  return {
+    left: `${sorteia(0, 100)}%`,
+    '--tam': `${sorteia(4, 10)}px`,
+    '--dur': `${duracao}s`,
+    '--atraso': `${-sorteia(0, duracao)}s`,
+    '--balanco': `${sorteia(8, 24) * (Math.random() < 0.5 ? -1 : 1)}px`,
+    '--dur-balanco': `${sorteia(2.5, 6)}s`,
+    '--altura': `${-sorteia(55, 110)}vh`,
+    '--cor': Math.random() < 0.8 ? '#f47920' : '#e2e8f0',
+    '--brilho': sorteia(0.7, 1).toFixed(2),
+  };
+});
+
 const Login = () => {
+  const [animarLogo] = useState(deveAnimarLogo);
+  const [mostrarSenha, setMostrarSenha] = useState(false);
   const navigate = useNavigate();
   const { login } = useAuth();
   const [email, setEmail] = useState('');
@@ -64,27 +97,27 @@ const Login = () => {
     <div className="login-page">
       {/* Left Column (Logo Area) */}
       <div className="login-left-panel">
-        <div className="login-logo-container">
-          {/* Logo Habitare */}
-          <img
-            src="/Design_sem_nome-removebg-preview.png"
-            alt="Portal do Morador"
-            className="login-logo-img"
-          />
-          <img
-            src="/Design_sem_nome-removebg-preview.png"
-            alt=""
-            aria-hidden="true"
-            className="login-logo-img login-logo-brilho"
-          />
+        {/* Fundo vivo: uma luz laranja bem fraca, grade em perspectiva e poucos pontos de luz */}
+        <div className="login-fundo" aria-hidden="true">
+          <span className="login-luz login-luz-1" />
+          <span className="login-grade" />
+          {FAISCAS.map((f, i) => (
+            <span key={i} className="login-particula" style={f}>
+              <span className="login-particula-ponto" />
+            </span>
+          ))}
+        </div>
+        <div className={`login-logo-container${animarLogo ? ' login-logo-intro' : ''}`}>
+          <LogoHabitareAnimada animar={animarLogo} className="login-logo-img" />
+          <p className="login-slogan">Seu condomínio, conectado.</p>
         </div>
       </div>
 
       {/* Right Column (Form Area) */}
       <div className="login-right-panel">
-        <div className="login-form-wrapper">
+        <div className={`login-form-wrapper${animarLogo ? ' login-form-intro' : ''}`}>
           <div className="login-header">
-            <h1 className="login-title">Bem-vindo</h1>
+            <h1 className="login-title">Bem-vindo<span className="login-ponto">.</span></h1>
             <p className="login-subtitle">Entre para acessar seu painel</p>
           </div>
 
@@ -115,13 +148,18 @@ const Login = () => {
             </div>
 
             <div className="input-group">
-              <label className="input-label" htmlFor="password">
-                Senha
-              </label>
+              <div className="login-label-linha">
+                <label className="input-label" htmlFor="password">
+                  Senha
+                </label>
+                <a href="#" className="text-link login-esqueceu">
+                  Esqueceu a senha?
+                </a>
+              </div>
               <div className="input-container">
                 <input
                   id="password"
-                  type="password"
+                  type={mostrarSenha ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
@@ -129,11 +167,14 @@ const Login = () => {
                   required
                 />
                 <Lock className="input-icon" />
-              </div>
-              <div className="forgot-password-container">
-                <a href="#" className="text-link">
-                  Esqueceu a senha?
-                </a>
+                <button
+                  type="button"
+                  className="login-ver-senha"
+                  onClick={() => setMostrarSenha((v) => !v)}
+                  aria-label={mostrarSenha ? 'Esconder senha' : 'Mostrar senha'}
+                >
+                  {mostrarSenha ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
               </div>
             </div>
 
@@ -149,12 +190,13 @@ const Login = () => {
             </button>
           </form>
 
-          <div style={{ textAlign: 'center', marginTop: '1rem', borderTop: '1px solid #e2e8f0', paddingTop: '1rem' }}>
-            <Link to="/cadastro" className="text-link" style={{ color: 'var(--role-primary-color)', fontSize: '0.85rem', fontWeight: 600, display: 'block', marginBottom: '0.75rem' }}>
-               Ainda não tem conta? Cadastre-se como morador
+          <div className="login-rodape">
+            <div className="login-divisor"><span>ainda não tem conta?</span></div>
+            <Link to="/cadastro" className="login-btn-secundario">
+              Cadastrar-me como morador
             </Link>
-            <Link to="/novo-condominio" className="text-link" style={{ color: '#64748b', fontSize: '0.8rem', fontWeight: 500 }}>
-               Sou administrador e quero solicitar o cadastro do meu condomínio
+            <Link to="/novo-condominio" className="login-link-admin">
+              Sou administrador e quero solicitar o cadastro do meu condomínio
             </Link>
           </div>
         </div>

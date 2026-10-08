@@ -153,7 +153,7 @@ const NovoCondominio = () => {
     <div className="nc-page">
       <div className="nc-topbar">
         <div className="nc-topbar-esquerda">
-          <MarcaHabitare brilho={false} />
+          <MarcaHabitare />
           <span className="nc-topbar-divisor" aria-hidden="true" />
           <h1 className="nc-title">Solicitar cadastro de condomínio</h1>
         </div>

@@ -82,9 +82,9 @@ const PrimeiroAcesso = () => {
           <>
             <div className="pa-header">
               <img
-                src="/Design_sem_nome-removebg-preview.png"
+                src="/Habitare-logo-predio.svg"
                 alt="Habitare"
-                style={{ width: 88, height: 88, objectFit: 'contain', margin: '0 auto 0.5rem', display: 'block' }}
+                style={{ width: 200, height: 'auto', margin: '0 auto 1rem', display: 'block' }}
               />
               <h1 className="pa-title">Trocar senha provisória</h1>
               <p className="pa-subtitle">

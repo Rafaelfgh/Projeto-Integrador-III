@@ -33,38 +33,114 @@
   justify-content: center;
 }
 
-/* Logo Habitare */
+/* Logo Habitare: brilho fixo (calculado uma vez, não anima) */
 .login-logo-img {
-  width: min(800px, 85%);
-  max-height: 70vh;
+  width: min(560px, 82%);
   height: auto;
-  object-fit: contain;
-  /* Brilho leve e fixo (o desfoque é calculado uma vez só) */
-  filter: drop-shadow(0 0 4px rgba(255, 122, 0, 0.35));
+  filter: drop-shadow(0 0 10px rgba(255, 122, 0, 0.35));
 }
+.login-logo-container { z-index: 1; width: 100%; }
 
-/* Pulso do neon: cópia da logo com o brilho extra por cima; só a transparência anima
-   (a placa de vídeo faz isso quase de graça). Antes o próprio desfoque era animado e
-   recalculado ~60x por segundo, o que travava a tela em máquinas mais modestas. */
-.login-logo-brilho {
+.login-slogan {
+  margin: 1.75rem 0 0;
+  color: #cbd5e1;
+  font-size: 0.95rem;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+}
+.login-logo-intro .login-slogan { animation: login-sobe 0.9s cubic-bezier(0.22, 1, 0.36, 1) 3.3s both; }
+
+/* ── Fundo vivo (só transform/opacity; as luzes já nascem desfocadas e só se movem) ── */
+.login-left-panel { overflow: hidden; isolation: isolate; }
+.login-fundo { position: absolute; inset: 0; pointer-events: none; }
+
+.login-luz {
   position: absolute;
-  inset: 0;
-  margin: auto;
-  pointer-events: none;
-  filter: drop-shadow(0 0 12px rgba(255, 115, 0, 0.3));
+  width: 60vmax;
+  height: 60vmax;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(244, 121, 32, 0.12) 0%, rgba(244, 121, 32, 0) 65%);
+  will-change: transform;
+}
+.login-luz-1 { top: -25vmax; left: -20vmax; animation: login-flutua-1 18s ease-in-out infinite alternate; }
+.login-luz-2 {
+  bottom: -30vmax; right: -25vmax;
+  background: radial-gradient(circle, rgba(251, 146, 60, 0.18) 0%, rgba(251, 146, 60, 0) 65%);
+  animation: login-flutua-2 22s ease-in-out infinite alternate;
+}
+@keyframes login-flutua-1 { to { transform: translate(18vmax, 14vmax); } }
+@keyframes login-flutua-2 { to { transform: translate(-16vmax, -12vmax); } }
+
+/* grade de "chão" em perspectiva, andando devagar em direção a quem olha */
+.login-grade {
+  position: absolute;
+  left: -50%; right: -50%; bottom: -10%;
+  height: 55%;
+  background-image:
+    linear-gradient(rgba(244, 121, 32, 0.22) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(244, 121, 32, 0.22) 1px, transparent 1px);
+  background-size: 60px 60px;
+  transform: perspective(500px) rotateX(62deg);
+  transform-origin: bottom;
+  -webkit-mask-image: linear-gradient(to top, #000 0%, transparent 85%);
+  mask-image: linear-gradient(to top, #000 0%, transparent 85%);
+  animation: login-grade-anda 4s linear infinite;
+}
+@keyframes login-grade-anda {
+  from { transform: perspective(500px) rotateX(62deg) translateY(0); }
+  to   { transform: perspective(500px) rotateX(62deg) translateY(60px); }
+}
+
+/* Faíscas: cada uma sobe no seu ritmo (valores sorteados no Login.jsx).
+   A caixa de fora sobe e some; o ponto de dentro balança de lado e cintila. */
+.login-particula {
+  position: absolute;
+  bottom: -10px;
   opacity: 0;
-  will-change: opacity;
-  animation: neon-pulse 4s ease-in-out infinite alternate;
+  will-change: transform, opacity;
+  animation: login-faisca var(--dur) cubic-bezier(0.4, 0, 0.6, 1) var(--atraso) infinite;
+}
+.login-particula-ponto {
+  display: block;
+  width: var(--tam);
+  height: var(--tam);
+  border-radius: 50%;
+  background: var(--cor);
+  animation:
+    login-balanca var(--dur-balanco) ease-in-out var(--atraso) infinite alternate,
+    login-cintila calc(var(--dur-balanco) * 0.7) ease-in-out infinite alternate;
+}
+@keyframes login-faisca {
+  0%   { transform: translateY(0); opacity: 0; }
+  12%  { opacity: var(--brilho); }
+  70%  { opacity: var(--brilho); }
+  100% { transform: translateY(var(--altura)); opacity: 0; }
+}
+@keyframes login-balanca {
+  from { transform: translateX(calc(var(--balanco) * -1)); }
+  to   { transform: translateX(var(--balanco)); }
+}
+@keyframes login-cintila {
+  from { opacity: 1; }
+  to   { opacity: 0.35; }
 }
 
-@keyframes neon-pulse {
-  from { opacity: 0; }
-  to   { opacity: 0.8; }
+/* Primeira visita: o formulário entra em cascata depois da logo */
+.login-form-intro > * { animation: login-sobe 0.8s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.login-form-intro > *:nth-child(1) { animation-delay: 0.4s; }
+.login-form-intro > *:nth-child(2) { animation-delay: 0.6s; }
+.login-form-intro > *:nth-child(3) { animation-delay: 0.8s; }
+.login-form-intro > *:nth-child(4) { animation-delay: 1s; }
+@keyframes login-sobe {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: none; }
 }
 
-/* Quem pediu menos movimento no sistema (acessibilidade) vê o brilho parado */
+/* Quem pediu menos movimento no sistema (acessibilidade) vê tudo parado */
 @media (prefers-reduced-motion: reduce) {
-  .login-logo-brilho { animation: none; }
+  .login-luz, .login-grade, .login-slogan,
+  .login-form-intro > * { animation: none !important; }
+  .login-particula { display: none; }
 }
 
 @media (max-width: 768px) {
@@ -272,3 +348,186 @@
     box-sizing: border-box;
   }
 }
+
+/* ── Painel branco caprichado ── */
+.login-right-panel {
+  background:
+    radial-gradient(circle at 100% 0%, rgba(244, 121, 32, 0.10), transparent 45%),
+    radial-gradient(circle at 0% 100%, rgba(244, 121, 32, 0.06), transparent 40%),
+    radial-gradient(rgba(15, 23, 42, 0.18) 1.3px, transparent 1.6px) 0 0 / 22px 22px fixed,
+    #ffffff;
+}
+.login-title {
+  font-family: 'Poppins', 'Inter', sans-serif;
+  font-weight: 700;
+  font-size: 2.6rem;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+.login-ponto { color: #f47920; }
+.login-subtitle { font-size: 1rem; }
+
+.input-label { font-weight: 600; color: #1e293b; }
+.custom-input {
+  padding: 0.9rem 2.75rem 0.9rem 1rem;
+  border-radius: 0.85rem;
+  border: 1.5px solid #e2e8f0;
+  background-color: #ffffff;
+  font-size: 0.95rem;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+.custom-input:hover { border-color: #cbd5e1; }
+.custom-input:focus {
+  border-color: #f47920;
+  box-shadow: 0 0 0 4px rgba(244, 121, 32, 0.15);
+}
+.input-icon { top: 1rem; }
+
+/* Botão: degradê laranja, sobe um pouco no hover e um reflexo atravessa */
+.btn-primary {
+  position: relative;
+  overflow: hidden;
+  padding: 0.95rem 0;
+  border-radius: 0.85rem;
+  background: linear-gradient(135deg, #f47920 0%, #ea580c 100%);
+  font-family: 'Poppins', 'Inter', sans-serif;
+  font-weight: 600;
+  font-size: 1rem;
+  letter-spacing: 0.01em;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.btn-primary::after {
+  content: '';
+  position: absolute;
+  top: 0; bottom: 0; left: 0;
+  width: 40%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+  transform: translateX(-150%) skewX(-20deg);
+  pointer-events: none;
+}
+.btn-primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #f47920 0%, #ea580c 100%);
+  box-shadow: none; /* sem sombra no hover (o dono achou artificial) */
+  transform: translateY(-2px);
+}
+.btn-primary:hover:not(:disabled)::after {
+  transform: translateX(350%) skewX(-20deg);
+  transition: transform 0.8s ease;
+}
+
+.login-rodape { margin-top: 1.75rem; text-align: center; }
+.login-divisor {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  padding: 0.35rem 0.5rem;
+  border-radius: 0.5rem;
+  background: #ffffff; /* caixa branca: o pontilhado do fundo não encosta nos traços */
+  color: #475569;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+.login-divisor::before, .login-divisor::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: #cbd5e1;
+}
+/* Cadastro de morador: botão escuro, conversando com o painel preto */
+.login-btn-secundario {
+  display: block;
+  padding: 0.9rem;
+  border-radius: 0.85rem;
+  border: 1.5px solid var(--color-slate-950);
+  background: #ffffff;
+  color: var(--color-slate-950);
+  font-family: 'Poppins', 'Inter', sans-serif;
+  font-weight: 600;
+  font-size: 0.95rem;
+  text-decoration: none;
+  transition: background 0.2s, color 0.2s, transform 0.2s;
+}
+.login-btn-secundario:hover {
+  background: var(--color-slate-950);
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+/* Link do administrador: sublinhado e seta, para ficar claro que é clicável */
+.login-link-admin {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-top: 1rem;
+  padding: 0.15rem 0.4rem;
+  border-radius: 0.4rem;
+  background: #ffffff;
+  color: #334155;
+  font-size: 0.82rem;
+  font-weight: 500;
+  text-decoration: underline;
+  text-decoration-color: #f47920;
+  text-underline-offset: 3px;
+  transition: color 0.2s;
+}
+.login-link-admin:hover { color: #c2410c; }
+.login-link-admin::after { content: '→'; transition: transform 0.2s; }
+.login-link-admin:hover::after { transform: translateX(3px); }
+
+@media (prefers-reduced-motion: reduce) {
+  .btn-primary, .btn-primary::after, .login-btn-secundario { transition: none; }
+}
+
+/* ── Campos no modelo novo: brancos, ícone à esquerda, olho na senha ── */
+.login-form .custom-input {
+  padding: 0.9rem 2.75rem 0.9rem 2.75rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.85rem;
+  background-color: #ffffff;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+}
+.login-form .input-icon { left: 0.95rem; right: auto; top: 1rem; height: 1.1rem; width: 1.1rem; }
+.login-label-linha { display: flex; align-items: baseline; justify-content: space-between; }
+.login-esqueceu { font-size: 0.8rem; font-weight: 600; }
+.login-ver-senha {
+  position: absolute;
+  right: 0.6rem;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  padding: 0.35rem;
+  border: none;
+  border-radius: 0.5rem;
+  background: transparent;
+  color: #94a3b8;
+  cursor: pointer;
+}
+.login-ver-senha:hover { color: #475569; background: #f1f5f9; }
+.login-btn-secundario { border-color: #e2e8f0; }
+.login-btn-secundario:hover { border-color: var(--color-slate-950); }
+
+/* Pontilhado também no painel preto (pontos claros), alinhado com o da parte branca */
+.login-left-panel {
+  background:
+    radial-gradient(rgba(255, 255, 255, 0.10) 1.3px, transparent 1.6px) 0 0 / 22px 22px fixed,
+    var(--color-slate-950);
+}
+
+/* Fonte e tamanho dos campos como na referência */
+.login-form .input-label,
+.login-form .custom-input,
+.login-esqueceu {
+  font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+}
+.login-form .input-label { font-size: 0.85rem; font-weight: 700; color: #0f172a; }
+.login-form .custom-input {
+  padding: 0.62rem 2.6rem;
+  font-size: 0.85rem;
+  border-radius: 0.75rem;
+}
+.login-form .input-icon { top: 50%; transform: translateY(-50%); height: 1rem; width: 1rem; }
+.login-form .input-group { gap: 0.4rem; }
+.login-form { gap: 1.25rem; }
+
+/* Cadastro de morador: texto no preto do painel, borda na cor do pontilhado */
+.login-btn-secundario { border-color: #cfd3da; color: var(--color-slate-950); }

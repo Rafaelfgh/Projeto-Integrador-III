@@ -1,0 +1,30 @@
+/* Só traço, transparência e posição animam (nada de desfoque animado, que trava a tela) */
+.logo-anim { display: block; overflow: visible; }
+.logo-anim-preenche { fill: #f47920; }
+.logo-anim-traco { fill: none; stroke: #ffb066; stroke-width: 22; opacity: 0; }
+.logo-anim-reflexo { opacity: 0; }
+
+.logo-anim-ativa .logo-anim-traco {
+  stroke-dasharray: 1;
+  animation: logo-traca 2.2s cubic-bezier(0.65, 0, 0.35, 1) 0.3s both,
+             logo-traco-some 0.8s ease 2.4s forwards;
+}
+.logo-anim-ativa .logo-anim-preenche { animation: logo-preenche 1s ease 2s both; }
+.logo-anim-ativa .logo-anim-reflexo { animation: logo-reflexo 1.2s ease-in-out 3s both; }
+
+@keyframes logo-traca {
+  from { stroke-dashoffset: 1; opacity: 1; }
+  to   { stroke-dashoffset: 0; opacity: 1; }
+}
+@keyframes logo-traco-some { from { opacity: 1; } to { opacity: 0; } }
+@keyframes logo-preenche { from { opacity: 0; } to { opacity: 1; } }
+@keyframes logo-reflexo {
+  0%   { opacity: 1; transform: skewX(-20deg) translateX(0); }
+  100% { opacity: 1; transform: skewX(-20deg) translateX(1700px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .logo-anim-ativa .logo-anim-traco,
+  .logo-anim-ativa .logo-anim-preenche,
+  .logo-anim-ativa .logo-anim-reflexo { animation: none; }
+}
