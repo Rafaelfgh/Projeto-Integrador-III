@@ -284,14 +284,17 @@ const Perfil = () => {
                         {emailStatus === 'pending' && <span className="badge-pending">Pendente de aprovação</span>}
                         {emailStatus === 'rejected' && <span className="badge-rejected">Solicitação recusada</span>}
                       </label>
-                      <div style={{position: 'relative', display: 'flex', gap: '1rem'}}>
+                      <div style={{display: 'flex', gap: '1rem'}}>
+                        {/* o cadeado fica dentro do campo (antes caía em cima do botão) */}
+                        <div style={{position: 'relative', flex: 1}}>
                         <input 
                           className="saas-input readonly has-icon" 
                           type="text" 
                           value={emailStatus === 'pending' ? newEmail : currentUser.email} 
                           disabled 
                         />
-                        <Lock size={16} className="input-icon-right" style={{top: '12px'}} />
+                        <Lock size={16} className="input-icon-right" style={{top: '50%', transform: 'translateY(-50%)'}} />
+                        </div>
                         <button 
                           type="button" 
                           className="btn-outline-primary" 

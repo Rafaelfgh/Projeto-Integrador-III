@@ -150,7 +150,7 @@ const Reclamacao = () => {
           <div className="header-left">
             <button className="mobile-menu-btn" onClick={() => setSidebarOpen(true)}><Menu size={20} /></button>
             <div className="header-breadcrumbs">
-              <h2 className="header-title">Reclamação Particular</h2>
+              <h2 className="header-title">Nova Reclamação</h2>
               <p className="header-date">Reportar problemas e violações de regras</p>
             </div>
           </div>

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import ErroCarregamento from '../components/ErroCarregamento';
 import {
   Menu, Search, UserCheck, Shield, User, Building, MoreVertical, Check, X, Users, UserPlus, FileText, Ban, Edit2, Key, LayoutDashboard, Clock, Settings, AlertTriangle, Eye, TrendingUp, TrendingDown, DollarSign, AlertCircle, Loader2, Trash2, ShieldOff, Wrench
 } from 'lucide-react';
@@ -90,6 +91,8 @@ const PainelMaster = () => {
   const [users, setUsers] = useState([]);
   const [ocorrencias, setOcorrencias] = useState([]);
   const [loadingData, setLoadingData] = useState(true);
+  const [erroCarga, setErroCarga] = useState(false);
+  const [tentativa, setTentativa] = useState(0);
 
   // Modals state (For Users)
   const [papelEdit, setPapelEdit] = useState(null); // { user, acao: 'promover' | 'revogar' }
@@ -146,18 +149,25 @@ const PainelMaster = () => {
 
     const fetchDashboardData = async () => {
       setLoadingData(true);
+      setErroCarga(false);
       try {
-        const { data: masterData } = await supabase.from('Masters').select('condominio_id').eq('id', currentUser.id).single();
-        if (!masterData) throw new Error('Master sem condomínio');
+        const { data: masterData, error: erroMaster } = await supabase.from('Masters').select('condominio_id').eq('id', currentUser.id).single();
+        if (erroMaster || !masterData) throw erroMaster || new Error('Master sem condomínio');
 
         const condId = masterData.condominio_id;
 
-        // Fetch users
-        const { data: moradores } = await supabase.from('Moradores').select('*').eq('condominio_id', condId);
-        const { data: funcionarios } = await supabase.from('Funcionarios').select('*').eq('condominio_id', condId);
-        const { data: gestao } = await supabase.from('Gestao_Sindicos').select('morador_id').eq('condominio_id', condId).eq('ativo', true);
-        const { data: userEmails } = await supabase.rpc('emails_do_condominio', { p_condominio_id: condId });
-        const { data: esp } = await supabase.from('funcionario_especialidades').select('funcionario_id, categoria');
+        // Tudo ao mesmo tempo (antes era uma consulta depois da outra)
+        const resultados = await Promise.all([
+          supabase.from('Moradores').select('*').eq('condominio_id', condId),
+          supabase.from('Funcionarios').select('*').eq('condominio_id', condId),
+          supabase.from('Gestao_Sindicos').select('morador_id').eq('condominio_id', condId).eq('ativo', true),
+          supabase.rpc('emails_do_condominio', { p_condominio_id: condId }),
+          supabase.from('funcionario_especialidades').select('funcionario_id, categoria'),
+          supabase.from('Ocorrencias').select('*').eq('condominio_id', condId),
+        ]);
+        const falha = resultados.find(res => res.error);
+        if (falha) throw falha.error;
+        const [{ data: moradores }, { data: funcionarios }, { data: gestao }, { data: userEmails }, { data: esp }, { data: occ }] = resultados;
         const espPorFunc = {};
         (esp || []).forEach(e => { (espPorFunc[e.funcionario_id] ||= []).push(e.categoria); });
 
@@ -177,19 +187,18 @@ const PainelMaster = () => {
 
         setUsers(allUsers);
 
-        // Fetch Ocorrencias
-        const { data: occ } = await supabase.from('Ocorrencias').select('*').eq('condominio_id', condId);
-        if (occ) setOcorrencias(occ);
+        setOcorrencias(occ || []);
 
       } catch (err) {
         console.error('Erro ao buscar dados:', err);
+        setErroCarga(true);
       } finally {
         setLoadingData(false);
       }
     };
 
     fetchDashboardData();
-  }, [currentUser]);
+  }, [currentUser, tentativa]);
 
   const handleApprove = async (user) => {
     try {
@@ -280,6 +289,17 @@ const PainelMaster = () => {
   const pipeConcluida = ocorrencias.filter(o => o.status === 'Resolvida').length;
   const totalOcc = ocorrencias.length || 1;
 
+  if (erroCarga) {
+    return (
+      <div className="dashboard-layout">
+        <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
+        <main className="main-content" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <ErroCarregamento onTentar={() => setTentativa(t => t + 1)} />
+        </main>
+      </div>
+    );
+  }
+
   if (loadingData) {
     return (
       <div className="dashboard-layout">
@@ -301,7 +321,7 @@ const PainelMaster = () => {
           <div className="header-left">
             <button className="mobile-menu-btn" onClick={() => setSidebarOpen(true)}><Menu size={20} /></button>
             <div className="header-breadcrumbs">
-              <h2 className="header-title">Governança Global</h2>
+              <h2 className="header-title">{activeTab === 'usuarios' ? 'Gestão de Moradores' : 'Visão Geral do Condomínio'}</h2>
               <p className="header-date">Painel Administrativo ({currentUser?.name})</p>
             </div>
           </div>

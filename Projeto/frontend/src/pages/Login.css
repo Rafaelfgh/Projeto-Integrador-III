@@ -54,22 +54,6 @@
 .login-left-panel { overflow: hidden; isolation: isolate; }
 .login-fundo { position: absolute; inset: 0; pointer-events: none; }
 
-.login-luz {
-  position: absolute;
-  width: 60vmax;
-  height: 60vmax;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(244, 121, 32, 0.12) 0%, rgba(244, 121, 32, 0) 65%);
-  will-change: transform;
-}
-.login-luz-1 { top: -25vmax; left: -20vmax; animation: login-flutua-1 18s ease-in-out infinite alternate; }
-.login-luz-2 {
-  bottom: -30vmax; right: -25vmax;
-  background: radial-gradient(circle, rgba(251, 146, 60, 0.18) 0%, rgba(251, 146, 60, 0) 65%);
-  animation: login-flutua-2 22s ease-in-out infinite alternate;
-}
-@keyframes login-flutua-1 { to { transform: translate(18vmax, 14vmax); } }
-@keyframes login-flutua-2 { to { transform: translate(-16vmax, -12vmax); } }
 
 /* grade de "chão" em perspectiva, andando devagar em direção a quem olha */
 .login-grade {
@@ -138,7 +122,7 @@
 
 /* Quem pediu menos movimento no sistema (acessibilidade) vê tudo parado */
 @media (prefers-reduced-motion: reduce) {
-  .login-luz, .login-grade, .login-slogan,
+  .login-grade, .login-slogan,
   .login-form-intro > * { animation: none !important; }
   .login-particula { display: none; }
 }
@@ -352,8 +336,6 @@
 /* ── Painel branco caprichado ── */
 .login-right-panel {
   background:
-    radial-gradient(circle at 100% 0%, rgba(244, 121, 32, 0.10), transparent 45%),
-    radial-gradient(circle at 0% 100%, rgba(244, 121, 32, 0.06), transparent 40%),
     radial-gradient(rgba(15, 23, 42, 0.18) 1.3px, transparent 1.6px) 0 0 / 22px 22px fixed,
     #ffffff;
 }

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import ErroCarregamento from '../components/ErroCarregamento';
 import { Menu, UserPlus, Check, Wrench, Trash2, Loader2, Eye, Camera, AlertCircle, Search, Users } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
@@ -93,6 +94,7 @@ const GestaoFuncionarios = () => {
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [carregando, setCarregando] = useState(true);
+  const [erroCarga, setErroCarga] = useState(false);
   const [funcionarios, setFuncionarios] = useState([]);
   const [busca, setBusca] = useState('');
   const [versaoFoto, setVersaoFoto] = useState({}); // id -> contador (força link novo após trocar)
@@ -112,12 +114,18 @@ const GestaoFuncionarios = () => {
   const carregar = useCallback(async () => {
     if (!condominioId) return;
     setCarregando(true);
-    const [{ data: funcs, error }, { data: esp }, { data: emails }] = await Promise.all([
+    setErroCarga(false);
+    const [{ data: funcs, error }, { data: esp, error: erroEsp }, { data: emails, error: erroEmails }] = await Promise.all([
       supabase.from('Funcionarios').select('id, nome, status, foto, created_at').eq('condominio_id', condominioId).order('nome'),
       supabase.from('funcionario_especialidades').select('funcionario_id, categoria'),
       supabase.rpc('emails_do_condominio', { p_condominio_id: condominioId }),
     ]);
-    if (error) console.error('Erro ao carregar funcionários:', error);
+    if (error || erroEsp || erroEmails) {
+      console.error('Erro ao carregar funcionários:', error || erroEsp || erroEmails);
+      setErroCarga(true);
+      setCarregando(false);
+      return;
+    }
     const espPorFunc = {};
     (esp || []).forEach(e => { (espPorFunc[e.funcionario_id] ||= []).push(e.categoria); });
     const emailPor = Object.fromEntries((emails || []).map(e => [e.id, e.email]));
@@ -297,6 +305,8 @@ const GestaoFuncionarios = () => {
 
             {carregando ? (
               <p className="gf-vazio"><Loader2 size={18} className="janela-girando" /> Carregando...</p>
+            ) : erroCarga ? (
+              <ErroCarregamento onTentar={carregar} />
             ) : visiveis.length === 0 ? (
               <p className="gf-vazio">{funcionarios.length === 0 ? 'Nenhum funcionário cadastrado ainda.' : 'Nenhum funcionário encontrado.'}</p>
             ) : (

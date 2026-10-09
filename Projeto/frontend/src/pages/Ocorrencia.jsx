@@ -171,7 +171,7 @@ const Ocorrencia = () => {
               <Menu size={20} />
             </button>
             <div className="header-breadcrumbs">
-               <h2 className="header-title">Ocorrência Estrutural</h2>
+               <h2 className="header-title">Nova Ocorrência</h2>
                <p className="header-date">Notifique problemas nas áreas comuns</p>
             </div>
           </div>

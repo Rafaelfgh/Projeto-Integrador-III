@@ -73,3 +73,144 @@ body {
   font-weight: 700;
   line-height: 1;
 }
+
+/* Fonte dos títulos (mesma do "Bem-vindo" do login): títulos de página, de seção,
+   de cartão, nomes de usuário etc. Subtítulos e textos corridos seguem em Inter. */
+h1, h2, h3, h4, h5, h6,
+.act-title, .activity-name, .am-section-title, .am-title, .cadastro-title,
+.fd-title, .feed-ticket-title, .feed-user-name, .gf-card-nome, .gu-user-name,
+.janela-pessoa-nome, .kpi-title-min, .ms-card-title, .ms-empty-title,
+.nav-section-title, .nc-step-title, .nc-title, .notif-title, .oc-card-titulo,
+.pa-title, .perfil-user-name, .pf-comment-name, .pf-modal-title, .pf-task-title,
+.pf-title, .pm-filtro-titulo, .pm-resident-name, .portaria-title, .ps-section-title,
+.quick-action-title, .section-title, .settings-section-title, .sidebar-user-name,
+.stat-title, .upload-title, .w-title, .emp-name {
+  font-family: 'Poppins', 'Inter', sans-serif;
+}
+
+/* ── Visual das telas internas (simples e leve) ──
+   Pontilhado parado e fraquinho no fundo atrás dos cartões; rola junto com o conteúdo
+   (background-attachment: local), então não obriga o navegador a redesenhar a cada rolagem. */
+.fundo-pontilhado,
+.dashboard-content-scroll {
+  background-image: radial-gradient(rgba(15, 23, 42, 0.11) 1.2px, transparent 1.5px);
+  background-size: 22px 22px;
+  background-attachment: local;
+}
+
+/* Entrada rápida do conteúdo ao abrir a tela: os blocos sobem um pouco, em cascata */
+/* vale para todas as telas internas (área de conteúdo abaixo do cabeçalho) */
+.dashboard-content-scroll > :not(.dashboard-content-inner),
+.dashboard-content-inner > *,
+.entrada-suave > * { animation: entrada-sobe 0.35s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.dashboard-content-inner > *:nth-child(2),
+.entrada-suave > *:nth-child(2) { animation-delay: 0.06s; }
+.dashboard-content-inner > *:nth-child(3),
+.entrada-suave > *:nth-child(3) { animation-delay: 0.12s; }
+.dashboard-content-inner > *:nth-child(n+4),
+.entrada-suave > *:nth-child(n+4) { animation-delay: 0.18s; }
+@keyframes entrada-sobe {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  /* vale para todas as telas internas (área de conteúdo abaixo do cabeçalho) */
+.dashboard-content-scroll > :not(.dashboard-content-inner),
+.dashboard-content-inner > *,
+.entrada-suave > * { animation: none; }
+}
+
+/* ── Padrão visual das telas internas (cartões, botões e campos no estilo do login) ──
+   Mantém a cor de cada perfil (--role-primary-color). ":root" na frente dá prioridade
+   sobre o CSS de cada tela; o login tem o próprio visual e fica de fora. */
+
+/* Cartões: cantos arredondados iguais em todo o site */
+:root :is(.stat-card, .quick-action-card, .pf-task-card, .ms-premium-card, .employee-card,
+  .rc-card, .gu-stat-card, .gu-alert-card, .gu-financial-card, .ps-card, .dev-card, .av-card,
+  .portaria-metric-card, .pf-metric-card, .perfil-hero-card, .oc-card, .nc-card,
+  .saas-card-container, .visibility-card) {
+  border-radius: 1rem;
+}
+
+/* Botão principal: degradê na cor do perfil, sobe um pouco no hover, sem sombra */
+:root :is(.btn-primary, .nc-btn-primary, .btn-saas-primary, .btn-primary-saas, .gf-btn-pri,
+  .rc-btn-pri, .av-btn-pri, .dev-btn-pri, .eb-btn-pri, .janela-btn-pri, .btn-qa-primary,
+  .btn-ms-new, .oc-btn-gerenciar, .pa-btn-submit):not(.login-page *) {
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--role-primary-color) 82%, white) 0%,
+    var(--role-primary-color) 100%);
+  color: #fff;
+  border: none;
+  border-radius: 0.75rem;
+  box-shadow: none;
+  font-family: 'Poppins', 'Inter', sans-serif;
+  font-weight: 600;
+  transition: transform 0.2s, filter 0.2s;
+}
+:root :is(.btn-primary, .nc-btn-primary, .btn-saas-primary, .btn-primary-saas, .gf-btn-pri,
+  .rc-btn-pri, .av-btn-pri, .dev-btn-pri, .eb-btn-pri, .janela-btn-pri, .btn-qa-primary,
+  .btn-ms-new, .oc-btn-gerenciar, .pa-btn-submit):not(.login-page *):hover:not(:disabled) {
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--role-primary-color) 82%, white) 0%,
+    var(--role-primary-color) 100%);
+  box-shadow: none;
+  filter: brightness(1.04);
+  transform: translateY(-1px);
+}
+
+/* Botão secundário: branco, borda cinza clara, escurece a borda no hover */
+:root :is(.btn-secondary, .btn-outline-primary, .btn-qa-outline, .btn-qa-secondary,
+  .btn-cancel-saas, .nc-btn-outline, .janela-btn-sec, .av-btn-sec, .dev-btn-sec, .eb-btn-sec,
+  .go-btn-secundario):not(.login-page *) {
+  background: #fff;
+  color: #0f172a;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+  box-shadow: none;
+  font-family: 'Poppins', 'Inter', sans-serif;
+  font-weight: 600;
+  transition: border-color 0.2s, transform 0.2s;
+}
+:root :is(.btn-secondary, .btn-outline-primary, .btn-qa-outline, .btn-qa-secondary,
+  .btn-cancel-saas, .nc-btn-outline, .janela-btn-sec, .av-btn-sec, .dev-btn-sec, .eb-btn-sec,
+  .go-btn-secundario):not(.login-page *):hover:not(:disabled) {
+  background: #fff;
+  border-color: #94a3b8;
+  transform: translateY(-1px);
+}
+
+/* Campos: fonte do login, cantos arredondados, borda clara e contorno suave na cor do perfil */
+:root :is(.saas-input, .pa-input, .gu-input, .nc-input, .janela-input, .search-input,
+  .ms-search-input, .feed-search-input, .feed-comment-input, .pm-filtro-select, .gu-role-select,
+  .feed-select, .pf-select, .fd-select, .saas-select, .nc-select, .pf-textarea,
+  .saas-input-group input:not([type=checkbox]):not([type=radio]):not([type=file]), .saas-input-group textarea):not(.login-page *) {
+  font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+  border-radius: 0.75rem;
+  border: 1px solid #e2e8f0;
+  background-color: #fff;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+:root :is(.saas-input, .pa-input, .gu-input, .nc-input, .janela-input, .search-input,
+  .ms-search-input, .feed-search-input, .feed-comment-input, .pm-filtro-select, .gu-role-select,
+  .feed-select, .pf-select, .fd-select, .saas-select, .nc-select, .pf-textarea,
+  .saas-input-group input:not([type=checkbox]):not([type=radio]):not([type=file]), .saas-input-group textarea):not(.login-page *):focus {
+  outline: none;
+  border-color: var(--role-primary-color);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--role-primary-color) 15%, transparent);
+}
+:root :is(.input-label, .pa-input-label, .saas-label, .saas-input-group label):not(.login-page *) {
+  font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root :is(.btn-primary, .nc-btn-primary, .btn-saas-primary, .gf-btn-pri, .rc-btn-pri,
+    .av-btn-pri, .janela-btn-pri, .btn-secondary, .janela-btn-sec) { transition: none; }
+}
+
+/* Rodinha da espera da sessão (ProtectedRoute) */
+.carregando-sessao {
+  width: 18px; height: 18px; border-radius: 50%;
+  border: 2px solid #e2e8f0; border-top-color: var(--role-primary-color);
+  animation: girar-sessao 0.8s linear infinite;
+}
+@keyframes girar-sessao { to { transform: rotate(360deg); } }

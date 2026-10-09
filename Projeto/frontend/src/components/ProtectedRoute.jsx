@@ -38,11 +38,21 @@ const mensagemBloqueio = (usuario) => {
 };
 
 const ProtectedRoute = ({ allowedRoles }) => {
-  const { currentUser, logout } = useAuth();
+  const { currentUser, logout, sessaoPronta } = useAuth();
   const navigate = useNavigate();
 
   if (!currentUser) {
     return <Navigate to="/login" replace />;
+  }
+
+  // Sessão ainda sendo confirmada: espera em vez de abrir a tela com dados vazios
+  if (!sessaoPronta) {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#f8fafc', color: '#64748b', fontFamily: 'Inter, sans-serif', gap: '0.6rem' }}>
+        <span className="carregando-sessao" aria-hidden="true" />
+        Carregando…
+      </div>
+    );
   }
 
   // Pendente, bloqueado ou recusado: mostra o aviso antes de qualquer página

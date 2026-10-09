@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import ErroCarregamento from '../components/ErroCarregamento';
 import {
   Menu, Search, Building2, MapPin, CalendarDays, User, Mail, Phone, IdCard, X, Check, Ban, RefreshCw, Inbox, Users, Layers,
 } from 'lucide-react';
@@ -191,12 +192,19 @@ const PainelDev = () => {
   const [aba,         setAba]         = useState('PENDENTE');
   const [busca,       setBusca]       = useState('');
   const [aberto,      setAberto]      = useState(null);
+  const [erroCarga,   setErroCarga]   = useState(false);
   const [params, setParams] = useSearchParams();
 
   const carregar = useCallback(async () => {
     setLoading(true);
+    setErroCarga(false);
     const { data, error } = await supabase.rpc('condominios_para_revisao');
-    if (error) console.error('Erro ao buscar condomínios:', error);
+    if (error) {
+      console.error('Erro ao buscar condomínios:', error);
+      setErroCarga(true);
+      setLoading(false);
+      return;
+    }
     setCondominios(data || []);
     setLoading(false);
   }, []);
@@ -268,6 +276,8 @@ const PainelDev = () => {
 
             {loading ? (
               <div className="dev-vazio"><RefreshCw size={30} className="dev-girar" /><p>Carregando...</p></div>
+            ) : erroCarga ? (
+              <ErroCarregamento onTentar={carregar} />
             ) : lista.length === 0 ? (
               <div className="dev-vazio">
                 <Inbox size={40} />

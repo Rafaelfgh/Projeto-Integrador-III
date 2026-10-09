@@ -1,4 +1,5 @@
 import React, { useState, useRef, useMemo, useEffect, useCallback } from 'react';
+import ErroCarregamento from '../components/ErroCarregamento';
 import {
   Menu,
   X,
@@ -448,6 +449,7 @@ const PainelFuncionario = () => {
   const [nomes,        setNomes]        = useState({});
   const [fotos,        setFotos]        = useState({});
   const [loading,      setLoading]      = useState(true);
+  const [erroCarga,    setErroCarga]    = useState(false);
   const [selecionada,  setSelecionada]  = useState(null);
   const [params, setParams] = useSearchParams();
 
@@ -455,11 +457,18 @@ const PainelFuncionario = () => {
   const buscarTarefas = useCallback(async () => {
     if (!currentUser?.id) return;
     setLoading(true);
+    setErroCarga(false);
 
-    const { data: esp } = await supabase
+    const { data: esp, error: erroEsp } = await supabase
       .from('funcionario_especialidades')
       .select('categoria')
       .eq('funcionario_id', currentUser.id);
+    if (erroEsp) {
+      console.error('Erro ao buscar especialidades:', erroEsp);
+      setErroCarga(true);
+      setLoading(false);
+      return;
+    }
     const especialidades = (esp || []).map(e => e.categoria);
 
     let consulta = supabase
@@ -472,7 +481,12 @@ const PainelFuncionario = () => {
       : consulta.eq('atribuido_a', currentUser.id);
 
     const { data: occData, error: erroOcc } = await consulta;
-    if (erroOcc) console.error('Erro ao buscar tarefas:', erroOcc);
+    if (erroOcc) {
+      console.error('Erro ao buscar tarefas:', erroOcc);
+      setErroCarga(true);
+      setLoading(false);
+      return;
+    }
     const lista = occData || [];
 
     // Nome, bloco e apartamento dos moradores (batch, sem N+1)
@@ -557,7 +571,7 @@ const PainelFuncionario = () => {
               <Menu size={20} />
             </button>
             <div className="header-breadcrumbs">
-              <h2 className="header-title">Minhas Tarefas</h2>
+              <h2 className="header-title">Minhas Tarefas Técnicas</h2>
               <p className="header-date">Tarefas atribuídas a você e ocorrências da sua especialidade</p>
             </div>
           </div>
@@ -641,6 +655,8 @@ const PainelFuncionario = () => {
               <div className="ms-empty">
                 <p style={{ color:'#94a3b8' }}>Carregando suas tarefas...</p>
               </div>
+            ) : erroCarga ? (
+              <ErroCarregamento onTentar={buscarTarefas} />
             ) : ocorrenciasFiltradas.length > 0 ? (
               <div className="ms-cards-grid">
                 {ocorrenciasFiltradas.map(ocorrencia => (

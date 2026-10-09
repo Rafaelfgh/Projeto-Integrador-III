@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import ErroCarregamento from '../components/ErroCarregamento';
 import { Menu, Layers, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
@@ -20,16 +21,23 @@ const BlocosCondominio = () => {
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [carregando, setCarregando] = useState(true);
+  const [erroCarga, setErroCarga] = useState(false);
   const [blocos, setBlocos] = useState([]);
   const [moradoresPor, setMoradoresPor] = useState({}); // nome do bloco (minúsculo) -> quantidade
 
   const carregar = useCallback(async () => {
     if (!condominioId) return;
-    const [{ data, error }, { data: moradores }] = await Promise.all([
+    setErroCarga(false);
+    const [{ data, error }, { data: moradores, error: erroMoradores }] = await Promise.all([
       supabase.from('blocos').select('id, nome, andares, aptos_por_andar').eq('condominio_id', condominioId).order('nome'),
       supabase.from('Moradores').select('bloco').eq('condominio_id', condominioId),
     ]);
-    if (error) console.error('Erro ao carregar blocos:', error);
+    if (error || erroMoradores) {
+      console.error('Erro ao carregar blocos:', error || erroMoradores);
+      setErroCarga(true);
+      setCarregando(false);
+      return;
+    }
     const contagem = {};
     (moradores || []).forEach(m => {
       const chave = (m.bloco || '').trim().toLowerCase();
@@ -106,6 +114,8 @@ const BlocosCondominio = () => {
 
               {carregando ? (
                 <p className="bc-vazio"><Loader2 size={18} className="janela-girando" /> Carregando...</p>
+              ) : erroCarga ? (
+                <ErroCarregamento onTentar={() => { setCarregando(true); carregar(); }} />
               ) : (
                 <>
                   {blocos.length === 0 && (

@@ -97,9 +97,8 @@ const Login = () => {
     <div className="login-page">
       {/* Left Column (Logo Area) */}
       <div className="login-left-panel">
-        {/* Fundo vivo: uma luz laranja bem fraca, grade em perspectiva e poucos pontos de luz */}
+        {/* Fundo vivo: grade em perspectiva e poucos pontos de luz */}
         <div className="login-fundo" aria-hidden="true">
-          <span className="login-luz login-luz-1" />
           <span className="login-grade" />
           {FAISCAS.map((f, i) => (
             <span key={i} className="login-particula" style={f}>

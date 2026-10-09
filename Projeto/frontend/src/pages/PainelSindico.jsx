@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import ErroCarregamento from '../components/ErroCarregamento';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Menu, CheckCircle2, AlertCircle, Clock, BarChart3, X, Send, ShieldAlert,
@@ -572,25 +573,32 @@ const PainelSindico = () => {
   const [statusChart,     setStatusChart]     = useState(dataStatus);
   const [gerenciando,     setGerenciando]     = useState(null);
 
+  const [carga, setCarga] = useState('carregando'); // 'carregando' | 'ok' | 'erro'
+
   const fetchDados = React.useCallback(async () => {
     if (!currentUser?.condominio_id) return;
+    setCarga(c => (c === 'ok' ? 'ok' : 'carregando'));
 
-    const [{ data: funcs }, { data: esp }] = await Promise.all([
+    // Tudo ao mesmo tempo (antes as ocorrências e reclamações esperavam uma pela outra)
+    const resultados = await Promise.all([
       supabase.from('Funcionarios').select('id, nome').eq('condominio_id', currentUser.condominio_id).eq('status', 'ATIVO'),
       supabase.from('funcionario_especialidades').select('funcionario_id, categoria'),
+      supabase.from('Ocorrencias')
+        .select('*, Moradores(nome, bloco, apartamento), Funcionarios(nome)')
+        .eq('condominio_id', currentUser.condominio_id)
+        .order('created_at', { ascending: false }),
+      supabase.from('Reclamacoes')
+        .select('*, Moradores(nome, bloco, apartamento)')
+        .eq('condominio_id', currentUser.condominio_id)
+        .order('created_at', { ascending: false }),
     ]);
-
-    const { data: occ } = await supabase
-      .from('Ocorrencias')
-      .select('*, Moradores(nome, bloco, apartamento), Funcionarios(nome)')
-      .eq('condominio_id', currentUser.condominio_id)
-      .order('created_at', { ascending: false });
-
-    const { data: rec } = await supabase
-      .from('Reclamacoes')
-      .select('*, Moradores(nome, bloco, apartamento)')
-      .eq('condominio_id', currentUser.condominio_id)
-      .order('created_at', { ascending: false });
+    const falha = resultados.find(res => res.error);
+    if (falha) {
+      console.error('Erro ao carregar o painel do síndico:', falha.error);
+      setCarga('erro');
+      return;
+    }
+    const [{ data: funcs }, { data: esp }, { data: occ }, { data: rec }] = resultados;
 
     // Carga real da equipe: especialidades e tarefas abertas por funcionário
     const espPorFunc = {};
@@ -672,6 +680,7 @@ const PainelSindico = () => {
     } else {
       setOccurrencesList(recentOccurrences);
     }
+    setCarga('ok');
   }, [currentUser?.condominio_id]);
 
   React.useEffect(() => { fetchDados(); }, [fetchDados]);
@@ -699,7 +708,7 @@ const PainelSindico = () => {
           <div className="header-left">
             <button className="mobile-menu-btn" onClick={() => setSidebarOpen(true)}><Menu size={20} /></button>
             <div className="header-breadcrumbs">
-              <h2 className="header-title">Painel do Síndico</h2>
+              <h2 className="header-title">Dashboard Síndico</h2>
               <p className="header-date">{currentUser?.condominio_nome || 'Condomínio'}</p>
             </div>
           </div>
@@ -716,6 +725,11 @@ const PainelSindico = () => {
         <ContextBanner />
 
         <div className="dashboard-content-scroll">
+          {carga === 'erro' ? (
+            <ErroCarregamento onTentar={fetchDados} />
+          ) : carga === 'carregando' ? (
+            <div style={{ padding: '3rem', textAlign: 'center', color: '#94a3b8' }}>Carregando...</div>
+          ) : (
           <div className="dashboard-content-inner" style={{ maxWidth:1400, margin:'0 auto' }}>
 
             <div style={{ marginBottom:'1.25rem' }}>
@@ -891,6 +905,7 @@ const PainelSindico = () => {
               </div>{/* /right */}
             </div>
           </div>
+          )}
         </div>
       </main>
 

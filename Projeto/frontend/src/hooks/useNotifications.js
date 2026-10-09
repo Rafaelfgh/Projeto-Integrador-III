@@ -2,11 +2,23 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../backend/supabaseClient';
 import { useAuth } from '../contexts/AuthContext';
 
+// Lista guardada entre as trocas de tela (o Realtime avisa das novas)
+let cache = { usuario: null, lista: [], em: 0 };
+const VALIDADE = 60000;
+
 export const useNotifications = () => {
   const { currentUser } = useAuth();
-  const [notifications, setNotifications] = useState([]);
-  const [unreadCount, setUnreadCount] = useState(0);
-  const [loading, setLoading] = useState(true);
+  const doCache = cache.usuario === currentUser?.id ? cache.lista : [];
+  const [notifications, setNotificationsEstado] = useState(doCache);
+  const [unreadCount, setUnreadCount] = useState(doCache.filter(n => !n.lida).length);
+  const [loading, setLoading] = useState(doCache.length === 0 && cache.usuario !== currentUser?.id);
+  const setNotifications = useCallback((valor) => {
+    setNotificationsEstado(prev => {
+      const nova = typeof valor === 'function' ? valor(prev) : valor;
+      cache = { ...cache, usuario: currentUser?.id, lista: nova };
+      return nova;
+    });
+  }, [currentUser?.id]);
 
   const fetchNotifications = useCallback(async () => {
     if (!currentUser?.id) return;
@@ -22,6 +34,7 @@ export const useNotifications = () => {
 
       if (error) throw error;
 
+      cache.em = Date.now();
       setNotifications(data || []);
       setUnreadCount((data || []).filter(n => !n.lida).length);
     } catch (error) {
@@ -29,10 +42,10 @@ export const useNotifications = () => {
     } finally {
       setLoading(false);
     }
-  }, [currentUser?.id]);
+  }, [currentUser?.id, setNotifications]);
 
   useEffect(() => {
-    fetchNotifications();
+    if (cache.usuario !== currentUser?.id || Date.now() - cache.em > VALIDADE) fetchNotifications();
 
     if (!currentUser?.id) return;
 

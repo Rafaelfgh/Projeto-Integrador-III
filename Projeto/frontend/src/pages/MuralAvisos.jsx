@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import ErroCarregamento from '../components/ErroCarregamento';
 import {
   Menu, Megaphone, CalendarDays, Clock, Plus, X, ImagePlus, Trash2, TimerOff, RefreshCw, Inbox, Loader2,
 } from 'lucide-react';
@@ -229,6 +230,7 @@ const MuralAvisos = () => {
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [loading,     setLoading]     = useState(true);
+  const [erroCarga,   setErroCarga]   = useState(false);
   const [avisos,      setAvisos]      = useState([]);
   const [fotos,       setFotos]       = useState({});
   const [aba,         setAba]         = useState('ativos');
@@ -247,13 +249,19 @@ const MuralAvisos = () => {
   const carregar = useCallback(async () => {
     if (!currentUser?.condominio_id) return;
     setLoading(true);
+    setErroCarga(false);
     // O RLS esconde os expirados de quem não é da gestão
     const { data, error } = await supabase
       .from('avisos')
       .select('*')
       .eq('condominio_id', currentUser.condominio_id)
       .order('created_at', { ascending: false });
-    if (error) console.error('Erro ao buscar avisos:', error);
+    if (error) {
+      console.error('Erro ao buscar avisos:', error);
+      setErroCarga(true);
+      setLoading(false);
+      return;
+    }
     const lista = data || [];
 
     const caminhos = lista.flatMap(a => a.imagens || []);
@@ -341,6 +349,8 @@ const MuralAvisos = () => {
 
             {loading ? (
               <div className="av-vazio"><RefreshCw size={30} className="av-girar" /><p>Carregando...</p></div>
+            ) : erroCarga ? (
+              <ErroCarregamento onTentar={carregar} />
             ) : lista.length === 0 ? (
               <div className="av-vazio">
                 <Inbox size={40} />

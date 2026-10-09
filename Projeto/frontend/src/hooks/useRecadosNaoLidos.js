@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { useLocation } from 'react-router-dom';
 import { supabase } from '../backend/supabaseClient';
 
 // Recados não lidos (bolinha do menu e marcação em cada recado).
@@ -14,10 +13,13 @@ export const marcarRecadoLido = async (recadoId) => {
   avisarLeituraRecados();
 };
 
+// Guardado entre as trocas de tela (mesma ideia dos contadores do menu)
+let cache = { valor: { total: 0, porRecado: {} }, em: 0 };
+const VALIDADE = 30000;
+
 // Devolve { total, porRecado: { [id]: n } }
 export const useRecadosNaoLidos = (ativo) => {
-  const [estado, setEstado] = useState({ total: 0, porRecado: {} });
-  const { pathname } = useLocation();
+  const [estado, setEstado] = useState(cache.valor);
 
   useEffect(() => {
     if (!ativo) return undefined;
@@ -28,11 +30,11 @@ export const useRecadosNaoLidos = (ativo) => {
         console.error('Erro ao contar recados não lidos:', error);
         return;
       }
-      if (!vivo) return;
       const porRecado = Object.fromEntries((data || []).filter(l => l.nao_lidos > 0).map(l => [l.recado_id, l.nao_lidos]));
-      setEstado({ total: Object.values(porRecado).reduce((a, b) => a + b, 0), porRecado });
+      cache = { valor: { total: Object.values(porRecado).reduce((a, b) => a + b, 0), porRecado }, em: Date.now() };
+      if (vivo) setEstado(cache.valor);
     };
-    carregar();
+    if (Date.now() - cache.em > VALIDADE) carregar();
     const intervalo = setInterval(carregar, 60000);
     window.addEventListener(EVENTO_RECADOS, carregar);
     return () => {
@@ -40,7 +42,7 @@ export const useRecadosNaoLidos = (ativo) => {
       clearInterval(intervalo);
       window.removeEventListener(EVENTO_RECADOS, carregar);
     };
-  }, [ativo, pathname]);
+  }, [ativo]);
 
   return estado;
 };

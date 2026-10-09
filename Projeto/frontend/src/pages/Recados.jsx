@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import ErroCarregamento from '../components/ErroCarregamento';
 import { Menu, Mail, Plus, Users, UserCheck, Trash2, Loader2, MessageSquareReply, Send, Inbox } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
@@ -33,6 +34,7 @@ const Recados = () => {
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [carregando, setCarregando] = useState(true);
+  const [erroCarga, setErroCarga] = useState(false);
   const [recados, setRecados] = useState([]);
   const [funcionarios, setFuncionarios] = useState([]); // nomes de quem recebeu (e lista para escolher)
   const [aberto, setAberto] = useState(null);
@@ -50,6 +52,7 @@ const Recados = () => {
   const carregar = useCallback(async () => {
     if (!condominioId) return;
     setCarregando(true);
+    setErroCarga(false);
     const [{ data, error }, funcs] = await Promise.all([
       supabase
         .from('recados')
@@ -57,7 +60,12 @@ const Recados = () => {
         .order('created_at', { ascending: false }),
       supabase.from('Funcionarios').select('id, nome, foto, status').eq('condominio_id', condominioId).order('nome'),
     ]);
-    if (error) console.error('Erro ao carregar recados:', error);
+    if (error) {
+      console.error('Erro ao carregar recados:', error);
+      setErroCarga(true);
+      setCarregando(false);
+      return;
+    }
     setRecados((data || []).map(r => ({
       ...r,
       destinatarios: (r.recado_destinatarios || []).map(d => d.funcionario_id),
@@ -182,6 +190,8 @@ const Recados = () => {
 
             {carregando ? (
               <p className="rc-vazio"><Loader2 size={18} className="janela-girando" /> Carregando...</p>
+            ) : erroCarga ? (
+              <ErroCarregamento onTentar={carregar} />
             ) : recados.length === 0 ? (
               <div className="rc-vazio">
                 <Inbox size={36} />

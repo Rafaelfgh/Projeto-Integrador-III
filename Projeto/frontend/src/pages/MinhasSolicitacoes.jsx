@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import ErroCarregamento from '../components/ErroCarregamento';
 import { 
   FileText,
   Settings,
@@ -52,6 +53,8 @@ const getTimelineStepIndex = (status) => {
 
 const MinhasSolicitacoes = () => {
   const [requestsList, setRequestsList] = useState([]);
+  const [carga, setCarga] = useState('carregando'); // 'carregando' | 'ok' | 'erro'
+  const [tentativa, setTentativa] = useState(0);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeFilter, setActiveFilter] = useState('Todos');
   const [aba, setAba] = useState('ocorrencias');          // 'ocorrencias' | 'reclamacoes'
@@ -97,16 +100,17 @@ const MinhasSolicitacoes = () => {
   React.useEffect(() => {
     async function fetchMyRequests() {
       if (!currentUser?.id) return;
-      
-      const { data: occ } = await supabase.from('Ocorrencias')
-        .select('*')
-        .eq('morador_id', currentUser.id)
-        .order('created_at', { ascending: false });
-        
-      const { data: rec } = await supabase.from('Reclamacoes')
-        .select('*')
-        .eq('morador_id', currentUser.id)
-        .order('created_at', { ascending: false });
+      setCarga('carregando');
+
+      const [{ data: occ, error: erroOcc }, { data: rec, error: erroRec }] = await Promise.all([
+        supabase.from('Ocorrencias').select('*').eq('morador_id', currentUser.id).order('created_at', { ascending: false }),
+        supabase.from('Reclamacoes').select('*').eq('morador_id', currentUser.id).order('created_at', { ascending: false }),
+      ]);
+      if (erroOcc || erroRec) {
+        console.error('Erro ao buscar solicitações:', erroOcc || erroRec);
+        setCarga('erro');
+        return;
+      }
 
       // Nomes (responsável, quem colocou em andamento, quem concluiu) e fotos das provas
       const [mapaNomes, mapaFotos] = await Promise.all([
@@ -165,6 +169,7 @@ const MinhasSolicitacoes = () => {
       
       all.sort((a, b) => b.timestamp - a.timestamp);
       setRequestsList(all);
+      setCarga('ok');
 
       // Se a tela foi aberta via link com ?ocorrenciaId=, abre o modal já focado naquela ocorrência
       const ocorrenciaIdParam = searchParams.get('ocorrenciaId');
@@ -182,7 +187,7 @@ const MinhasSolicitacoes = () => {
       }
     }
     fetchMyRequests();
-  }, [currentUser?.id, searchParams]);
+  }, [currentUser?.id, searchParams, tentativa]);
 
   // Fecha o detalhe e tira do endereço o link da notificação (para poder abrir de novo)
   const fecharDetalhe = () => {
@@ -381,7 +386,11 @@ const MinhasSolicitacoes = () => {
             )}
 
             {/* Premium SaaS Cards Grid */}
-            {filteredRequests.length > 0 ? (
+            {carga === 'carregando' ? (
+              <div className="ms-empty"><p className="ms-empty-desc">Carregando...</p></div>
+            ) : carga === 'erro' ? (
+              <ErroCarregamento onTentar={() => setTentativa(t => t + 1)} />
+            ) : filteredRequests.length > 0 ? (
               <div className="ms-cards-grid">
                 {filteredRequests.map(req => {
                   const theme = getCategoryTheme(req.category);

@@ -55,6 +55,9 @@ export const AuthProvider = ({ children }) => {
 
   // visualContext controla o overlay de UI (MASTER, SINDICO, FUNCIONARIO, MORADOR)
   const [visualContext, setVisualContext] = useState(null);
+  // Só libera as telas depois de confirmar a sessão no Supabase: antes disso as
+  // consultas podiam sair sem login e voltar vazias ("0 ocorrências" falso).
+  const [sessaoPronta, setSessaoPronta] = useState(false);
 
   // Toast state
   const [toastMessage, setToastMessage] = useState(null);
@@ -76,6 +79,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = (userData) => {
     setCurrentUser(userData);
+    setSessaoPronta(true);
     setVisualContext(userData.role);
     localStorage.setItem('@PM:user', JSON.stringify(userData));
   };
@@ -114,9 +118,10 @@ export const AuthProvider = ({ children }) => {
   }, [limparSessaoLocal]);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (!session) limparSessaoLocal();
-      else refreshProfile();
+      else await refreshProfile();
+      setSessaoPronta(true);
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
@@ -187,6 +192,7 @@ export const AuthProvider = ({ children }) => {
 
   return (
     <AuthContext.Provider value={{
+      sessaoPronta,
       currentUser,
       login,
       logout,

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import ErroCarregamento from '../components/ErroCarregamento';
 import { Menu, Home, User, UserCog, CalendarDays, Hourglass, RefreshCw, Inbox, ScanSearch } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
@@ -29,7 +30,7 @@ const MODOS = {
     vazio: 'Nenhuma ocorrência pessoal por aqui',
   },
   prolongadas: {
-    titulo: `Em andamento há +${DIAS_PROLONGADO} dias`,
+    titulo: `Em andamento +${DIAS_PROLONGADO} dias`,
     subtitulo: 'Para você acompanhar. Não quer dizer que estejam atrasadas',
     vazio: `Nenhuma ocorrência em andamento há mais de ${DIAS_PROLONGADO} dias`,
   },
@@ -53,6 +54,7 @@ const OcorrenciasGestao = ({ modo }) => {
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [loading,     setLoading]     = useState(true);
+  const [erroCarga,   setErroCarga]   = useState(false);
   const [itens,       setItens]       = useState([]);
   const [nomes,       setNomes]       = useState({});
   const [fotos,       setFotos]       = useState({});
@@ -62,6 +64,7 @@ const OcorrenciasGestao = ({ modo }) => {
   const carregar = useCallback(async () => {
     if (!currentUser?.condominio_id) return;
     setLoading(true);
+    setErroCarga(false);
 
     let consulta = supabase
       .from('Ocorrencias')
@@ -78,7 +81,12 @@ const OcorrenciasGestao = ({ modo }) => {
     }
 
     const { data, error } = await consulta;
-    if (error) console.error('Erro ao buscar ocorrências:', error);
+    if (error) {
+      console.error('Erro ao buscar ocorrências:', error);
+      setErroCarga(true);
+      setLoading(false);
+      return;
+    }
     const lista = data || [];
 
     const [mapaNomes, mapaFotos] = await Promise.all([
@@ -148,6 +156,8 @@ const OcorrenciasGestao = ({ modo }) => {
 
             {loading ? (
               <div className="oc-vazio"><RefreshCw size={32} className="oc-spin" /><p>Carregando...</p></div>
+            ) : erroCarga ? (
+              <ErroCarregamento onTentar={carregar} />
             ) : visiveis.length === 0 ? (
               <div className="oc-vazio"><Inbox size={40} /><h4>{config.vazio}</h4></div>
             ) : (

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import ErroCarregamento from '../components/ErroCarregamento';
 import {
   Menu, Search, CheckCircle2, Clock, UserCog, User, CalendarDays, Timer,
   ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Lock, Pin, RefreshCw, Image as ImageIcon, Trophy
@@ -49,6 +50,7 @@ const OcorrenciasConcluidas = () => {
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [loading,     setLoading]     = useState(true);
+  const [erroCarga,   setErroCarga]   = useState(false);
   const [itens,       setItens]       = useState([]);
   const [fotos,       setFotos]       = useState({});
   const [aberto,      setAberto]      = useState({});
@@ -61,6 +63,7 @@ const OcorrenciasConcluidas = () => {
   const carregar = useCallback(async () => {
     if (!currentUser?.condominio_id) return;
     setLoading(true);
+    setErroCarga(false);
 
     let consulta = supabase
       .from('Ocorrencias')
@@ -71,7 +74,12 @@ const OcorrenciasConcluidas = () => {
       consulta = consulta.gte('concluida_em', new Date(Date.now() - Number(periodo) * 864e5).toISOString());
     }
     const { data: occ, error } = await consulta.order('concluida_em', { ascending: false, nullsFirst: false });
-    if (error) console.error('Erro ao buscar concluídas:', error);
+    if (error) {
+      console.error('Erro ao buscar concluídas:', error);
+      setErroCarga(true);
+      setLoading(false);
+      return;
+    }
     const lista = occ || [];
 
     // Histórico (andamento e resolução, com provas): visível só para gestão e equipe
@@ -235,6 +243,8 @@ const OcorrenciasConcluidas = () => {
                 <RefreshCw size={32} className="oc-spin" />
                 <p>Carregando...</p>
               </div>
+            ) : erroCarga ? (
+              <ErroCarregamento onTentar={carregar} />
             ) : filtrados.length === 0 ? (
               <div className="oc-vazio">
                 <CheckCircle2 size={40} />

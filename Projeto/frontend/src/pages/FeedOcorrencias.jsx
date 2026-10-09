@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import ErroCarregamento from '../components/ErroCarregamento';
 import {
   Menu, Search, BellOff, Clock, FileEdit, Send, Trash2, MessageCircle, Loader2,
   RefreshCw, ChevronDown, ChevronUp, UserCog, CheckCircle2, Pin, Pencil
@@ -50,6 +51,7 @@ const FeedOcorrencias = () => {
   const [nomes,          setNomes]          = useState({});
   const [fotos,          setFotos]          = useState({});
   const [loading,        setLoading]        = useState(true);
+  const [erroCarga,      setErroCarga]      = useState(false);
   const [sidebarOpen,    setSidebarOpen]    = useState(false);
   const [aba,            setAba]            = useState('abertas');
   const [searchTerm,     setSearchTerm]     = useState('');
@@ -74,6 +76,7 @@ const FeedOcorrencias = () => {
   const fetchTudo = useCallback(async () => {
     if (!currentUser?.condominio_id) return;
     setLoading(true);
+    setErroCarga(false);
 
     // Mural = só ocorrências de área comum. As pessoais ficam com o síndico.
     // O RLS ainda limita as concluídas dos moradores a 14 dias.
@@ -83,7 +86,12 @@ const FeedOcorrencias = () => {
       .eq('condominio_id', currentUser.condominio_id)
       .eq('privacidade', 'mural')
       .order('created_at', { ascending: false });
-    if (erroOcc) console.error('Erro ao buscar ocorrências:', erroOcc);
+    if (erroOcc) {
+      console.error('Erro ao buscar ocorrências:', erroOcc);
+      setErroCarga(true);
+      setLoading(false);
+      return;
+    }
     const lista = occData || [];
     const ids   = lista.map(o => o.id);
 
@@ -331,6 +339,8 @@ const FeedOcorrencias = () => {
                 <RefreshCw size={36} className="feed-spin" style={{ marginBottom:'1rem', color:'#cbd5e1' }} />
                 <p style={{ color:'#94a3b8' }}>Carregando...</p>
               </div>
+            ) : erroCarga ? (
+              <ErroCarregamento onTentar={fetchTudo} />
             ) : filtradas.length > 0 ? (
               <div className="feed-ticket-list">
                 {filtradas.map(item => {

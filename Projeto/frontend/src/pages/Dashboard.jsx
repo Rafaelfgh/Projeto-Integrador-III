@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import ErroCarregamento from '../components/ErroCarregamento';
 import {
   FileText,
   Settings,
@@ -116,13 +117,23 @@ const Dashboard = () => {
 
   const [statsData, setStatsData] = useState(stats);
   const [activities, setActivities] = useState(recentActivities);
+  const [carga, setCarga] = useState('carregando'); // 'carregando' | 'ok' | 'erro'
+  const [tentativa, setTentativa] = useState(0);
 
   React.useEffect(() => {
     async function fetchData() {
       if (!currentUser?.condominio_id) return;
-      
-      const { data: occ } = await supabase.from('Ocorrencias').select('*').eq('condominio_id', currentUser.condominio_id).order('created_at', { ascending: false });
-      const { data: rec } = await supabase.from('Reclamacoes').select('*').eq('condominio_id', currentUser.condominio_id).order('created_at', { ascending: false });
+      setCarga('carregando');
+
+      const [{ data: occ, error: erroOcc }, { data: rec, error: erroRec }] = await Promise.all([
+        supabase.from('Ocorrencias').select('*').eq('condominio_id', currentUser.condominio_id).order('created_at', { ascending: false }),
+        supabase.from('Reclamacoes').select('*').eq('condominio_id', currentUser.condominio_id).order('created_at', { ascending: false }),
+      ]);
+      if (erroOcc || erroRec) {
+        console.error('Erro ao carregar a visão geral:', erroOcc || erroRec);
+        setCarga('erro');
+        return;
+      }
       
       let all = [];
       if (occ) {
@@ -200,9 +211,10 @@ const Dashboard = () => {
           },
         ]);
       }
+      setCarga('ok');
     }
     fetchData();
-  }, [currentUser?.condominio_id]);
+  }, [currentUser?.condominio_id, tentativa]);
 
   return (
     <div className="dashboard-layout">
@@ -270,6 +282,11 @@ const Dashboard = () => {
 
         {/* Corpo do Dashboard */}
         <div className="dashboard-content-scroll">
+          {carga === 'erro' ? (
+            <ErroCarregamento onTentar={() => setTentativa(t => t + 1)} />
+          ) : carga === 'carregando' ? (
+            <div style={{ padding: '3rem', textAlign: 'center', color: '#94a3b8' }}>Carregando...</div>
+          ) : (
           <div className="dashboard-content-inner">
             
             {/* Seção das Métricas (Stats Cards com Sparklines) */}
@@ -410,6 +427,7 @@ const Dashboard = () => {
             </div>
 
           </div>
+          )}
         </div>
       </main>
     </div>

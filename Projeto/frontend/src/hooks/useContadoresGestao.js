@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { useLocation } from 'react-router-dom';
 import { supabase } from '../backend/supabaseClient';
 
 // Nome do evento disparado quando uma ocorrência muda de status, para as
@@ -10,9 +9,13 @@ export const avisarMudancaOcorrencias = () => window.dispatchEvent(new Event(EVE
 // Quantidades das bolinhas do menu do síndico/master:
 // analise = ocorrências do mural em análise; pessoais = pessoais em análise;
 // moradores_pendentes = moradores aguardando aprovação (bolinha do master).
+// Guardados entre as trocas de tela: o menu mostra o último valor na hora e só
+// busca de novo se já passou um tempinho (ou se alguém avisou que mudou).
+let cache = { valor: { analise: 0, pessoais: 0, moradores_pendentes: 0 }, em: 0 };
+const VALIDADE = 30000;
+
 export const useContadoresGestao = (ativo) => {
-  const [contadores, setContadores] = useState({ analise: 0, pessoais: 0, moradores_pendentes: 0 });
-  const { pathname } = useLocation();
+  const [contadores, setContadores] = useState(cache.valor);
 
   useEffect(() => {
     if (!ativo) return undefined;
@@ -20,9 +23,10 @@ export const useContadoresGestao = (ativo) => {
     const carregar = async () => {
       const { data, error } = await supabase.rpc('contadores_gestao');
       if (error) console.error('Erro ao carregar contadores:', error);
+      if (data) cache = { valor: data, em: Date.now() };
       if (vivo && data) setContadores(data);
     };
-    carregar();
+    if (Date.now() - cache.em > VALIDADE) carregar();
     const intervalo = setInterval(carregar, 60000);
     window.addEventListener(EVENTO_CONTADORES, carregar);
     return () => {
@@ -30,7 +34,7 @@ export const useContadoresGestao = (ativo) => {
       clearInterval(intervalo);
       window.removeEventListener(EVENTO_CONTADORES, carregar);
     };
-  }, [ativo, pathname]);
+  }, [ativo]);
 
   return contadores;
 };
