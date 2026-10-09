@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { combinaBusca } from '../utils/busca';
 import ErroCarregamento from '../components/ErroCarregamento';
 import { Menu, UserPlus, Check, Wrench, Trash2, Loader2, Eye, Camera, AlertCircle, Search, Users } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -135,10 +136,8 @@ const GestaoFuncionarios = () => {
 
   useEffect(() => { carregar(); }, [carregar]);
 
-  const termo = busca.trim().toLowerCase();
   const visiveis = funcionarios.filter(f =>
-    !termo || f.nome?.toLowerCase().includes(termo) || f.email?.toLowerCase().includes(termo) ||
-    f.especialidades.some(c => rotulo(c).toLowerCase().includes(termo))
+    combinaBusca(busca, [f.nome, f.email, ...f.especialidades.map(rotulo)])
   );
 
   // ---------- Cadastrar ----------

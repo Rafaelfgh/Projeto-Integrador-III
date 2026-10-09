@@ -234,7 +234,8 @@ const MuralAvisos = () => {
   const [avisos,      setAvisos]      = useState([]);
   const [fotos,       setFotos]       = useState({});
   const [aba,         setAba]         = useState('ativos');
-  const [criando,     setCriando]     = useState(false);
+  // Atalho da Visão Geral (?novo=1) já abre o formulário de novo aviso
+  const [criando,     setCriando]     = useState(() => isGestor && new URLSearchParams(window.location.search).get('novo') === '1');
   const [confirmar,   setConfirmar]   = useState(null);
   const [agora,       setAgora]       = useState(() => Date.now());
 

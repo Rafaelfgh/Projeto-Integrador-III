@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import FiltroData, { FILTRO_DATA_VAZIO, temFiltroData, passaFiltroData, anosDe } from '../components/FiltroData';
 import ErroCarregamento from '../components/ErroCarregamento';
 import {
   FileText,
@@ -17,11 +18,12 @@ import {
   AlertCircle,
   Clock,
   CheckCircle2,
-  Search,
   MessageSquare,
   TrendingUp,
   TrendingDown,
-  ChevronRight
+  ChevronRight,
+  Megaphone,
+  Mail
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -35,6 +37,7 @@ const Dashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const navigate = useNavigate();
   const { currentUser } = useAuth();
+  const isGestor = currentUser?.role === 'SINDICO' || currentUser?.role === 'MASTER';
 
   // SaaS-style stats com mini sparklines
   const stats = [
@@ -73,41 +76,6 @@ const Dashboard = () => {
     },
   ];
 
-  const recentActivities = [
-    {
-      id: 1,
-      title: 'Vazamento no Bloco A, 3º andar',
-      type: 'Ocorrência',
-      time: '2h atrás',
-      status: 'Aberto',
-      statusColor: 'status-rose',
-      icon: AlertCircle,
-      iconColor: 'text-rose-500',
-      iconBg: 'bg-rose-50'
-    },
-    {
-      id: 2,
-      title: 'Barulho excessivo - Unidade 204',
-      type: 'Reclamação',
-      time: '4h atrás',
-      status: 'Em Análise',
-      statusColor: 'status-amber',
-      icon: MessageSquare,
-      iconColor: 'text-amber-500',
-      iconBg: 'bg-amber-50'
-    },
-    {
-      id: 3,
-      title: 'Elevador com defeito - Bloco B',
-      type: 'Ocorrência',
-      time: '1d atrás',
-      status: 'Resolvida',
-      statusColor: 'status-emerald',
-      icon: CheckCircle2,
-      iconColor: 'text-emerald-500',
-      iconBg: 'bg-emerald-50'
-    },
-  ];
 
   const currentDate = new Date().toLocaleDateString('pt-BR', {
     weekday: 'long',
@@ -115,8 +83,18 @@ const Dashboard = () => {
     month: 'long'
   });
 
-  const [statsData, setStatsData] = useState(stats);
-  const [activities, setActivities] = useState(recentActivities);
+  const [todas, setTodas] = useState([]);
+  // Filtro por data: dia, mês e ano são independentes (dia 25 = dia 25 de qualquer mês/ano)
+  const [filtroData, setFiltroData] = useState(FILTRO_DATA_VAZIO);
+  const temFiltro = temFiltroData(filtroData);
+  const filtradas = todas.filter(x => passaFiltroData(x.criado_em, filtroData));
+  const activities = filtradas.slice(0, temFiltro ? 50 : 5);
+  const contar = (cond) => filtradas.filter(cond).length.toString();
+  const statsData = [
+    { ...stats[0], value: contar(x => x.status === 'Aberta'), trend: temFiltro ? 'No período filtrado' : 'Atualizado hoje' },
+    { ...stats[1], value: contar(x => x.status === 'Em Andamento' || x.status === 'Em Análise'), trend: temFiltro ? 'No período filtrado' : 'Atualizado hoje' },
+    { ...stats[2], value: contar(x => x.status === 'Resolvida'), trend: temFiltro ? 'No período filtrado' : 'Atualizado hoje' },
+  ];
   const [carga, setCarga] = useState('carregando'); // 'carregando' | 'ok' | 'erro'
   const [tentativa, setTentativa] = useState(0);
 
@@ -168,49 +146,7 @@ const Dashboard = () => {
       
       all.sort((a, b) => b.criado_em - a.criado_em);
       
-      if (all.length > 0) {
-        setActivities(all.slice(0, 5));
-        
-        const abertas = all.filter(x => x.status === 'Aberta').length;
-        const analise = all.filter(x => x.status === 'Em Andamento' || x.status === 'Em Análise').length;
-        const resolvidas = all.filter(x => x.status === 'Resolvida').length;
-        
-        setStatsData([
-          { 
-            title: 'Ocorrências Abertas', 
-            value: abertas.toString(), 
-            icon: AlertCircle, 
-            color: 'text-rose-500', 
-            bg: 'bg-rose-50',
-            trend: 'Atualizado hoje',
-            trendIcon: TrendingUp,
-            trendColor: 'text-rose-500',
-            sparkline: stats[0].sparkline
-          },
-          { 
-            title: 'Em Análise', 
-            value: analise.toString(), 
-            icon: Clock, 
-            color: 'text-amber-500', 
-            bg: 'bg-amber-50',
-            trend: 'Atualizado hoje',
-            trendIcon: TrendingDown,
-            trendColor: 'text-amber-500',
-            sparkline: stats[1].sparkline
-          },
-          { 
-            title: 'Resolvidas', 
-            value: resolvidas.toString(), 
-            icon: CheckCircle2, 
-            color: 'text-emerald-500', 
-            bg: 'bg-emerald-50',
-            trend: 'Atualizado hoje',
-            trendIcon: TrendingUp,
-            trendColor: 'text-emerald-500',
-            sparkline: stats[2].sparkline
-          },
-        ]);
-      }
+      setTodas(all);
       setCarga('ok');
     }
     fetchData();
@@ -247,11 +183,6 @@ const Dashboard = () => {
           </div>
 
           <div className="header-right">
-            <div className="header-search">
-              <Search size={16} className="search-icon" />
-              <input type="text" placeholder="Buscar ocorrências..." className="search-input" />
-            </div>
-
             <NotificationMenu />
 
             <div 
@@ -289,6 +220,8 @@ const Dashboard = () => {
           ) : (
           <div className="dashboard-content-inner">
             
+            <FiltroData valor={filtroData} onChange={setFiltroData} anos={anosDe(todas.map(x => x.criado_em))} />
+
             {/* Seção das Métricas (Stats Cards com Sparklines) */}
             <div className="stats-grid">
               {statsData.map((stat, idx) => (
@@ -381,6 +314,40 @@ const Dashboard = () => {
                     <ChevronRight size={20} />
                   </div>
                 </a>
+
+                {/* Só a gestão publica avisos e manda recados */}
+                {isGestor && (
+                  <>
+                <a href="#" className="quick-action-card qa-blue-card" onClick={(e) => { e.preventDefault(); navigate('/avisos?novo=1'); }}>
+                  <div className="qa-card-inner">
+                    <div className="quick-action-icon-box qa-blue-box">
+                      <Megaphone size={24} />
+                    </div>
+                    <div className="quick-action-text">
+                      <h3 className="quick-action-title">Novo Aviso ou Evento</h3>
+                      <p className="quick-action-subtitle">Publique um comunicado no mural do condomínio</p>
+                    </div>
+                  </div>
+                  <div className="quick-action-arrow">
+                    <ChevronRight size={20} />
+                  </div>
+                </a>
+                <a href="#" className="quick-action-card qa-green-card" onClick={(e) => { e.preventDefault(); navigate('/recados?novo=1'); }}>
+                  <div className="qa-card-inner">
+                    <div className="quick-action-icon-box qa-green-box">
+                      <Mail size={24} />
+                    </div>
+                    <div className="quick-action-text">
+                      <h3 className="quick-action-title">Novo Recado</h3>
+                      <p className="quick-action-subtitle">Envie uma mensagem para a equipe de funcionários</p>
+                    </div>
+                  </div>
+                  <div className="quick-action-arrow">
+                    <ChevronRight size={20} />
+                  </div>
+                </a>
+                  </>
+                )}
               </div>
             </div>
 
@@ -389,10 +356,15 @@ const Dashboard = () => {
               <div className="recent-activities-header">
                 <div>
                    <h3 className="section-title">Atividades Recentes</h3>
-                   <p className="section-subtitle">Últimas atualizações no condomínio</p>
+                   <p className="section-subtitle">{temFiltro ? `${filtradas.length} registro(s) no período filtrado` : 'Últimas atualizações no condomínio'}</p>
                 </div>
               </div>
               <div className="recent-activities-list">
+                {activities.length === 0 && (
+                  <p style={{ padding: '1.5rem', textAlign: 'center', color: '#94a3b8' }}>
+                    {temFiltro ? 'Nenhuma ocorrência ou reclamação nessa data.' : 'Nenhuma atividade ainda.'}
+                  </p>
+                )}
                 {activities.map((activity) => (
                   <div key={activity.id} className="activity-item">
 

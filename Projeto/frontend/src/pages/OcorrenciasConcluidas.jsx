@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import FiltroData, { FILTRO_DATA_VAZIO, passaFiltroData, anosDe, temFiltroData } from '../components/FiltroData';
+import { combinaBusca } from '../utils/busca';
 import ErroCarregamento from '../components/ErroCarregamento';
 import {
   Menu, Search, CheckCircle2, Clock, UserCog, User, CalendarDays, Timer,
@@ -51,6 +53,7 @@ const OcorrenciasConcluidas = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [loading,     setLoading]     = useState(true);
   const [erroCarga,   setErroCarga]   = useState(false);
+  const [filtroData,  setFiltroData]  = useState(FILTRO_DATA_VAZIO);
   const [itens,       setItens]       = useState([]);
   const [fotos,       setFotos]       = useState({});
   const [aberto,      setAberto]      = useState({});
@@ -134,15 +137,15 @@ const OcorrenciasConcluidas = () => {
   );
 
   const filtrados = useMemo(() => {
-    const termo  = busca.toLowerCase();
     const limite = periodo === 'todas' ? null : Date.now() - Number(periodo) * 864e5;
     return itens.filter(i =>
-      (!termo || i.titulo?.toLowerCase().includes(termo) || i.descricao?.toLowerCase().includes(termo) || i.moradorNome.toLowerCase().includes(termo)) &&
+      combinaBusca(busca, [i.titulo, i.descricao, i.moradorNome, i.funcionarioNome, rotulo(i.categoria), protocoloOcorrencia(i.id, i.created_at)]) &&
+      passaFiltroData(i.concluida_em, filtroData) &&
       (categoria === 'todas' || i.categoria === categoria) &&
       (funcionario === 'todos' || i.funcionarioNome === funcionario) &&
       (!limite || (i.concluida_em && new Date(i.concluida_em).getTime() >= limite))
     );
-  }, [itens, busca, categoria, funcionario, periodo]);
+  }, [itens, busca, categoria, funcionario, periodo, filtroData, rotulo]);
 
   const totalPaginas = Math.max(1, Math.ceil(filtrados.length / POR_PAGINA));
   const paginaAtual  = Math.min(pagina, totalPaginas);
@@ -219,7 +222,7 @@ const OcorrenciasConcluidas = () => {
                 <Search size={16} />
                 <input
                   type="text"
-                  placeholder="Buscar por título, descrição ou morador..."
+                  placeholder="Buscar por título, descrição, morador, funcionário ou protocolo..."
                   value={busca}
                   onChange={(e) => { setBusca(e.target.value); setPagina(1); }}
                 />
@@ -236,6 +239,13 @@ const OcorrenciasConcluidas = () => {
                 {PERIODOS.map(p => <option key={p.key} value={p.key}>{p.label}</option>)}
               </select>
             </section>
+            {/* Filtro pela data em que foi concluída; ao usar, o período passa para "todas" */}
+            <FiltroData
+              rotulo="Concluída em"
+              valor={filtroData}
+              onChange={(f) => { setFiltroData(f); setPagina(1); if (temFiltroData(f)) setPeriodo('todas'); }}
+              anos={anosDe(itens.map(i => i.concluida_em))}
+            />
 
             {/* Lista */}
             {loading ? (

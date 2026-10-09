@@ -1,4 +1,7 @@
 import React, { useState, useRef, useMemo, useEffect, useCallback } from 'react';
+import FiltroData, { FILTRO_DATA_VAZIO, passaFiltroData, anosDe } from '../components/FiltroData';
+import { combinaBusca } from '../utils/busca';
+import { useCategorias } from '../hooks/useCategorias';
 import ErroCarregamento from '../components/ErroCarregamento';
 import {
   Menu,
@@ -450,6 +453,8 @@ const PainelFuncionario = () => {
   const [fotos,        setFotos]        = useState({});
   const [loading,      setLoading]      = useState(true);
   const [erroCarga,    setErroCarga]    = useState(false);
+  const [filtroData,   setFiltroData]   = useState(FILTRO_DATA_VAZIO);
+  const { rotulo } = useCategorias();
   const [selecionada,  setSelecionada]  = useState(null);
   const [params, setParams] = useSearchParams();
 
@@ -553,8 +558,11 @@ const PainelFuncionario = () => {
     const base = aba === 'tarefas'
       ? tarefas.filter(o => filtro === 'todas' ? true : o.status === filtro)
       : concluidas;
-    return base.filter(o => o.titulo.toLowerCase().includes(busca.toLowerCase()));
-  }, [aba, tarefas, concluidas, filtro, busca]);
+    return base.filter(o =>
+      combinaBusca(busca, [o.titulo, o.descricao, o.morador_nome, o.unidade, rotulo(o.categoria), protocoloOcorrencia(o.id, o.created_at)]) &&
+      passaFiltroData(o.created_at, filtroData)
+    );
+  }, [aba, tarefas, concluidas, filtro, busca, filtroData, rotulo]);
 
   return (
     <div className="dashboard-layout">
@@ -618,12 +626,13 @@ const PainelFuncionario = () => {
                 <input
                   type="text"
                   className="ms-search-input"
-                  placeholder="Pesquisar tarefa..."
+                  placeholder="Buscar título, morador, apartamento, protocolo..."
                   value={busca}
                   onChange={(e) => setBusca(e.target.value)}
                 />
               </div>
             </div>
+            <FiltroData valor={filtroData} onChange={setFiltroData} anos={anosDe(ocorrencias.map(o => o.created_at))} />
 
             {/* ABAS */}
             <div className="ms-abas" role="tablist">

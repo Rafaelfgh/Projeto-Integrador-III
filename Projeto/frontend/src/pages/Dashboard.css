@@ -709,6 +709,12 @@
 
 .qa-orange-box { background-color: #fff7ed; color: var(--role-primary-color); }
 .qa-amber-box { background-color: #fffbeb; color: #d97706; }
+.qa-blue-box { background-color: #eff6ff; color: #2563eb; }
+.qa-green-box { background-color: #f0fdf4; color: #16a34a; }
+.qa-blue-card:hover::after { background: #3b82f6; }
+.qa-green-card:hover::after { background: #22c55e; }
+.qa-blue-card:hover .quick-action-arrow { color: #3b82f6; }
+.qa-green-card:hover .quick-action-arrow { color: #22c55e; }
 
 .quick-action-text {
   display: flex;

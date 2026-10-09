@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import FiltroData, { FILTRO_DATA_VAZIO, passaFiltroData, anosDe } from '../components/FiltroData';
+import { combinaBusca } from '../utils/busca';
 import ErroCarregamento from '../components/ErroCarregamento';
 import {
   Menu, Search, Building2, MapPin, CalendarDays, User, Mail, Phone, IdCard, X, Check, Ban, RefreshCw, Inbox, Users, Layers,
@@ -193,6 +195,7 @@ const PainelDev = () => {
   const [busca,       setBusca]       = useState('');
   const [aberto,      setAberto]      = useState(null);
   const [erroCarga,   setErroCarga]   = useState(false);
+  const [filtroData,  setFiltroData]  = useState(FILTRO_DATA_VAZIO);
   const [params, setParams] = useSearchParams();
 
   const carregar = useCallback(async () => {
@@ -211,14 +214,10 @@ const PainelDev = () => {
 
   useEffect(() => { carregar(); }, [carregar]);
 
-  const termo = busca.toLowerCase();
   const daAba = condominios.filter(c => c.status === aba);
   const lista = daAba.filter(c =>
-    !termo ||
-    c.nome?.toLowerCase().includes(termo) ||
-    c.cidade?.toLowerCase().includes(termo) ||
-    c.master_nome?.toLowerCase().includes(termo) ||
-    c.master_email?.toLowerCase().includes(termo)
+    combinaBusca(busca, [c.nome, c.cidade, c.uf, c.master_nome, c.master_email]) &&
+    passaFiltroData(c.criado_em, filtroData)
   );
 
 
@@ -273,6 +272,7 @@ const PainelDev = () => {
                 />
               </div>
             </div>
+            <FiltroData rotulo="Solicitado em" valor={filtroData} onChange={setFiltroData} anos={anosDe(daAba.map(c => c.criado_em))} />
 
             {loading ? (
               <div className="dev-vazio"><RefreshCw size={30} className="dev-girar" /><p>Carregando...</p></div>

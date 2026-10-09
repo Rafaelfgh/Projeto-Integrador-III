@@ -214,3 +214,16 @@ h1, h2, h3, h4, h5, h6,
   animation: girar-sessao 0.8s linear infinite;
 }
 @keyframes girar-sessao { to { transform: rotate(360deg); } }
+
+/* Filtro por data (Visão Geral) */
+.filtro-data {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem;
+  margin-bottom: 1.25rem;
+}
+.filtro-data-rotulo {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  font-family: 'Poppins', 'Inter', sans-serif; font-weight: 600; font-size: 0.85rem; color: #334155;
+  margin-right: 0.25rem;
+}
+.filtro-data .saas-select { width: auto; min-width: 7rem; padding: 0.5rem 0.75rem; font-size: 0.85rem; cursor: pointer; }
+.filtro-data-limpar { padding: 0.5rem 0.9rem; font-size: 0.85rem; cursor: pointer; }

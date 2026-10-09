@@ -1,4 +1,7 @@
 import React, { useState } from 'react';
+import FiltroData, { FILTRO_DATA_VAZIO, passaFiltroData, anosDe } from '../components/FiltroData';
+import { combinaBusca } from '../utils/busca';
+import { useCategorias } from '../hooks/useCategorias';
 import ErroCarregamento from '../components/ErroCarregamento';
 import { 
   FileText,
@@ -55,6 +58,8 @@ const MinhasSolicitacoes = () => {
   const [requestsList, setRequestsList] = useState([]);
   const [carga, setCarga] = useState('carregando'); // 'carregando' | 'ok' | 'erro'
   const [tentativa, setTentativa] = useState(0);
+  const [filtroData, setFiltroData] = useState(FILTRO_DATA_VAZIO);
+  const { rotulo } = useCategorias();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeFilter, setActiveFilter] = useState('Todos');
   const [aba, setAba] = useState('ocorrencias');          // 'ocorrencias' | 'reclamacoes'
@@ -200,8 +205,9 @@ const MinhasSolicitacoes = () => {
   const reclamacoes  = requestsList.filter(req => req.tipo === 'reclamacao');
 
   const filteredRequests = (aba === 'ocorrencias' ? ocorrencias : reclamacoes).filter(req => {
-    const matchesSearch = req.protocol.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          req.title.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch =
+      combinaBusca(searchTerm, [req.protocol, req.title, req.description, req.tipo === 'ocorrencia' ? rotulo(req.category) : 'reclamação']) &&
+      passaFiltroData(req.createdAt, filtroData);
     if (!matchesSearch) return false;
 
     if (aba === 'reclamacoes') return true;
@@ -318,7 +324,7 @@ const MinhasSolicitacoes = () => {
                 <input 
                   type="text" 
                   className="ms-search-input" 
-                  placeholder="Pesquisar protocolo ou título..." 
+                  placeholder="Buscar protocolo, título, categoria..." 
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
@@ -384,6 +390,8 @@ const MinhasSolicitacoes = () => {
                 </div>
               </>
             )}
+
+            <FiltroData valor={filtroData} onChange={setFiltroData} anos={anosDe((aba === 'ocorrencias' ? ocorrencias : reclamacoes).map(r => r.createdAt))} />
 
             {/* Premium SaaS Cards Grid */}
             {carga === 'carregando' ? (

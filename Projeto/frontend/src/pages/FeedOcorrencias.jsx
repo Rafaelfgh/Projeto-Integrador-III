@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import FiltroData, { FILTRO_DATA_VAZIO, passaFiltroData, anosDe } from '../components/FiltroData';
+import { combinaBusca } from '../utils/busca';
 import ErroCarregamento from '../components/ErroCarregamento';
 import {
   Menu, Search, BellOff, Clock, FileEdit, Send, Trash2, MessageCircle, Loader2,
@@ -55,6 +57,7 @@ const FeedOcorrencias = () => {
   const [sidebarOpen,    setSidebarOpen]    = useState(false);
   const [aba,            setAba]            = useState('abertas');
   const [searchTerm,     setSearchTerm]     = useState('');
+  const [filtroData,     setFiltroData]     = useState(FILTRO_DATA_VAZIO);
   const [statusFilter,   setStatusFilter]   = useState('Todos');
   const [expandido,      setExpandido]      = useState({});
   const [novoComentario, setNovoComentario] = useState({});
@@ -249,11 +252,10 @@ const FeedOcorrencias = () => {
     o.status === 'Resolvida' && o.concluida_em && new Date(o.concluida_em).getTime() >= limiteConcluidas
   );
 
-  const termo = searchTerm.toLowerCase();
   const filtradas = (aba === 'abertas' ? abertas : concluidas).filter(o => {
     const matchSearch =
-      o.titulo?.toLowerCase().includes(termo) ||
-      o.descricao?.toLowerCase().includes(termo);
+      combinaBusca(searchTerm, [o.titulo, o.descricao, o.moradorNome, rotulo(o.categoria), protocoloOcorrencia(o.id, o.created_at)]) &&
+      passaFiltroData(o.created_at, filtroData);
     const matchStatus = aba !== 'abertas' || statusFilter === 'Todos' || o.status === statusFilter;
     return matchSearch && matchStatus;
   });
@@ -315,7 +317,7 @@ const FeedOcorrencias = () => {
                   <input
                     type="text"
                     className="feed-search-input"
-                    placeholder="Pesquisar ocorrências..."
+                    placeholder="Buscar título, categoria, protocolo, morador..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />
@@ -331,6 +333,7 @@ const FeedOcorrencias = () => {
                   </div>
                 )}
               </div>
+              <FiltroData valor={filtroData} onChange={setFiltroData} anos={anosDe((aba === 'abertas' ? abertas : concluidas).map(o => o.created_at))} />
             </div>
 
             {/* Feed */}

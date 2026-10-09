@@ -40,7 +40,8 @@ const Recados = () => {
   const [aberto, setAberto] = useState(null);
   const [params, setParams] = useSearchParams();
 
-  const [criando, setCriando] = useState(false);
+  // Atalho da Visão Geral (?novo=1) já abre a janela de novo recado
+  const [criando, setCriando] = useState(() => params.get('novo') === '1');
   const [form, setForm] = useState(FORM_VAZIO);
   const [enviando, setEnviando] = useState(false);
   const [erroForm, setErroForm] = useState(null);
