@@ -23,10 +23,10 @@ import './Dashboard.css';
 import './FeedOcorrencias.css';
 
 const STATUS_CONFIG = {
-  'Aberta':       { class: 'f-status-red',    label: 'Aberta'       },
-  'Em Análise':   { class: 'f-status-yellow', label: 'Em Análise'   },
-  'Em Andamento': { class: 'f-status-yellow', label: 'Em Andamento' },
-  'Resolvida':    { class: 'f-status-green',  label: 'Concluída'    },
+  'Aberta':       { class: 'f-status-red st-aberta',          label: 'Aberta'       },
+  'Em Análise':   { class: 'f-status-yellow st-analise',      label: 'Em Análise'   },
+  'Em Andamento': { class: 'f-status-yellow st-andamento',    label: 'Em Andamento' },
+  'Resolvida':    { class: 'f-status-green st-resolvida',     label: 'Concluída'    },
 };
 
 // Concluídas ficam no mural dos moradores por 14 dias (o síndico mantém o histórico completo)

@@ -94,10 +94,10 @@ const MinhasSolicitacoes = () => {
 
   const getStatusClass = (status) => {
     switch(status) {
-      case 'Aberta': return 'ms-status-red';
-      case 'Em Análise': return 'ms-status-yellow';
-      case 'Em Andamento': return 'ms-status-yellow';
-      case 'Resolvida': return 'ms-status-green';
+      case 'Aberta': return 'ms-status-red st-aberta';
+      case 'Em Análise': return 'ms-status-yellow st-analise';
+      case 'Em Andamento': return 'ms-status-yellow st-andamento';
+      case 'Resolvida': return 'ms-status-green st-resolvida';
       default: return '';
     }
   };

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { classeStatus } from '../utils/statusOcorrencia';
 import FiltroData, { FILTRO_DATA_VAZIO, temFiltroData, passaFiltroData, anosDe } from '../components/FiltroData';
 import ErroCarregamento from '../components/ErroCarregamento';
 import {
@@ -121,7 +122,7 @@ const Dashboard = () => {
           type: 'Ocorrência',
           time: new Date(o.created_at).toLocaleDateString(),
           status: o.status || 'Aberta',
-          statusColor: o.status === 'Aberta' ? 'status-rose' : (o.status === 'Em Andamento' ? 'status-amber' : 'status-emerald'),
+          statusColor: classeStatus(o.status || 'Aberta'),
           icon: AlertCircle,
           iconColor: 'text-rose-500',
           iconBg: 'bg-rose-50',
@@ -136,7 +137,7 @@ const Dashboard = () => {
           type: 'Reclamação',
           time: new Date(r.created_at).toLocaleDateString(),
           status: 'Em Análise',
-          statusColor: 'status-amber',
+          statusColor: classeStatus(r.status || 'Em Análise'),
           icon: MessageSquare,
           iconColor: 'text-amber-500',
           iconBg: 'bg-amber-50',

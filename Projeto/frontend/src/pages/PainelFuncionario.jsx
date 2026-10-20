@@ -62,10 +62,10 @@ const CATEGORIA_META = {
 const CATEGORIA_FALLBACK = { label: 'Outros', icon: '📋', class: 'ms-icon-blue' };
 
 const STATUS_META = {
-  'Aberta':       { label: 'Aberta',       class: 'ms-status-red'    },
-  'Em Análise':   { label: 'Em Análise',   class: 'ms-status-yellow' },
-  'Em Andamento': { label: 'Em Andamento', class: 'ms-status-yellow' },
-  'Resolvida':    { label: 'Concluída',    class: 'ms-status-green'  },
+  'Aberta':       { label: 'Aberta',       class: 'ms-status-red st-aberta'         },
+  'Em Análise':   { label: 'Em Análise',   class: 'ms-status-yellow st-analise'     },
+  'Em Andamento': { label: 'Em Andamento', class: 'ms-status-yellow st-andamento'   },
+  'Resolvida':    { label: 'Concluída',    class: 'ms-status-green st-resolvida'    },
 };
 
 const STATUS_FALLBACK = { label: 'Aberta', class: 'ms-status-red' };
@@ -397,8 +397,9 @@ const OcorrenciaDrawer = ({ ocorrencia, onFechar, onAtualizada, currentUser, nom
             </>
           )}
 
-          {/* CHAMAR O SÍNDICO: a ocorrência vai para "Em análise" */}
-          {(podeAndamento || podeConcluir) && (
+          {/* CHAMAR O SÍNDICO: a ocorrência vai para "Em análise".
+              Não vale para a pessoal já atribuída: o síndico já analisou e encaminhou. */}
+          {(podeAndamento || podeConcluir) && !(ocorrencia.privacidade === 'pessoal' && ocorrencia.atribuido_a) && (
             <div style={{ marginTop:28, paddingTop:20, borderTop:'1px solid #f1f5f9' }}>
               {convocar ? (
                 <>

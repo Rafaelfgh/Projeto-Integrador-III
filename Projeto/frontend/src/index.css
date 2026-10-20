@@ -227,3 +227,10 @@ h1, h2, h3, h4, h5, h6,
 }
 .filtro-data .saas-select { width: auto; min-width: 7rem; padding: 0.5rem 0.75rem; font-size: 0.85rem; cursor: pointer; }
 .filtro-data-limpar { padding: 0.5rem 0.9rem; font-size: 0.85rem; cursor: pointer; }
+
+/* ── Cores oficiais dos status (utils/statusOcorrencia.js) ──
+   Valem por cima das cores antigas de cada tela. */
+:root .st-aberta     { color: #b91c1c; background-color: #fee2e2; border-color: #fecaca; }
+:root .st-analise    { color: #1d4ed8; background-color: #dbeafe; border-color: #bfdbfe; }
+:root .st-andamento  { color: #b45309; background-color: #fef3c7; border-color: #fde68a; }
+:root .st-resolvida  { color: #047857; background-color: #d1fae5; border-color: #a7f3d0; }

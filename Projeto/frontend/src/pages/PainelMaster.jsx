@@ -376,7 +376,7 @@ const PainelMaster = () => {
                   <p style={{ fontSize: '12px', color: '#94a3b8', margin: '0 0 24px' }}>Todas as ocorrências do sistema por status.</p>
                   <div style={{ display: 'flex', alignItems: 'flex-end', gap: '10px', height: '130px' }}>
                     {[
-                      { label: 'Aberta', value: pipeAberta, color: '#9CA3AF' },
+                      { label: 'Aberta', value: pipeAberta, color: '#EF4444' },
                       { label: 'Em análise', value: pipeAnalise, color: '#3B82F6' },
                       { label: 'Em andamento', value: pipeAndamento, color: '#F59E0B' },
                       { label: 'Concluída', value: pipeConcluida, color: '#10B981' },

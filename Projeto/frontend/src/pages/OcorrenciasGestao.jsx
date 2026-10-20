@@ -20,8 +20,8 @@ const DIAS_PROLONGADO = 2;
 
 const MODOS = {
   analise: {
-    titulo: 'Para análise',
-    subtitulo: 'Ocorrências do mural que aguardam a sua decisão (enviadas por funcionários ou colocadas em análise)',
+    titulo: 'Ocorrências em análise',
+    subtitulo: 'Ocorrências do mural (área comum) que aguardam a sua decisão. As pessoais em análise ficam em "Ocorrências Pessoais"',
     vazio: 'Nenhuma ocorrência aguardando análise',
   },
   pessoais: {
@@ -37,7 +37,7 @@ const MODOS = {
 };
 
 const STATUS_LABEL = { 'Resolvida': 'Concluída' };
-const STATUS_CLASSE = { 'Aberta': 'oc-st-aberta', 'Em Análise': 'oc-st-analise', 'Em Andamento': 'oc-st-andamento', 'Resolvida': 'oc-st-concluida' };
+const STATUS_CLASSE = { 'Aberta': 'oc-st-aberta st-aberta', 'Em Análise': 'oc-st-analise st-analise', 'Em Andamento': 'oc-st-andamento st-andamento', 'Resolvida': 'oc-st-concluida st-resolvida' };
 
 const formatarData = (d) => (d
   ? new Date(d).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })

@@ -216,9 +216,58 @@ const Ocorrencia = () => {
 
               <form className="saas-occurrence-form" onSubmit={handleSubmit}>
                 
+                {/* Primeiro a pessoa escolhe: área comum (mural) ou o próprio apartamento */}
+                <div className="form-section">
+                   <div className="section-header-block">
+                     <span className="section-step-badge">1</span>
+                     <h3 className="section-heading">Onde é o problema?</h3>
+                   </div>
+
+                   <div className="visibility-cards-container">
+                      <label className={`visibility-card ${visibility === 'mural' ? 'selected' : ''}`}>
+                         <input
+                           type="radio"
+                           name="visibilidade"
+                           value="mural"
+                           checked={visibility === 'mural'}
+                           onChange={() => setVisibility('mural')}
+                         />
+                         <div className="visibility-card-content">
+                            <span className="visibility-radio-custom"></span>
+                            <div className="visibility-text">
+                               <h5>Área comum do condomínio</h5>
+                               <p>Aparece no Mural de Ocorrências para todos os moradores e para a equipe de manutenção da categoria escolhida.</p>
+                            </div>
+                         </div>
+                      </label>
+
+                      {/* O síndico fala direto com os funcionários: não registra ocorrência pessoal */}
+                      {!ehSindico && (
+                      <label className={`visibility-card ${visibility === 'pessoal' ? 'selected' : ''}`}>
+                         <input
+                           type="radio"
+                           name="visibilidade"
+                           value="pessoal"
+                           checked={visibility === 'pessoal'}
+                           onChange={() => setVisibility('pessoal')}
+                         />
+                         <div className="visibility-card-content">
+                            <span className="visibility-radio-custom"></span>
+                            <div className="visibility-text">
+                               <h5>Problema no meu apartamento</h5>
+                               <p>Ocorrência pessoal (ex.: infiltração ou rachadura dentro da sua unidade). Vai direto para análise do síndico, que encaminha a um funcionário. Não aparece no mural.</p>
+                            </div>
+                         </div>
+                      </label>
+                      )}
+                   </div>
+                </div>
+
+                <div className="section-divider"></div>
+
                 <div className="form-section">
                   <div className="section-header-block">
-                     <span className="section-step-badge">1</span>
+                     <span className="section-step-badge">2</span>
                      <h3 className="section-heading">Detalhes Básicos</h3>
                   </div>
                   
@@ -240,10 +289,13 @@ const Ocorrencia = () => {
                       </select>
                     </div>
 
-                    <div className="saas-input-group">
-                      <label>Local / Bloco e Apartamento Relacionado</label>
-                      <input type="text" name="local" placeholder="Ex: Bloco B, Corredor 3º andar" />
-                    </div>
+                    {/* Pessoal: é dentro do apartamento de quem relata, não precisa informar o local */}
+                    {visibility === 'mural' && (
+                      <div className="saas-input-group">
+                        <label>Local na área comum</label>
+                        <input type="text" name="local" placeholder="Ex: Bloco B, corredor do 3º andar" />
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -251,7 +303,7 @@ const Ocorrencia = () => {
 
                 <div className="form-section">
                    <div className="section-header-block">
-                     <span className="section-step-badge">2</span>
+                     <span className="section-step-badge">3</span>
                      <h3 className="section-heading">Descrição e Evidências</h3>
                    </div>
                    
@@ -308,54 +360,6 @@ const Ocorrencia = () => {
                             </div>
                           ))}
                         </div>
-                      )}
-                   </div>
-                </div>
-
-                <div className="section-divider"></div>
-
-                <div className="form-section">
-                   <div className="section-header-block">
-                     <span className="section-step-badge">3</span>
-                     <h3 className="section-heading">Onde é o problema?</h3>
-                   </div>
-
-                   <div className="visibility-cards-container">
-                      <label className={`visibility-card ${visibility === 'mural' ? 'selected' : ''}`}>
-                         <input
-                           type="radio"
-                           name="visibilidade"
-                           value="mural"
-                           checked={visibility === 'mural'}
-                           onChange={() => setVisibility('mural')}
-                         />
-                         <div className="visibility-card-content">
-                            <span className="visibility-radio-custom"></span>
-                            <div className="visibility-text">
-                               <h5>Área comum do condomínio</h5>
-                               <p>Aparece no Mural de Ocorrências para todos os moradores e para a equipe de manutenção da categoria escolhida.</p>
-                            </div>
-                         </div>
-                      </label>
-
-                      {/* O síndico fala direto com os funcionários: não registra ocorrência pessoal */}
-                      {!ehSindico && (
-                      <label className={`visibility-card ${visibility === 'pessoal' ? 'selected' : ''}`}>
-                         <input
-                           type="radio"
-                           name="visibilidade"
-                           value="pessoal"
-                           checked={visibility === 'pessoal'}
-                           onChange={() => setVisibility('pessoal')}
-                         />
-                         <div className="visibility-card-content">
-                            <span className="visibility-radio-custom"></span>
-                            <div className="visibility-text">
-                               <h5>Problema no meu apartamento</h5>
-                               <p>Ocorrência pessoal (ex.: infiltração ou rachadura dentro da sua unidade). Vai direto para análise do síndico, que encaminha a um funcionário. Não aparece no mural.</p>
-                            </div>
-                         </div>
-                      </label>
                       )}
                    </div>
                 </div>

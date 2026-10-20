@@ -14,7 +14,7 @@ import { avisarMudancaOcorrencias } from '../hooks/useContadoresGestao';
 import './GerenciarOcorrencia.css';
 
 const STATUS_LABEL = { 'Resolvida': 'Concluída' };
-const STATUS_CLASSE = { 'Aberta': 'go-st-aberta', 'Em Análise': 'go-st-analise', 'Em Andamento': 'go-st-andamento', 'Resolvida': 'go-st-concluida' };
+const STATUS_CLASSE = { 'Aberta': 'go-st-aberta st-aberta', 'Em Análise': 'go-st-analise st-analise', 'Em Andamento': 'go-st-andamento st-andamento', 'Resolvida': 'go-st-concluida st-resolvida' };
 
 const formatarData = (d) => (d
   ? new Date(d).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })

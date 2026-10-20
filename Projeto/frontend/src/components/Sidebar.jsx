@@ -114,7 +114,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
                 <a href="#" className={`nav-item ${currentPath === '/painel' && (!location.search || location.search === '?tab=overview') ? 'nav-item-active' : 'nav-item-inactive'}`} onClick={(e) => { e.preventDefault(); handleNavClick('/painel?tab=overview'); }}>
                   <LayoutDashboard className="nav-icon" /><span>Dashboard Síndico</span>
                 </a>
-                {navItem('/ocorrencias-analise', ScanSearch, 'Para análise', null, contadores.analise)}
+                {navItem('/ocorrencias-analise', ScanSearch, 'Ocorrências em análise', null, contadores.analise)}
                 {navItem('/ocorrencias-pessoais', Home, 'Ocorrências Pessoais', null, contadores.pessoais)}
                 {navItem('/andamento-prolongado', Hourglass, 'Em andamento +2 dias')}
                 {navItem('/ocorrencias-concluidas', CheckCircle2, 'Ocorrências Concluídas')}
@@ -155,7 +155,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
                 {navItem('/funcionarios', ShieldCheck, 'Gestão de Funcionários')}
                 {navItem('/blocos', Layers, 'Blocos do Condomínio')}
                 {navItem('/recados', Mail, 'Recados', null, recados.total)}
-                {navItem('/ocorrencias-analise', ScanSearch, 'Para análise', null, contadores.analise)}
+                {navItem('/ocorrencias-analise', ScanSearch, 'Ocorrências em análise', null, contadores.analise)}
                 {navItem('/ocorrencias-pessoais', Home, 'Ocorrências Pessoais', null, contadores.pessoais)}
                 {navItem('/andamento-prolongado', Hourglass, 'Em andamento +2 dias')}
                 {navItem('/ocorrencias-concluidas', CheckCircle2, 'Ocorrências Concluídas')}

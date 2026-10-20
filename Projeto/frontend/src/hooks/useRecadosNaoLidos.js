@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../backend/supabaseClient';
+import { useAuth } from '../contexts/AuthContext';
 
 // Recados não lidos (bolinha do menu e marcação em cada recado).
 // Recado novo conta 1 para o funcionário destinatário; cada resposta de outra pessoa
@@ -14,15 +15,22 @@ export const marcarRecadoLido = async (recadoId) => {
 };
 
 // Guardado entre as trocas de tela (mesma ideia dos contadores do menu)
-let cache = { valor: { total: 0, porRecado: {} }, em: 0 };
+// O cache é de UM usuário: trocou de conta, descarta (senão mostrava o número do anterior).
+const ZERADO = { total: 0, porRecado: {} };
+let cache = { usuario: null, valor: ZERADO, em: 0 };
 const VALIDADE = 30000;
 
 // Devolve { total, porRecado: { [id]: n } }
 export const useRecadosNaoLidos = (ativo) => {
-  const [estado, setEstado] = useState(cache.valor);
+  const usuario = useAuth().currentUser?.id ?? null;
+  const [estado, setEstado] = useState(cache.usuario === usuario ? cache.valor : ZERADO);
 
   useEffect(() => {
-    if (!ativo) return undefined;
+    if (!ativo || !usuario) return undefined;
+    if (cache.usuario !== usuario) {
+      cache = { usuario, valor: ZERADO, em: 0 };
+      setEstado(ZERADO);
+    }
     let vivo = true;
     const carregar = async () => {
       const { data, error } = await supabase.rpc('recados_nao_lidos');
@@ -31,7 +39,8 @@ export const useRecadosNaoLidos = (ativo) => {
         return;
       }
       const porRecado = Object.fromEntries((data || []).filter(l => l.nao_lidos > 0).map(l => [l.recado_id, l.nao_lidos]));
-      cache = { valor: { total: Object.values(porRecado).reduce((a, b) => a + b, 0), porRecado }, em: Date.now() };
+      if (cache.usuario !== usuario) return;
+      cache = { usuario, valor: { total: Object.values(porRecado).reduce((a, b) => a + b, 0), porRecado }, em: Date.now() };
       if (vivo) setEstado(cache.valor);
     };
     if (Date.now() - cache.em > VALIDADE) carregar();
@@ -42,7 +51,7 @@ export const useRecadosNaoLidos = (ativo) => {
       clearInterval(intervalo);
       window.removeEventListener(EVENTO_RECADOS, carregar);
     };
-  }, [ativo]);
+  }, [ativo, usuario]);
 
   return estado;
 };
