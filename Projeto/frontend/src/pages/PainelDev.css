@@ -58,7 +58,7 @@
   padding: 1.1rem 1.25rem;
   background: #ffffff;
   border: 1px solid #e2e8f0;
-  border-left: 4px solid #f59e0b;
+  border-left: 1px solid #f59e0b;
   border-radius: 1rem;
 }
 .dev-card-ativo    { border-left-color: #22c55e; }

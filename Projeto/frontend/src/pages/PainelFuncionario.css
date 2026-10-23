@@ -111,7 +111,7 @@
   padding: 1.5rem;
   box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);
   border: 1px solid #e2e8f0;
-  border-left: 4px solid #cbd5e1; /* Borda default */
+  border-left: 1px solid #cbd5e1; /* Borda default */
   display: flex;
   flex-direction: column;
   position: relative;
@@ -305,7 +305,7 @@
   font-family: inherit; font-size: 0.9rem; color: #0f172a;
 }
 .pf-select:focus, .pf-textarea:focus, .pf-input:focus {
-  outline: none; border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+  outline: none; border-color: #121417; box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
 }
 
 .pf-textarea { resize: vertical; min-height: 80px; }

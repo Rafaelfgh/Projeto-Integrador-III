@@ -188,8 +188,11 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     // Uma cor só para todos os perfis (decisão do dono, 23/10): o laranja Habitare
     const mainColor = '#c2410c';
+    // nome do condomínio para o topo preto do celular (habitare.css usa via content)
+    const nomeCond = currentUser?.condominio_nome || '';
+    document.documentElement.style.setProperty('--hab-condominio', nomeCond ? JSON.stringify(nomeCond) : '""');
     document.documentElement.style.setProperty('--role-primary-color', mainColor);
-  }, [visualContext]);
+  }, [visualContext, currentUser?.condominio_nome]);
 
   return (
     <AuthContext.Provider value={{

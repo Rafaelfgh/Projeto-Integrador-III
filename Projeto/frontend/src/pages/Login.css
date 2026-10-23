@@ -297,8 +297,8 @@
 
 .btn-primary {
   width: 100%;
-  background-color: var(--role-primary-color);
-  color: #ffffff;
+  background-color: var(--hab-laranja);
+  color: var(--hab-tinta);
   font-weight: 500;
   padding: 0.75rem 0;
   border-radius: 0.75rem;

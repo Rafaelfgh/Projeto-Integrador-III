@@ -7,7 +7,7 @@ const ContextBanner = () => {
 
   if (!isMasterViewing) return null;
 
-  const bgColor = contextConfig?.color || '#4f46e5';
+  const bgColor = '#f47920'; // identidade única: laranja Habitare
   const roleName = contextConfig?.label || visualContext;
   const userName = simulatedUser?.name || '';
 
@@ -17,10 +17,8 @@ const ContextBanner = () => {
       justifyContent: 'space-between',
       alignItems: 'center',
       padding: '0.55rem 1.5rem',
-      background: `${bgColor}18`,
-      borderBottom: `1px solid ${bgColor}30`,
-      borderLeft: `4px solid ${bgColor}`,
-      backdropFilter: 'blur(4px)',
+      background: '#fff1e6',
+      borderBottom: '1px solid #f5c9a5',
       position: 'sticky',
       top: 0,
       zIndex: 50,
@@ -35,7 +33,6 @@ const ContextBanner = () => {
             width: '8px', height: '8px', borderRadius: '50%',
             background: bgColor,
             boxShadow: `0 0 0 4px ${bgColor}30`,
-            animation: 'ctx-pulse 2s ease-in-out infinite',
           }} />
         </div>
 

@@ -11,13 +11,6 @@ import AvatarUsuario from './AvatarUsuario';
 import MarcaHabitare from './MarcaHabitare';
 import AbrirOcorrenciaPorLink from './AbrirOcorrenciaPorLink';
 
-const CONTEXT_OPTIONS = [
-  { key: 'MASTER', label: 'Master', description: 'Governança Global', color: '#7c3aed', bgActive: 'rgba(124,58,237,0.12)', borderActive: 'rgba(124,58,237,0.4)' },
-  { key: 'SINDICO', label: 'Síndico', description: 'Painel do Condomínio', color: '#4f46e5', bgActive: 'rgba(79,70,229,0.12)', borderActive: 'rgba(79,70,229,0.4)' },
-  { key: 'FUNCIONARIO', label: 'Funcionário', description: 'Operações & Tarefas', color: '#16a34a', bgActive: 'rgba(22,163,74,0.12)', borderActive: 'rgba(22,163,74,0.4)' },
-  { key: 'MORADOR', label: 'Morador', description: 'Bloco B, Apt 502', color: '#ea580c', bgActive: 'rgba(234,88,12,0.12)', borderActive: 'rgba(234,88,12,0.4)' },
-];
-
 const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -77,7 +70,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
       <AbrirOcorrenciaPorLink />
       <nav className="nav-inferior" aria-label="Navegação principal">
         {(ITENS_INFERIOR[visualContext] || []).map(([alvo, Icone, rotulo, n]) => (
-          <button key={alvo} type="button" className={ativoInferior(alvo) ? 'ativo' : ''} aria-current={ativoInferior(alvo) ? 'page' : undefined} onClick={() => handleNavClick(alvo)}>
+          <button key={alvo} type="button" className={alvo === '/ocorrencia' ? 'nav-inferior-acao' : ativoInferior(alvo) ? 'ativo' : ''} aria-current={ativoInferior(alvo) ? 'page' : undefined} onClick={() => handleNavClick(alvo)}>
             <Icone />
             {rotulo}
             {n > 0 && <span className="nav-inferior-bolinha">{n > 99 ? '99+' : n}</span>}

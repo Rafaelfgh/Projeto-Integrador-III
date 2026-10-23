@@ -47,15 +47,14 @@
   padding: 0 1.1rem;
   border: none;
   border-radius: 10px;
-  background: var(--role-primary-color);
-  color: #fff;
+  background: var(--hab-laranja);
+  color: var(--hab-tinta);
   font: inherit;
   font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
 }
 
-.gf-btn-pri:hover { filter: brightness(0.95); }
 
 .gf-total {
   display: flex;

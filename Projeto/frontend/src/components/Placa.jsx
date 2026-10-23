@@ -28,7 +28,7 @@ export const PlacaLocal = ({ ocorrencia, unidade, categoriaNome, extra }) => {
     <div className="placa-cabeca">
       <div className="placa-local">
         <span className="placa-rotulo">{p.rotulo}</span>
-        <span className={`placa-valor${p.longo ? ' placa-valor-longo' : ''}`}>{p.valor}</span>
+        <span className={`placa-valor${p.longo ? ' placa-valor-longo' : ''}`} title={p.valor}>{p.valor}</span>
       </div>
       {extra}
       <Pictograma categoria={ocorrencia?.categoria} titulo={categoriaNome} />

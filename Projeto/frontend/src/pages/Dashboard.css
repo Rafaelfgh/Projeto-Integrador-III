@@ -138,8 +138,8 @@
 }
 
 .nav-item-active {
-  background-color: var(--role-primary-color);
-  color: #ffffff;
+  background-color: var(--hab-laranja);
+  color: var(--hab-tinta);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
 }
 
@@ -173,8 +173,8 @@
   width: 2rem;
   height: 2rem;
   border-radius: 9999px;
-  background-color: var(--role-primary-color);
-  color: white;
+  background-color: var(--hab-laranja);
+  color: var(--hab-tinta);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -499,8 +499,8 @@
   width: 2.25rem;
   height: 2.25rem;
   border-radius: 9999px;
-  background: var(--role-primary-color);
-  color: white;
+  background: var(--hab-laranja);
+  color: var(--hab-tinta);
   display: flex;
   align-items: center;
   justify-content: center;

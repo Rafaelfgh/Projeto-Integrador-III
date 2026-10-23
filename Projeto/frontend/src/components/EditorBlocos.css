@@ -138,7 +138,7 @@
 
 .eb-btn:disabled { opacity: 0.6; cursor: not-allowed; }
 .eb-btn-sec { background: #fff; border-color: #e2e8f0; color: #475569; }
-.eb-btn-pri { background: var(--role-primary-color); color: #fff; }
+.eb-btn-pri { background: var(--hab-laranja); color: var(--hab-tinta); }
 
 .eb-erro {
   margin: 0;

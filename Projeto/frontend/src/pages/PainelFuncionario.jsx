@@ -49,19 +49,19 @@ import './MinhasSolicitacoes.css';
 // ======================================================
 
 const CATEGORIA_META = {
-  limpeza:       { label: 'Limpeza',        icon: '🧹', class: 'ms-icon-green'  },
-  manutencao:    { label: 'Manutenção',      icon: '🔧', class: 'ms-icon-orange' },
-  seguranca:     { label: 'Segurança',       icon: '🛡️', class: 'ms-icon-red'    },
-  hidraulica:    { label: 'Hidráulica',      icon: '💧', class: 'ms-icon-blue'   },
-  eletrica:      { label: 'Elétrica',        icon: '⚡', class: 'ms-icon-yellow' },
-  jardinagem:    { label: 'Jardinagem',      icon: '🌿', class: 'ms-icon-green'  },
-  barulho:       { label: 'Barulho',         icon: '🔊', class: 'ms-icon-purple' },
-  garagem:       { label: 'Garagem',         icon: '🅿️', class: 'ms-icon-blue'   },
-  areas_comuns:  { label: 'Áreas Comuns',    icon: '🏢', class: 'ms-icon-purple' },
-  estrutural:    { label: 'Estrutural',      icon: '🏗️', class: 'ms-icon-purple' },
+  limpeza:       { label: 'Limpeza',        class: 'ms-icon-green'  },
+  manutencao:    { label: 'Manutenção',      class: 'ms-icon-orange' },
+  seguranca:     { label: 'Segurança',       class: 'ms-icon-red'    },
+  hidraulica:    { label: 'Hidráulica',      class: 'ms-icon-blue'   },
+  eletrica:      { label: 'Elétrica',        class: 'ms-icon-yellow' },
+  jardinagem:    { label: 'Jardinagem',      class: 'ms-icon-green'  },
+  barulho:       { label: 'Barulho',         class: 'ms-icon-purple' },
+  garagem:       { label: 'Garagem',         class: 'ms-icon-blue'   },
+  areas_comuns:  { label: 'Áreas Comuns',    class: 'ms-icon-purple' },
+  estrutural:    { label: 'Estrutural',      class: 'ms-icon-purple' },
 };
 
-const CATEGORIA_FALLBACK = { label: 'Outros', icon: '📋', class: 'ms-icon-blue' };
+const CATEGORIA_FALLBACK = { label: 'Outros', class: 'ms-icon-blue' };
 
 const STATUS_META = {
   'Aberta':       { label: 'Aberta',       class: 'ms-status-red st-aberta'         },
@@ -99,8 +99,8 @@ const OcorrenciaCard = ({ ocorrencia, onAbrir, categoriaNome }) => {
         categoriaNome={categoriaNome}
       />
       <div className="placa-corpo">
-        <h3 className="placa-titulo">{ocorrencia.titulo}</h3>
-        {texto && <p className="placa-texto placa-texto-curto">{texto}</p>}
+        <h3 className="placa-titulo" title={ocorrencia.titulo}>{ocorrencia.titulo}</h3>
+        <p className="placa-texto placa-texto-curto">{texto}</p>
         <div className="placa-meta">
           {ocorrencia.origem === 'atribuida'
             ? <span className="pf-origem atribuida">Atribuída pelo síndico</span>
@@ -240,7 +240,7 @@ const OcorrenciaDrawer = ({ ocorrencia, onFechar, onAtualizada, currentUser, nom
         {/* BODY */}
         <div style={{ padding:24 }}>
           {ocorrencia.privacidade === 'pessoal' && (
-            <div style={{ display:'flex', alignItems:'center', gap:10, background:'#f5f3ff', border:'1px solid #ddd6fe', borderRadius:14, padding:'12px 14px', marginBottom:20, color:'#5b21b6', fontSize:14 }}>
+            <div style={{ display:'flex', alignItems:'center', gap:10, background:'#eef0f2', border:'1px solid #ddd6fe', borderRadius:14, padding:'12px 14px', marginBottom:20, color:'#5b21b6', fontSize:14 }}>
               <Home size={18} />
               <span><strong>Ocorrência pessoal</strong> — o serviço é dentro do apartamento: <strong>{ocorrencia.unidade}</strong>.</span>
             </div>
@@ -284,7 +284,10 @@ const OcorrenciaDrawer = ({ ocorrencia, onFechar, onAtualizada, currentUser, nom
           {/* DESCRIÇÃO */}
           <h4 style={{ fontSize:12, color:'#94a3b8', marginBottom:10 }}>DESCRIÇÃO</h4>
           <div style={{ background:'#f8fafc', padding:18, borderRadius:14, color:'#334155', lineHeight:1.7, fontSize:14 }}>
-            {ocorrencia.descricao}
+            {separarLocal(ocorrencia.descricao).texto}
+            {separarLocal(ocorrencia.descricao).local && (
+              <p style={{ margin:'10px 0 0', fontSize:13, color:'#464c56' }}><strong>Local:</strong> {separarLocal(ocorrencia.descricao).local}</p>
+            )}
           </div>
 
           {ocorrencia.anexos.length > 0 && (
@@ -613,13 +616,13 @@ const PainelFuncionario = () => {
                 <input
                   type="text"
                   className="ms-search-input"
-                  placeholder="Buscar título, morador, apartamento, protocolo..."
+                  placeholder="Buscar por título, apto ou protocolo"
                   value={busca}
                   onChange={(e) => setBusca(e.target.value)}
                 />
               </div>
+              <FiltroData valor={filtroData} onChange={setFiltroData} anos={anosDe(ocorrencias.map(o => o.created_at))} />
             </div>
-            <FiltroData valor={filtroData} onChange={setFiltroData} anos={anosDe(ocorrencias.map(o => o.created_at))} />
 
             {/* ABAS */}
             <div className="ms-abas" role="tablist">

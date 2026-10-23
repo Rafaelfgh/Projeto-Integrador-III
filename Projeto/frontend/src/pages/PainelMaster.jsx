@@ -279,7 +279,7 @@ const PainelMaster = () => {
     setShowDetailsModal(true);
   };
 
-  const roleColor = { MASTER: '#7c3aed', SINDICO: '#4f46e5', FUNCIONARIO: '#16a34a', MORADOR: '#ea580c' };
+  const roleColor = { MASTER: '#121417', SINDICO: '#121417', FUNCIONARIO: '#16a34a', MORADOR: '#ea580c' };
   const roleLabel = { MASTER: 'Master', SINDICO: 'Síndico', FUNCIONARIO: 'Funcionário', MORADOR: 'Morador' };
   const statusColor = { ATIVO: { text: '#16a34a', bg: '#dcfce7' }, PENDENTE: { text: '#d97706', bg: '#fef3c7' }, BLOQUEADO: { text: '#dc2626', bg: '#fee2e2' } };
 
@@ -342,7 +342,7 @@ const PainelMaster = () => {
             >
               <div style={{
                 width: 36, height: 36, borderRadius: '50%',
-                background: 'var(--role-primary-color)', color: 'white',
+                background:'var(--hab-laranja)', color:'var(--hab-tinta)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700,
               }}>
                 {currentUser?.name?.charAt(0) || 'A'}
@@ -433,7 +433,7 @@ const PainelMaster = () => {
                   </div>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '14px' }}>
+                <div className="gm-numeros" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '14px' }}>
                   {[
                     { label: 'TOTAL DE MORADORES', value: list.length, color: '#475569' },
                     { label: 'ATIVOS', value: lActive, color: '#16a34a' },
@@ -456,7 +456,7 @@ const PainelMaster = () => {
                     <button
                       key={aba.key}
                       onClick={() => setMoradoresSubTab(aba.key)}
-                      style={{ background: moradoresSubTab === aba.key ? 'var(--role-primary-color)' : '#f8fafc', color: moradoresSubTab === aba.key ? '#fff' : '#64748b', border: '1px solid', borderColor: moradoresSubTab === aba.key ? 'var(--role-primary-color)' : '#e2e8f0', padding: '6px 14px', borderRadius: '6px', fontSize: '13px', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s' }}
+                      style={{ background: moradoresSubTab === aba.key ? '#121417' : '#ffffff', color: moradoresSubTab === aba.key ? '#fff' : '#464c56', border: '1px solid', borderColor: moradoresSubTab === aba.key ? '#121417' : '#d6d8dc', padding: '6px 14px', borderRadius: '6px', fontSize: '13px', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s' }}
                     >
                       {aba.label} ({aba.total})
                     </button>
@@ -490,16 +490,16 @@ const PainelMaster = () => {
                 {moradoresSubTab === 'ativos' && (() => {
                   const sindico = list.find(u => u.role === 'SINDICO');
                   if (!sindico) return null;
-                  const rc = roleColor['SINDICO'] || '#4f46e5';
+                  const rc = roleColor['SINDICO'] || '#121417';
                   const sc = statusColor[sindico.status] || { text: '#475569', bg: '#f1f5f9' };
                   return (
                     <div>
                       <p style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: '#94a3b8', letterSpacing: '0.08em', margin: '0 0 8px' }}>Síndico Atual</p>
-                      <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '12px', overflow: 'hidden', marginBottom: '20px' }}>
+                      <div className="gm-tabela" style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '12px', overflow: 'hidden', marginBottom: '20px' }}>
                         <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
                           <CabecalhoPessoas />
                           <tbody>
-                            <tr style={{ background: '#f5f3ff' }}>
+                            <tr style={{ background: '#eef0f2' }}>
                               <td style={estiloTd(false)}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                                   <div
@@ -536,7 +536,7 @@ const PainelMaster = () => {
                               <td style={estiloTd(true)}>
                                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
                                   <button disabled style={{ ...ETIQUETA, fontSize: '11px', fontWeight: 700, color: '#94a3b8', background: '#f1f5f9', border: 'none', borderRadius: '99px', padding: '3px 10px', cursor: 'not-allowed', opacity: 0.6 }}>
-                                    ✕ Bloquear
+                                    <X size={11} /> Bloquear
                                   </button>
                                   <div style={{ position: 'relative', display: 'inline-flex' }}
                                     onMouseEnter={e => {
@@ -579,7 +579,7 @@ const PainelMaster = () => {
                   {moradoresSubTab === 'ativos' && (
                     <p style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: '#94a3b8', letterSpacing: '0.08em', margin: '0 0 8px' }}>Moradores</p>
                   )}
-                  <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '12px', overflow: 'hidden' }}>
+                  <div className="gm-tabela" style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '12px', overflow: 'hidden' }}>
                     <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
                       <CabecalhoPessoas />
                       <tbody>
@@ -635,14 +635,14 @@ const PainelMaster = () => {
                               <td style={estiloTd(true)}>
                                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
                                   {user.status === 'PENDENTE' && (
-                                    <button onClick={() => handleApprove(user)} style={{ ...ETIQUETA, fontSize: '11px', fontWeight: 700, color: '#16a34a', background: '#dcfce7', border: 'none', borderRadius: '99px', padding: '3px 10px', cursor: 'pointer' }}>✓ Liberar</button>
+                                    <button onClick={() => handleApprove(user)} style={{ ...ETIQUETA, fontSize: '11px', fontWeight: 700, color: '#16a34a', background: '#dcfce7', border: 'none', borderRadius: '99px', padding: '3px 10px', cursor: 'pointer' }}><Check size={11} /> Liberar</button>
                                   )}
                                   {user.status === 'PENDENTE' && (
-                                    <button onClick={() => handleBlock(user)} title="Recusar o pedido (vai para Bloqueados)" style={{ ...ETIQUETA, fontSize: '11px', fontWeight: 700, color: '#dc2626', background: '#fee2e2', border: 'none', borderRadius: '99px', padding: '3px 10px', cursor: 'pointer' }}>✕ Recusar</button>
+                                    <button onClick={() => handleBlock(user)} title="Recusar o pedido (vai para Bloqueados)" style={{ ...ETIQUETA, fontSize: '11px', fontWeight: 700, color: '#dc2626', background: '#fee2e2', border: 'none', borderRadius: '99px', padding: '3px 10px', cursor: 'pointer' }}><X size={11} /> Recusar</button>
                                   )}
                                   {user.status !== 'PENDENTE' && user.id !== currentUser?.id && (
                                     <button onClick={() => handleBlock(user)} style={{ ...ETIQUETA, fontSize: '11px', fontWeight: 700, color: isBlocked ? '#16a34a' : '#dc2626', background: isBlocked ? '#dcfce7' : '#fee2e2', border: 'none', borderRadius: '99px', padding: '3px 10px', cursor: 'pointer' }}>
-                                      {isBlocked ? '↑ Desbloquear' : '✕ Bloquear'}
+                                      {isBlocked ? <><Check size={11} /> Desbloquear</> : <><X size={11} /> Bloquear</>}
                                     </button>
                                   )}
                                 </div>

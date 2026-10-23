@@ -378,7 +378,7 @@
   width: 30px;
   height: 30px;
   border-radius: 0.625rem;
-  background: linear-gradient(135deg, #818cf8, #6366f1);
+  background: linear-gradient(135deg, #818cf8, #464c56);
   border: none;
   color: white;
   font-size: 0.75rem;
@@ -390,7 +390,7 @@
 }
 
 .feed-comment-body {
-  background-color: #eef2ff;
+  background-color: #eef0f2;
   border-radius: 0.75rem;
   padding: 0.6rem 0.85rem;
   flex: 1;
@@ -473,7 +473,7 @@
 }
 
 .feed-comment-send:hover:not(:disabled) {
-  background-color: var(--role-primary-color);
+  background-color: var(--hab-laranja);
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(234, 88, 12, 0.3);
 }
@@ -580,8 +580,8 @@
   gap: 0.25rem;
   padding: 0.15rem 0.55rem;
   border-radius: 999px;
-  background: #f5f3ff;
-  color: #7c3aed;
+  background: #eef0f2;
+  color: #121417;
   font-size: 0.72rem;
   font-weight: 600;
 }
@@ -612,8 +612,8 @@
   margin-left: 0.4rem;
   padding: 0.05rem 0.45rem;
   border-radius: 999px;
-  background: #eef2ff;
-  color: #4f46e5;
+  background: #eef0f2;
+  color: #121417;
   font-size: 0.68rem;
   font-weight: 700;
 }
@@ -631,8 +631,8 @@
 }
 .feed-pronunciamento.tem-texto {
   border: 1px solid #c7d2fe;
-  border-left: 4px solid #4f46e5;
-  background: #eef2ff;
+  border-left: 1px solid #121417;
+  background: #eef0f2;
 }
 .feed-pron-header {
   display: flex;
@@ -648,7 +648,7 @@
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: #4f46e5;
+  color: #121417;
 }
 .feed-pronunciamento:not(.tem-texto) .feed-pron-label { color: #94a3b8; }
 .feed-pron-texto {
@@ -658,7 +658,7 @@
   color: #1e293b;
   white-space: pre-wrap;
 }
-.feed-pron-data { font-size: 0.72rem; color: #6366f1; }
+.feed-pron-data { font-size: 0.72rem; color: #464c56; }
 .feed-pron-vazio {
   margin: 0;
   font-size: 0.8rem;
@@ -674,7 +674,7 @@
   border-radius: 0.5rem;
   background: #ffffff;
   box-shadow: 0 0 0 1px #c7d2fe;
-  color: #4f46e5;
+  color: #121417;
   font: inherit;
   font-size: 0.75rem;
   font-weight: 600;
@@ -693,7 +693,7 @@
   outline: none;
 }
 .feed-pron-form textarea:focus {
-  border-color: #4f46e5;
+  border-color: #121417;
   box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
 }
 .feed-pron-actions {
@@ -713,7 +713,7 @@
   cursor: pointer;
 }
 .feed-pron-cancel { background: #f1f5f9; color: #475569; }
-.feed-pron-save { background: #4f46e5; color: #ffffff; }
+.feed-pron-save { background: #121417; color: #ffffff; }
 .feed-pron-save:disabled { opacity: 0.6; cursor: default; }
 
 .feed-gerenciar {
@@ -721,8 +721,8 @@
   padding: 0.35rem 0.8rem;
   border: 1px solid #c7d2fe;
   border-radius: 0.5rem;
-  background: #eef2ff;
-  color: #4338ca;
+  background: #eef0f2;
+  color: #121417;
   font: inherit;
   font-size: 0.8rem;
   font-weight: 600;
@@ -742,4 +742,4 @@
   gap: 0.5rem;
   margin-top: 0.4rem;
 }
-.feed-comment-editar:hover { color: #4f46e5; }
+.feed-comment-editar:hover { color: #121417; }

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { FaixaStatus } from '../components/Placa';
+import { STATUS_COR, classeStatus } from '../utils/statusOcorrencia';
+import { FaixaStatus, Pictograma } from '../components/Placa';
 import ErroCarregamento from '../components/ErroCarregamento';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
@@ -42,15 +43,15 @@ export const CATEGORIA_SETOR = {
 };
 
 export const CATEGORIA_LABEL = {
-  'hidraulica':   '💧 Hidráulica',
-  'manutencao':   '🔧 Manutenção',
-  'limpeza':      '🧹 Limpeza',
-  'jardinagem':   '🌿 Jardinagem',
-  'seguranca':    '🛡️ Segurança',
-  'areas_comuns': '🏢 Áreas Comuns',
-  'estrutural':   '🏗️ Estrutural',
-  'barulho':      '🔊 Barulho/Perturbação',
-  'garagem':      '🅿️ Garagem/Estacionamento',
+  'hidraulica':   'Hidráulica',
+  'manutencao':   'Manutenção',
+  'limpeza':      'Limpeza',
+  'jardinagem':   'Jardinagem',
+  'seguranca':    'Segurança',
+  'areas_comuns': 'Áreas Comuns',
+  'estrutural':   'Estrutural',
+  'barulho':      'Barulho/Perturbação',
+  'garagem':      'Garagem/Estacionamento',
 };
 
 export const SETOR_LABEL = {
@@ -74,22 +75,6 @@ const kpiData = {
   total:     { value: 37, trend: 'neutral', trendValue: '0%'  },
 };
 
-const dataTimeline = [
-  { name: '01/03', abertas: 3, resolvidas: 2 },
-  { name: '05/03', abertas: 4, resolvidas: 3 },
-  { name: '10/03', abertas: 2, resolvidas: 5 },
-  { name: '15/03', abertas: 5, resolvidas: 2 },
-  { name: '20/03', abertas: 3, resolvidas: 7 },
-  { name: '25/03', abertas: 1, resolvidas: 4 },
-];
-
-const dataCategory = [
-  { name: 'Hidráulica', value: 35, fill: '#6366f1' },
-  { name: 'Elétrica',   value: 25, fill: '#818cf8' },
-  { name: 'Barulho',    value: 20, fill: '#a5b4fc' },
-  { name: 'Limpeza',    value: 15, fill: '#c7d2fe' },
-  { name: 'Outros',     value: 5,  fill: '#e0e7ff' },
-];
 
 const dataStatus = [
   { name: 'Abertas',    value: 8,  fill: '#ef4444' },
@@ -103,16 +88,60 @@ const recentOccurrences = [
   { id: 3, title: 'Festa com som alto',       subtitle: 'Apt 502 - Bloco C',  category: 'Barulho',    status: 'Aberta',      timeOpen: 'há 1 dia',   responsible: null,         isReclamacao: false },
 ].map(occ => ({ ...occ, setor: CATEGORIA_SETOR[occ.category] ?? 'manutencao' }));
 
-const slaEmRisco = [
-  { id: 101, title: 'Conserto Elevador',      category: 'Infraestrutura', timeRemaining: '< 2h', priority: 'danger'  },
-  { id: 102, title: "Vazamento Caixa D'água", category: 'Hidráulica',     timeRemaining: '4h',   priority: 'warning' },
-];
 
 const heatmapDays  = ['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'];
 const heatmapTimes = ['08h','10h','12h','14h','16h','18h','20h'];
-const heatmapData  = Array.from({ length: 7 }, () =>
-  Array.from({ length: 7 }, () => Math.floor(Math.random() * 5))
-);
+
+
+// ── Indicadores calculados das ocorrências reais (pendência 16) ──
+const DIA_MS = 864e5;
+const RAMPA_LARANJA = ['#f47920', '#f6924a', '#f8ab73', '#fbc49d', '#fddcc6', '#fdeadb'];
+
+// Aberturas e conclusões por semana, nas últimas 8 semanas
+const calcularEvolucao = (ocs) => {
+  const hoje = new Date(); hoje.setHours(0, 0, 0, 0);
+  const inicio = new Date(hoje.getTime() - 7 * 7 * DIA_MS - hoje.getDay() * DIA_MS);
+  return Array.from({ length: 8 }, (_, i) => {
+    const de = inicio.getTime() + i * 7 * DIA_MS, ate = de + 7 * DIA_MS;
+    const dentro = (d) => d && new Date(d).getTime() >= de && new Date(d).getTime() < ate;
+    return {
+      name: new Date(de).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }),
+      abertas: ocs.filter(o => dentro(o.created_at)).length,
+      resolvidas: ocs.filter(o => dentro(o.concluida_em)).length,
+    };
+  });
+};
+
+// Total por categoria (as 5 maiores + "Outras")
+const calcularCategorias = (ocs) => {
+  const cont = {};
+  ocs.forEach(o => { cont[o.categoria] = (cont[o.categoria] || 0) + 1; });
+  const ord = Object.entries(cont).sort((a, b) => b[1] - a[1]);
+  const top = ord.slice(0, 5).map(([slug, value]) => ({ name: CATEGORIA_LABEL[slug] || slug || 'Outras', value }));
+  const resto = ord.slice(5).reduce((t, [, v]) => t + v, 0);
+  if (resto) top.push({ name: 'Outras', value: resto });
+  return top.map((c, i) => ({ ...c, fill: RAMPA_LARANJA[i] }));
+};
+
+// Dia da semana × faixa de horário em que as ocorrências foram abertas (nível 0–4)
+const calcularMapaCalor = (ocs) => {
+  const m = Array.from({ length: 7 }, () => Array(7).fill(0));
+  ocs.forEach(o => {
+    const d = new Date(o.created_at);
+    const dia = (d.getDay() + 6) % 7; // segunda = 0
+    const faixa = Math.min(6, Math.max(0, Math.round((d.getHours() - 8) / 2)));
+    m[dia][faixa] += 1;
+  });
+  const max = Math.max(1, ...m.flat());
+  return { contagem: m, nivel: m.map(l => l.map(v => (v ? Math.max(1, Math.ceil((v / max) * 4)) : 0))) };
+};
+
+// Em andamento há mais de 2 dias (no lugar do "SLA" de exemplo)
+const calcularParadas = (ocs) => ocs
+  .filter(o => o.status === 'Em Andamento' && o.andamento_em && Date.now() - new Date(o.andamento_em).getTime() > 2 * DIA_MS)
+  .map(o => ({ id: o.id, titulo: o.titulo, categoria: o.categoria, dias: Math.floor((Date.now() - new Date(o.andamento_em).getTime()) / DIA_MS) }))
+  .sort((a, b) => b.dias - a.dias)
+  .slice(0, 5);
 
 // ---------------------------------------------------------------------------
 // CustomTooltip
@@ -162,8 +191,8 @@ const TabelaComAbas = ({ ocorrencias, reclamacoes, onGerenciar, onAbrirReclamaca
   const [abaAtiva, setAbaAtiva] = useState('ocorrencias');
 
   const abas = [
-    { key: 'ocorrencias', label: '📋 Ocorrências', count: ocorrencias.length },
-    { key: 'reclamacoes', label: '🔒 Reclamações', count: reclamacoes.length },
+    { key: 'ocorrencias', label: 'Ocorrências', count: ocorrencias.length },
+    { key: 'reclamacoes', label: 'Reclamações', count: reclamacoes.length },
   ];
 
   const tabStyle = (key) => ({
@@ -249,7 +278,7 @@ const TabelaComAbas = ({ ocorrencias, reclamacoes, onGerenciar, onAbrirReclamaca
                     <div style={{ fontWeight: 600, color: '#1e293b', fontSize: '0.85rem' }}>
                       {occ.title}
                       {occ.pessoal && (
-                        <span style={{ marginLeft: 6, fontSize: '0.68rem', fontWeight: 700, color: '#6d28d9', background: '#f5f3ff', borderRadius: 999, padding: '1px 7px' }}>Pessoal</span>
+                        <span style={{ marginLeft: 6, fontSize: '0.68rem', fontWeight: 700, color: '#ffffff', background: '#121417', borderRadius: 999, padding: '1px 7px' }}>Pessoal</span>
                       )}
                     </div>
                     <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: 4 }}>
@@ -258,21 +287,21 @@ const TabelaComAbas = ({ ocorrencias, reclamacoes, onGerenciar, onAbrirReclamaca
                   </td>
                   <td><SetorBadge setor={occ.setor} /></td>
                   <td>
-                    <span className={`badge-pill ${occ.status === 'Aberta' ? 'badge-red' : occ.status === 'Em Andamento' ? 'badge-yellow' : 'badge-green'}`}>
-                      {occ.status}
+                    <span className={`badge-pill ${classeStatus(occ.status)}`}>
+                      {occ.status === 'Resolvida' ? 'Concluída' : occ.status}
                     </span>
                   </td>
                   <td>
                     <div className="time-open"><Clock size={12} /> {occ.timeOpen}</div>
                   </td>
                   <td>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
                       {occ.responsible
                         ? <ResponsavelChip name={occ.responsible} />
                         : <span style={{ fontSize: '0.78rem', color: '#94a3b8' }}>Sem responsável</span>}
                       <button
                         onClick={() => onGerenciar(occ.id)}
-                        style={{ padding: '4px 10px', fontSize: '0.75rem', fontWeight: 600, borderRadius: 6, border: '1px solid #c7d2fe', background: '#eef2ff', color: '#4338ca', cursor: 'pointer' }}
+                        className="btn-hab ps-btn-gerenciar"
                       >
                         Gerenciar
                       </button>
@@ -324,7 +353,7 @@ const TabelaComAbas = ({ ocorrencias, reclamacoes, onGerenciar, onAbrirReclamaca
                 >
                   <td>
                     <div style={{ fontWeight: 600, color: '#1e293b', fontSize: '0.85rem' }}>
-                      🔒 Reclamação Particular
+                      Reclamação particular
                     </div>
                     <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: 4, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
                       {rec.descricao || 'Sem descrição'}
@@ -438,7 +467,7 @@ const DrawerReclamacao = ({ reclamacao, onFechar, currentUser, onRespondida }) =
               <div>
                 <h2 style={{ margin:0, fontSize:18, color:'#0f172a', fontWeight:700 }}>Reclamação Particular</h2>
                 <p style={{ margin:'4px 0 0', fontSize:12, color:'#7e22ce', fontWeight:600 }}>
-                  🔒 Confidencial — visível só para a gestão
+                  Confidencial — visível só para a gestão
                 </p>
               </div>
             </div>
@@ -508,7 +537,7 @@ const DrawerReclamacao = ({ reclamacao, onFechar, currentUser, onRespondida }) =
           {/* Denunciante — anônimo */}
           <div style={{ background:'#fafafa', border:'1.5px dashed #e2e8f0', borderRadius:12, padding:14, display:'flex', alignItems:'center', gap:10 }}>
             <div style={{ width:36, height:36, borderRadius:'50%', background:'#e2e8f0', display:'flex', alignItems:'center', justifyContent:'center' }}>
-              <span style={{ fontSize:16 }}>👤</span>
+              <User size={16} />
             </div>
             <div>
               <p style={{ margin:0, fontSize:13, fontWeight:600, color:'#475569' }}>Morador anônimo</p>
@@ -587,9 +616,14 @@ const PainelSindico = () => {
   const [funcionarios,    setFuncionarios]    = useState([]);
   const [kpis,            setKpis]            = useState(kpiData);
   const [statusChart,     setStatusChart]     = useState(dataStatus);
+  const [ocsReais,        setOcsReais]        = useState([]);
   const [gerenciando,     setGerenciando]     = useState(null);
 
   const [carga, setCarga] = useState('carregando'); // 'carregando' | 'ok' | 'erro'
+  const evolucao        = React.useMemo(() => calcularEvolucao(ocsReais), [ocsReais]);
+  const categoriasReais = React.useMemo(() => calcularCategorias(ocsReais), [ocsReais]);
+  const mapaCalor       = React.useMemo(() => calcularMapaCalor(ocsReais), [ocsReais]);
+  const paradas         = React.useMemo(() => calcularParadas(ocsReais), [ocsReais]);
 
   const fetchDados = React.useCallback(async () => {
     if (!currentUser?.condominio_id) return;
@@ -615,6 +649,7 @@ const PainelSindico = () => {
       return;
     }
     const [{ data: funcs }, { data: esp }, { data: occ }, { data: rec }] = resultados;
+    setOcsReais(occ || []);
 
     // Carga real da equipe: especialidades e tarefas abertas por funcionário
     const espPorFunc = {};
@@ -656,7 +691,7 @@ const PainelSindico = () => {
         title:                 'Reclamação Particular',
         subtitle:              `Bloco ${r.bloco_denunciado || '?'} - Apt ${r.apartamento_denunciada || r.apartamento_denunciado || '?'}`,
         category:              'barulho',
-        categoryLabel:         '🔊 Reclamação',
+        categoryLabel:         'Reclamação',
         status:                'Aberta',
         timeOpen:              new Date(r.created_at).toLocaleDateString(),
         responsible:           null,
@@ -688,10 +723,12 @@ const PainelSindico = () => {
         resolvidas:{ value: resolvidas,   trend: 'neutral', trendValue: '' },
         total:     { value: all.length,   trend: 'neutral', trendValue: '' },
       });
+      // Distribuição das ocorrências (sem reclamações), nas mesmas 4 etapas das placas
       setStatusChart([
-        { name: 'Abertas',      value: abertas,     fill: '#ef4444' },
-        { name: 'Em Andamento', value: emAndamento, fill: '#f59e0b' },
-        { name: 'Resolvidas',   value: resolvidas,  fill: '#10b981' },
+        { name: 'Abertas',      value: (occ || []).filter(o => o.status === 'Aberta').length,       fill: STATUS_COR['Aberta'] },
+        { name: 'Em Análise',   value: (occ || []).filter(o => o.status === 'Em Análise').length,   fill: STATUS_COR['Em Análise'] },
+        { name: 'Em Andamento', value: (occ || []).filter(o => o.status === 'Em Andamento').length, fill: STATUS_COR['Em Andamento'] },
+        { name: 'Concluídas',   value: (occ || []).filter(o => o.status === 'Resolvida').length,    fill: STATUS_COR['Resolvida'] },
       ]);
     } else {
       setOccurrencesList(recentOccurrences);
@@ -731,7 +768,7 @@ const PainelSindico = () => {
           <div className="header-right">
             <NotificationMenu />
             <div onClick={() => navigate('/perfil')} style={{ display:'flex', alignItems:'center', gap:'0.75rem', borderLeft:'1px solid #e2e8f0', paddingLeft:'1rem', cursor:'pointer' }}>
-              <div style={{ width:36, height:36, borderRadius:'50%', background:'var(--role-primary-color)', color:'white', display:'flex', alignItems:'center', justifyContent:'center', fontWeight:700 }}>
+              <div style={{ width:36, height:36, borderRadius:'50%', background:'var(--hab-laranja)', color:'var(--hab-tinta)', display:'flex', alignItems:'center', justifyContent:'center', fontWeight:700 }}>
                 {currentUser?.name?.charAt(0) || 'S'}
               </div>
             </div>
@@ -750,24 +787,15 @@ const PainelSindico = () => {
 
             <h3 className="section-title" style={{ margin:'0 0 0.75rem' }}>Ocorrências do condomínio</h3>
 
-            {/* Placas de status (mesma linguagem das placas das ocorrências) */}
+            {/* Placas de status: as 4 etapas, como na Visão Geral (ocorrências reais) */}
             <div className="painel-placas">
-              {[
-                { status:'Aberta',       valor:kpis.abertas.value,    tendencia:kpis.abertas.trendValue },
-                { status:'Em Andamento', valor:kpis.analise.value,    tendencia:kpis.analise.trendValue },
-                { status:'Resolvida',    valor:kpis.resolvidas.value, tendencia:kpis.resolvidas.trendValue },
-              ].map(k => (
-                <div key={k.status} className="placa placa-status">
-                  <span className="placa-status-numero">{k.valor}</span>
-                  <span className="placa-status-sub">{k.tendencia || 'no condomínio'}</span>
-                  <FaixaStatus status={k.status} />
+              {['Aberta', 'Em Análise', 'Em Andamento', 'Resolvida'].map(st => (
+                <div key={st} className="placa placa-status">
+                  <span className="placa-status-numero">{ocsReais.filter(o => o.status === st).length}</span>
+                  <span className="placa-status-sub">de {ocsReais.length} ocorrências</span>
+                  <FaixaStatus status={st} />
                 </div>
               ))}
-              <div className="placa placa-status">
-                <span className="placa-status-numero">{kpis.total.value}</span>
-                <span className="placa-status-sub">abertas neste mês</span>
-                <div className="placa-faixa placa-faixa-neutra">Total do mês</div>
-              </div>
             </div>
 
             <div className="ps-main-grid">
@@ -777,10 +805,10 @@ const PainelSindico = () => {
                 <div className="ps-charts-row">
                   <div className="ps-card">
                     <h3 className="ps-section-title">Evolução de Ocorrências</h3>
-                    <p className="ps-section-subtitle">Comparativo de aberturas e resoluções</p>
+                    <p className="ps-section-subtitle">Abertas e concluídas por semana (últimas 8)</p>
                     <div className="ps-chart-container">
                       <ResponsiveContainer width="100%" height="100%">
-                        <AreaChart data={dataTimeline} margin={{ top:10, right:10, left:-20, bottom:0 }}>
+                        <AreaChart data={evolucao} margin={{ top:10, right:10, left:-20, bottom:0 }}>
                           <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                           <XAxis dataKey="name" tick={{ fontSize:11, fill:'#94a3b8' }} tickLine={false} axisLine={false} dy={10} />
                           <YAxis tick={{ fontSize:11, fill:'#94a3b8' }} tickLine={false} axisLine={false} dx={-10} />
@@ -796,13 +824,13 @@ const PainelSindico = () => {
                     <p className="ps-section-subtitle">Volume absoluto por tipo</p>
                     <div className="ps-chart-container">
                       <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={dataCategory} layout="vertical" margin={{ top:10, right:10, left:10, bottom:0 }}>
+                        <BarChart data={categoriasReais} layout="vertical" margin={{ top:10, right:10, left:10, bottom:0 }}>
                           <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f1f5f9" />
                           <XAxis type="number" hide />
                           <YAxis type="category" dataKey="name" tick={{ fontSize:11, fill:'#475569' }} tickLine={false} axisLine={false} width={80} />
                           <RechartsTooltip cursor={{ fill:'#f8fafc' }} content={<CustomTooltip />} />
                           <Bar dataKey="value" radius={[0,4,4,0]} barSize={16}>
-                            {dataCategory.map((entry, i) => <Cell key={i} fill={entry.fill} />)}
+                            {categoriasReais.map((entry, i) => <Cell key={i} fill={entry.fill} />)}
                           </Bar>
                         </BarChart>
                       </ResponsiveContainer>
@@ -813,28 +841,19 @@ const PainelSindico = () => {
                 {/* Heatmap */}
                 <div className="ps-card">
                   <h3 className="ps-section-title">Mapa de Calor Semanal</h3>
-                  <p className="ps-section-subtitle">Horários de pico na abertura de ocorrências</p>
+                  <p className="ps-section-subtitle">Dias e horários em que as ocorrências são abertas</p>
                   <div className="heatmap-container">
                     <div className="heatmap-header">{heatmapTimes.map(t => <div key={t} className="heatmap-time-label">{t}</div>)}</div>
                     {heatmapDays.map((day, dIdx) => (
                       <div key={day} className="heatmap-row">
                         <div className="heatmap-day-label">{day}</div>
-                        {heatmapData[dIdx].map((val, tIdx) => (
-                          <div key={tIdx} className={`heatmap-cell hm-lvl-${val}`} title={`${val} ocorrências`} />
+                        {mapaCalor.nivel[dIdx].map((val, tIdx) => (
+                          <div key={tIdx} className={`heatmap-cell hm-lvl-${val}`} title={`${mapaCalor.contagem[dIdx][tIdx]} ocorrência(s)`} />
                         ))}
                       </div>
                     ))}
                   </div>
                 </div>
-
-                {/* Tabela com abas */}
-                <TabelaComAbas
-                  ocorrencias={occurrencesList.filter(o => !o.isReclamacao)}
-                  reclamacoes={occurrencesList.filter(o => o.isReclamacao)}
-                  onGerenciar={setGerenciando}
-                  onAbrirReclamacao={setReclamacaoAberta}
-                  respondidas={respondidas}
-                />
 
               </div>{/* /left */}
 
@@ -865,51 +884,64 @@ const PainelSindico = () => {
                 </div>
 
                 <div className="ps-card">
-                  <h3 className="ps-section-title">SLA em Risco</h3>
-                  <p className="ps-section-subtitle" style={{ marginBottom:'1rem' }}>Prazos de atendimento curtos</p>
+                  <h3 className="ps-section-title">Paradas há mais de 2 dias</h3>
+                  <p className="ps-section-subtitle" style={{ marginBottom:'1rem' }}>Em andamento sem conclusão</p>
                   <div className="widget-list">
-                    {slaEmRisco.map(sla => (
-                      <div key={sla.id} className="widget-item">
+                    {paradas.length === 0 && <p className="ps-section-subtitle">Nenhuma ocorrência parada. Tudo em dia.</p>}
+                    {paradas.map(p => (
+                      <button key={p.id} type="button" className="widget-item widget-item-botao" onClick={() => setGerenciando(p.id)}>
                         <div className="widget-item-left">
-                          <div className="w-icon-box"><AlertCircle size={16} color={sla.priority === 'danger' ? '#ef4444' : '#f59e0b'} /></div>
+                          <Pictograma categoria={p.categoria} tamanho={16} />
                           <div className="w-texts">
-                            <span className="w-title">{sla.title}</span>
-                            <span className="w-subtitle">{SETOR_LABEL[CATEGORIA_SETOR[sla.category] ?? 'manutencao']} · Prazo estourando</span>
+                            <span className="w-title">{p.titulo}</span>
+                            <span className="w-subtitle">{CATEGORIA_LABEL[p.categoria] || 'Outros'}</span>
                           </div>
                         </div>
-                        <div className={`w-badge-${sla.priority}`}>{sla.timeRemaining}</div>
-                      </div>
+                        <div className={p.dias >= 5 ? 'w-badge-danger' : 'w-badge-warning'}>{p.dias} dias</div>
+                      </button>
                     ))}
                   </div>
                 </div>
 
-                <div className="ps-card">
-                  <h3 className="ps-section-title">Carga da Equipe</h3>
-                  <p className="ps-section-subtitle" style={{ marginBottom:'1rem' }}>Tarefas em aberto por funcionário</p>
-                  <div className="widget-list">
-                    {funcionarios.length > 0
-                      ? [...funcionarios].sort((a, b) => b.abertas - a.abertas).map(emp => (
-                          <div key={emp.id} className="widget-item">
-                            <div className="widget-item-left">
-                              <div className="w-icon-box" style={{ background:'#f1f5f9', color:'#475569', fontSize:'0.7rem', fontWeight:700 }}>{emp.nome?.charAt(0) || 'F'}</div>
-                              <div className="w-texts">
-                                <span className="w-title">{emp.nome}</span>
-                                <span className="w-subtitle">
-                                  {emp.especialidades.length > 0
-                                    ? emp.especialidades.map(c => CATEGORIA_LABEL[c] || c).join(' · ')
-                                    : 'Sem especialidade'}
-                                </span>
-                              </div>
-                            </div>
-                            <div className="w-right-val">{emp.abertas}</div>
-                          </div>
-                        ))
-                      : <p style={{ color:'#94a3b8', fontSize:'0.85rem', margin:0 }}>Nenhum funcionário ativo cadastrado.</p>
-                    }
-                  </div>
-                </div>
-
               </div>{/* /right */}
+            </div>
+
+            {/* Carga da equipe em largura inteira, funcionários em grade */}
+            <div className="ps-card ps-carga">
+              <h3 className="ps-section-title">Carga da Equipe</h3>
+              <p className="ps-section-subtitle" style={{ marginBottom:'1rem' }}>Tarefas em aberto por funcionário</p>
+              <div className="widget-list">
+                {funcionarios.length > 0
+                  ? [...funcionarios].sort((a, b) => b.abertas - a.abertas).map(emp => (
+                      <div key={emp.id} className="widget-item">
+                        <div className="widget-item-left">
+                          <div className="w-icon-box" style={{ background:'#f1f5f9', color:'#475569', fontSize:'0.7rem', fontWeight:700 }}>{emp.nome?.charAt(0) || 'F'}</div>
+                          <div className="w-texts">
+                            <span className="w-title">{emp.nome}</span>
+                            <span className="w-subtitle">
+                              {emp.especialidades.length > 0
+                                ? emp.especialidades.map(c => CATEGORIA_LABEL[c] || c).join(' · ')
+                                : 'Sem especialidade'}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="w-right-val">{emp.abertas}</div>
+                      </div>
+                    ))
+                  : <p style={{ color:'#94a3b8', fontSize:'0.85rem', margin:0 }}>Nenhum funcionário ativo cadastrado.</p>
+                }
+              </div>
+            </div>
+
+            {/* Registros recentes ocupam a largura inteira: cada coluna com seu espaço */}
+            <div className="ps-registros">
+              <TabelaComAbas
+                ocorrencias={occurrencesList.filter(o => !o.isReclamacao)}
+                reclamacoes={occurrencesList.filter(o => o.isReclamacao)}
+                onGerenciar={setGerenciando}
+                onAbrirReclamacao={setReclamacaoAberta}
+                respondidas={respondidas}
+              />
             </div>
           </div>
           )}

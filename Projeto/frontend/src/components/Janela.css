@@ -258,14 +258,16 @@ textarea.janela-input {
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  transition: filter 0.15s, background 0.15s;
+  transition: background-color .15s, border-color .15s;
 }
 
 .janela-btn:disabled { opacity: 0.6; cursor: not-allowed; }
-.janela-btn:not(:disabled):hover { filter: brightness(0.95); }
+.janela-btn-sec:not(:disabled):hover { border-color: #121417; }
+.janela-btn-perigo:not(:disabled):hover { background: #b91c1c; }
+.janela-btn-sucesso:not(:disabled):hover { background: #15803d; }
 
 .janela-btn-sec     { background: #fff; border-color: #e2e8f0; color: #475569; }
-.janela-btn-pri     { background: var(--role-primary-color); color: #fff; }
+.janela-btn-pri     { background: var(--hab-laranja); color: var(--hab-tinta); }
 .janela-btn-perigo  { background: #dc2626; color: #fff; }
 .janela-btn-sucesso { background: #16a34a; color: #fff; }
 .janela-btn-largo   { flex: 1; }

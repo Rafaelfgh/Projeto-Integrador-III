@@ -168,7 +168,7 @@ const Dashboard = () => {
             >
               <div style={{
                 width:36, height:36, borderRadius:'50%',
-                background:'var(--role-primary-color)', color:'white',
+                background:'var(--hab-laranja)', color:'var(--hab-tinta)',
                 display:'flex', alignItems:'center', justifyContent:'center', fontWeight:700,
               }}>
                 {currentUser?.name?.charAt(0) || 'M'}

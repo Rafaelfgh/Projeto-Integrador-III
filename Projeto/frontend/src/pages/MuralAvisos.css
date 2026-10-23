@@ -159,7 +159,7 @@
   border-top: 4px solid #f59e0b;
   border-radius: 1rem;
 }
-.av-card-evento { border-top-color: #6366f1; }
+.av-card-evento { border-top-color: #464c56; }
 .av-card h3 { margin: 0; font-size: 1.1rem; color: #0f172a; }
 .av-card-topo { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.5rem; }
 .av-tipo {
@@ -173,7 +173,7 @@
   font-size: 0.74rem;
   font-weight: 700;
 }
-.av-tipo-evento { background: #e0e7ff; color: #4338ca; }
+.av-tipo-evento { background: #e0e7ff; color: #121417; }
 .av-meta { font-size: 0.76rem; color: #94a3b8; }
 .av-quando {
   display: inline-flex;
@@ -182,7 +182,7 @@
   align-self: flex-start;
   padding: 0.4rem 0.7rem;
   border-radius: 0.6rem;
-  background: #eef2ff;
+  background: #eef0f2;
   color: #3730a3;
   font-size: 0.86rem;
   font-weight: 600;

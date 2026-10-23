@@ -75,14 +75,14 @@ const NotificationMenu = () => {
                   onKeyDown={(e) => { if (e.key === 'Enter') abrir(notif); }}
                   style={{
                     cursor: 'pointer', display: 'flex', gap: '10px', alignItems: 'flex-start',
-                    ...(notif.prioridade === 'urgente' ? { borderLeft: '3px solid #dc2626', background: !notif.lida ? '#fef2f2' : undefined } : {}),
+                    ...(notif.prioridade === 'urgente' ? { background: !notif.lida ? '#fef2f2' : undefined } : {}),
                   }}
                 >
                   <div className="notif-indicator"></div>
                   <div className="notif-content" style={{ flex: 1 }}>
                     <p className="notif-title">
                       {notif.prioridade === 'urgente' && (
-                        <span style={{ marginRight: 6, padding: '1px 6px', borderRadius: 999, background: '#dc2626', color: '#fff', fontSize: 10, fontWeight: 700, verticalAlign: 'middle' }}>URGENTE</span>
+                        <span style={{ marginRight: 6, padding: '1px 6px', borderRadius: 999, background: '#fee2e2', color: '#b91c1c', fontSize: 10, fontWeight: 700, verticalAlign: 'middle' }}>URGENTE</span>
                       )}
                       {notif.titulo}
                     </p>

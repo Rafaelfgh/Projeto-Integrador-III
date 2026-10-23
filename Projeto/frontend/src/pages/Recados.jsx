@@ -18,7 +18,7 @@ import './Recados.css';
 // Recados: comunicação formal e esporádica da gestão (síndico/master) com os funcionários.
 // A gestão cria (para todos ou para escolhidos); funcionários só respondem.
 
-const COR_FUNCIONARIO = '#16a34a';
+const COR_FUNCIONARIO = '#121417'; // preto de placa (identidade única, sem cor por perfil)
 const FORM_VAZIO = { titulo: '', texto: '', paraTodos: true, escolhidos: [] };
 
 const formatarData = (d) => new Date(d).toLocaleDateString('pt-BR', {

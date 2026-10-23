@@ -79,7 +79,7 @@
 }
 
 .btn-ms-new:hover {
-  background-color: var(--role-primary-color);
+  background-color: var(--hab-laranja);
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(234, 88, 12, 0.3);
 }

@@ -99,8 +99,8 @@ const Perfil = () => {
   // --- LOGIC: Banner & Role Variables ---
   const getRoleVars = () => {
     switch (currentUser.role) {
-      case 'MASTER': return { bannerClass: 'banner-master', avatarClass: 'avatar-master', roleBadge: 'role-master', roleName: 'Master Admin', mainColor: '#7c3aed' };
-      case 'SINDICO': return { bannerClass: 'banner-sindico', avatarClass: 'avatar-sindico', roleBadge: 'role-sindico', roleName: 'Síndico', mainColor: '#4f46e5' };
+      case 'MASTER': return { bannerClass: 'banner-master', avatarClass: 'avatar-master', roleBadge: 'role-master', roleName: 'Master Admin', mainColor: '#121417' };
+      case 'SINDICO': return { bannerClass: 'banner-sindico', avatarClass: 'avatar-sindico', roleBadge: 'role-sindico', roleName: 'Síndico', mainColor: '#121417' };
       case 'FUNCIONARIO': return { bannerClass: 'banner-funcionario', avatarClass: 'avatar-funcionario', roleBadge: 'role-funcionario', roleName: 'Funcionário', mainColor: '#16a34a' };
       default: return { bannerClass: 'banner-morador', avatarClass: 'avatar-morador', roleBadge: 'role-morador', roleName: 'Morador', mainColor: '#ea580c' };
     }

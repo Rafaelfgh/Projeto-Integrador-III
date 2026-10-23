@@ -417,7 +417,7 @@
 }
 
 .btn-primary-saas:hover {
-  background-color: var(--role-primary-color);
+  background-color: var(--hab-laranja);
   box-shadow: 0 4px 12px rgba(249, 115, 22, 0.4);
 }
 

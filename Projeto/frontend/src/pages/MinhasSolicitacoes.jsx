@@ -295,7 +295,7 @@ const MinhasSolicitacoes = () => {
             >
               <div style={{
                 width:36, height:36, borderRadius:'50%',
-                background:'var(--role-primary-color)', color:'white',
+                background:'var(--hab-laranja)', color:'var(--hab-tinta)',
                 display:'flex', alignItems:'center', justifyContent:'center', fontWeight:700,
               }}>
                 {currentUser?.name?.charAt(0) || 'M'}
@@ -315,11 +315,12 @@ const MinhasSolicitacoes = () => {
                 <input 
                   type="text" 
                   className="ms-search-input" 
-                  placeholder="Buscar protocolo, título, categoria..." 
+                  placeholder="Buscar por título ou protocolo" 
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
+              <FiltroData valor={filtroData} onChange={setFiltroData} anos={anosDe((aba === 'ocorrencias' ? ocorrencias : reclamacoes).map(r => r.createdAt))} />
               
               <div style={{ position: 'relative' }} onClick={(e) => e.stopPropagation()}>
                 <button className="btn-ms-new" onClick={() => setShowNewDropdown(!showNewDropdown)}>
@@ -382,7 +383,6 @@ const MinhasSolicitacoes = () => {
               </>
             )}
 
-            <FiltroData valor={filtroData} onChange={setFiltroData} anos={anosDe((aba === 'ocorrencias' ? ocorrencias : reclamacoes).map(r => r.createdAt))} />
 
             {/* Premium SaaS Cards Grid */}
             {carga === 'carregando' ? (
@@ -418,8 +418,8 @@ const MinhasSolicitacoes = () => {
                         />
                       )}
                       <div className="placa-corpo">
-                        <h3 className="placa-titulo">{req.title}</h3>
-                        {texto && <p className="placa-texto placa-texto-curto">{texto}</p>}
+                        <h3 className="placa-titulo" title={req.title}>{req.title}</h3>
+                        <p className="placa-texto placa-texto-curto">{texto}</p>
                         <div className="placa-meta">
                           {!ehReclamacao && <span className={`ms-tipo ${req.pessoal ? 'pessoal' : 'publica'}`}>{req.pessoal ? 'Pessoal' : 'Pública'}</span>}
                           <span><CalendarDays size={12} /> {req.date}</span>
@@ -462,7 +462,8 @@ const MinhasSolicitacoes = () => {
 
             {selectedRequest.description && (
               <p style={{ fontSize: '0.9rem', color: '#475569', lineHeight: 1.6, marginTop: '1rem' }}>
-                {selectedRequest.description}
+                {separarLocal(selectedRequest.description).texto}
+                {separarLocal(selectedRequest.description).local && <><br /><strong>Local:</strong> {separarLocal(selectedRequest.description).local}</>}
               </p>
             )}
 
@@ -473,7 +474,7 @@ const MinhasSolicitacoes = () => {
             )}
 
             {selectedRequest.tipo === 'ocorrencia' && selectedRequest.pessoal && (
-              <p style={{ fontSize: '0.8rem', color: '#6d28d9', marginTop: '0.75rem' }}>
+              <p style={{ fontSize: '0.8rem', color: '#121417', marginTop: '0.75rem' }}>
                 Ocorrência pessoal: só você, o síndico e o funcionário encaminhado veem.
               </p>
             )}

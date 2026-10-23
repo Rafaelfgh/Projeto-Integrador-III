@@ -581,3 +581,99 @@ button.placa { font: inherit; text-align: left; padding: 0; color: inherit; widt
 .feed-placa .feed-pron-edit:hover { border-color: var(--hab-tinta); }
 .feed-placa .feed-pronunciamento:not(.tem-texto) { min-height: 0; }
 .feed-placa .feed-pronunciamento.tem-texto { min-height: 0; }
+
+/* Resumo das Concluídas: placas com ícone em quadro preto */
+.oc-kpi { background: var(--hab-placa); border: 1px solid var(--hab-linha); border-radius: var(--hab-raio); }
+:root .oc-kpi-icon { background: var(--hab-tinta) !important; color: #fff !important; border-radius: 10px; }
+.oc-kpi strong { font-family: var(--hab-fonte-titulo); color: var(--hab-tinta); font-variant-numeric: tabular-nums; }
+.go-local { margin: 0.35rem 0 0; font-size: 0.85rem; color: var(--hab-texto-2); }
+:root .rc-icone { background: var(--hab-tinta); color: #fff; }
+
+/* Abas nunca quebram em duas linhas: no celular rolam de lado */
+[role="tablist"] { max-width: 100%; overflow-x: auto; scrollbar-width: none; flex-wrap: nowrap !important; }
+[role="tablist"]::-webkit-scrollbar { display: none; }
+[role="tablist"] > button { white-space: nowrap; flex-shrink: 0; }
+:root .bc-icone { background: var(--hab-tinta); color: #fff; }
+
+/* Gestão de Moradores no celular: números em 2x2 e tabela que rola de lado */
+@media (max-width: 760px) {
+  .gm-numeros { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 0.6rem !important; }
+  .gm-tabela { overflow-x: auto !important; -webkit-overflow-scrolling: touch; }
+  .gm-tabela table { min-width: 680px; }
+}
+@media (max-width: 640px) {
+  .ms-header-actions { padding: 0.7rem !important; border-radius: var(--hab-raio) !important; }
+  .ms-search-wrapper { max-width: none !important; width: 100%; }
+}
+
+/* ════════════════ Ajustes da revisão final ════════════════ */
+/* Barra inferior: "Nova" ocorrência é a ação principal do morador (placa laranja) */
+@media (max-width: 1023px) {
+  .nav-inferior .nav-inferior-acao { color: var(--hab-tinta); font-weight: 700; }
+  .nav-inferior .nav-inferior-acao svg {
+    width: 44px; height: 30px; padding: 4px 11px; box-sizing: border-box;
+    background: var(--hab-laranja); color: var(--hab-tinta); border-radius: 9px; stroke-width: 2.6;
+  }
+  /* topo preto: o nome do condomínio no lugar da descrição da tela */
+  .main-header .header-date { display: none; }
+  .main-header .header-breadcrumbs::after {
+    content: var(--hab-condominio, "");
+    font-size: 0.74rem; color: #a3a9b3; font-weight: 500;
+    max-width: 62vw; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+}
+
+/* Listas (tarefas, minhas solicitações): menos espaço entre controles, placas sobem na tela */
+.ms-container { gap: 0.75rem !important; }
+.filtro-data { margin: 0; }
+.ms-header-actions { padding: 0.6rem !important; display: flex; flex-wrap: wrap; gap: 0.6rem; align-items: center; }
+.ms-header-actions .filtro-data { flex: 1 1 auto; }
+.ms-search-input { text-overflow: ellipsis; }
+
+/* Filtro por data no celular: um botão "Data" abre Dia · Mês · Ano */
+.filtro-data-alternar { display: none; }
+@media (max-width: 640px) {
+  .filtro-data { display: flex !important; flex-wrap: wrap; gap: 0.45rem; }
+  .filtro-data-rotulo { display: none; }
+  .filtro-data-alternar {
+    display: inline-flex; align-items: center; gap: 0.35rem; min-height: 40px;
+    border: 1px solid var(--hab-linha); background: var(--hab-placa); border-radius: var(--hab-raio-p);
+    padding: 0 0.8rem; font: 600 0.82rem var(--hab-fonte); color: var(--hab-tinta); cursor: pointer;
+  }
+  .filtro-data-alternar.ativo { background: var(--hab-tinta); color: #fff; border-color: var(--hab-tinta); }
+  .filtro-data-campos { display: none; width: 100%; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.45rem; }
+  .filtro-data.aberto .filtro-data-campos { display: grid; }
+  .filtro-data-limpar { width: auto; }
+}
+@media (min-width: 641px) { .filtro-data-campos { display: contents; } }
+.ms-header-actions .ms-search-wrapper { flex: 1 1 320px; min-width: 0; max-width: none; }
+.ms-header-actions .filtro-data { flex: 0 1 auto; }
+@media (max-width: 640px) {
+  .ms-header-actions { flex-wrap: wrap; }
+  .ms-header-actions .ms-search-wrapper { flex: 1 1 0; }
+  .ms-header-actions .filtro-data { flex: 0 0 auto; }
+  .ms-header-actions .filtro-data.aberto { flex: 1 1 100%; }
+  .ms-header-actions .btn-ms-new, .ms-header-actions > div[style] { flex: 1 1 100%; }
+}
+/* Descrição curta sempre ocupa 2 linhas: a linha de data/ação fica na mesma altura em todos os cartões */
+.placa-texto-curto { min-height: calc(2 * 1.5em); }
+.pf-placa .placa-titulo, .ms-placa .placa-titulo { display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+/* Local escrito por extenso: até 2 linhas, letra menor quando longo */
+.placa-valor-longo { font-size: 1.15rem; line-height: 1.25; white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+/* Mais respiro entre a descrição e a linha de data/ação (pedido do dono) */
+.placa-corpo .placa-texto + .placa-meta,
+.placa-corpo .placa-texto-curto + .placa-meta { margin-top: 0.65rem; }
+.ms-placa .placa-meta, .pf-placa .placa-meta { margin-top: 0.65rem; }
+.placa-corpo { padding-bottom: 1rem; }
+:root :is(.ms-filter-pill, .pf-filter-btn, .portaria-tab-btn, .status-option-btn) { min-height: 40px; }
+
+/* Dashboard do Síndico: registros recentes em largura inteira */
+.ps-registros { margin-top: 1.5rem; }
+.ps-registros .ps-table-modern td { vertical-align: middle; }
+.ps-btn-gerenciar { padding: 0.45rem 0.9rem !important; font-size: 0.8rem !important; min-height: 36px; white-space: nowrap; flex-shrink: 0; }
+.ps-registros .ps-table-wrapper { overflow-x: auto; }
+@media (max-width: 900px) { .ps-registros .ps-table-modern { min-width: 760px; } }
+:root .badge-pill.st-aberta, :root .badge-pill.st-analise, :root .badge-pill.st-andamento, :root .badge-pill.st-resolvida { border: 1px solid; }
+.ps-carga { margin-top: 1.5rem; }
+.ps-carga .widget-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 0.6rem; }
+.ps-carga .widget-item { margin: 0; }

@@ -1,0 +1,829 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-23T20:06:30+00:00",
+  "title": "Design System: Habitare",
+  "extensions": {
+    "colorMeta": {
+      "hab-laranja": {
+        "role": "primary",
+        "displayName": "Laranja Habitare",
+        "canonical": "#f47920",
+        "oklch": "oklch(70.7% 0.176 50)",
+        "tonalRamp": [
+          "oklch(15% 0.062 50)",
+          "oklch(26% 0.109 50)",
+          "oklch(38% 0.155 50)",
+          "oklch(49% 0.176 50)",
+          "oklch(61% 0.176 50)",
+          "oklch(72% 0.176 50)",
+          "oklch(84% 0.150 50)",
+          "oklch(95% 0.103 50)"
+        ],
+        "cssVar": "--hab-laranja"
+      },
+      "hab-laranja-hover": {
+        "role": "primary",
+        "displayName": "Laranja Aceso",
+        "canonical": "#ff8a33",
+        "oklch": "oklch(74.9% 0.170 53)",
+        "tonalRamp": [
+          "oklch(15% 0.060 53)",
+          "oklch(26% 0.105 53)",
+          "oklch(38% 0.150 53)",
+          "oklch(49% 0.170 53)",
+          "oklch(61% 0.170 53)",
+          "oklch(72% 0.170 53)",
+          "oklch(84% 0.145 53)",
+          "oklch(95% 0.099 53)"
+        ],
+        "source": "literal em src/styles/habitare.css"
+      },
+      "hab-laranja-borda": {
+        "role": "primary",
+        "displayName": "Filete do Laranja",
+        "canonical": "#e06a12",
+        "oklch": "oklch(65.6% 0.170 49)",
+        "tonalRamp": [
+          "oklch(15% 0.060 49)",
+          "oklch(26% 0.105 49)",
+          "oklch(38% 0.150 49)",
+          "oklch(49% 0.170 49)",
+          "oklch(61% 0.170 49)",
+          "oklch(72% 0.170 49)",
+          "oklch(84% 0.145 49)",
+          "oklch(95% 0.099 49)"
+        ],
+        "source": "literal em src/styles/habitare.css"
+      },
+      "hab-laranja-texto": {
+        "role": "primary",
+        "displayName": "Laranja de Letreiro",
+        "canonical": "#c2410c",
+        "oklch": "oklch(55.3% 0.174 38)",
+        "tonalRamp": [
+          "oklch(15% 0.061 38)",
+          "oklch(26% 0.107 38)",
+          "oklch(38% 0.154 38)",
+          "oklch(49% 0.174 38)",
+          "oklch(61% 0.174 38)",
+          "oklch(72% 0.174 38)",
+          "oklch(84% 0.148 38)",
+          "oklch(95% 0.101 38)"
+        ],
+        "cssVar": "--hab-laranja-texto"
+      },
+      "hab-laranja-claro": {
+        "role": "primary",
+        "displayName": "Véu Laranja",
+        "canonical": "#fff1e6",
+        "oklch": "oklch(96.6% 0.021 61)",
+        "tonalRamp": [
+          "oklch(15% 0.007 61)",
+          "oklch(26% 0.013 61)",
+          "oklch(38% 0.019 61)",
+          "oklch(49% 0.021 61)",
+          "oklch(61% 0.021 61)",
+          "oklch(72% 0.021 61)",
+          "oklch(84% 0.018 61)",
+          "oklch(95% 0.012 61)"
+        ],
+        "cssVar": "--hab-laranja-claro"
+      },
+      "hab-tinta": {
+        "role": "neutral",
+        "displayName": "Preto de Placa",
+        "canonical": "#121417",
+        "oklch": "oklch(19.0% 0.007 258)",
+        "tonalRamp": [
+          "oklch(15% 0.007 258)",
+          "oklch(26% 0.007 258)",
+          "oklch(38% 0.007 258)",
+          "oklch(49% 0.007 258)",
+          "oklch(61% 0.007 258)",
+          "oklch(72% 0.007 258)",
+          "oklch(84% 0.007 258)",
+          "oklch(95% 0.007 258)"
+        ],
+        "cssVar": "--hab-tinta"
+      },
+      "hab-aluminio": {
+        "role": "neutral",
+        "displayName": "Alumínio Anodizado",
+        "canonical": "#edeef0",
+        "oklch": "oklch(94.9% 0.003 265)",
+        "tonalRamp": [
+          "oklch(15% 0.003 265)",
+          "oklch(26% 0.003 265)",
+          "oklch(38% 0.003 265)",
+          "oklch(49% 0.003 265)",
+          "oklch(61% 0.003 265)",
+          "oklch(72% 0.003 265)",
+          "oklch(84% 0.003 265)",
+          "oklch(95% 0.003 265)"
+        ],
+        "cssVar": "--hab-aluminio"
+      },
+      "hab-placa": {
+        "role": "neutral",
+        "displayName": "Placa Branca",
+        "canonical": "#ffffff",
+        "oklch": "oklch(100.0% 0.000 90)",
+        "tonalRamp": [
+          "oklch(15% 0.000 90)",
+          "oklch(26% 0.000 90)",
+          "oklch(38% 0.000 90)",
+          "oklch(49% 0.000 90)",
+          "oklch(61% 0.000 90)",
+          "oklch(72% 0.000 90)",
+          "oklch(84% 0.000 90)",
+          "oklch(95% 0.000 90)"
+        ],
+        "cssVar": "--hab-placa"
+      },
+      "hab-linha": {
+        "role": "neutral",
+        "displayName": "Filete",
+        "canonical": "#d6d8dc",
+        "oklch": "oklch(88.2% 0.006 265)",
+        "tonalRamp": [
+          "oklch(15% 0.006 265)",
+          "oklch(26% 0.006 265)",
+          "oklch(38% 0.006 265)",
+          "oklch(49% 0.006 265)",
+          "oklch(61% 0.006 265)",
+          "oklch(72% 0.006 265)",
+          "oklch(84% 0.006 265)",
+          "oklch(95% 0.006 265)"
+        ],
+        "cssVar": "--hab-linha"
+      },
+      "hab-linha-forte": {
+        "role": "neutral",
+        "displayName": "Filete Forte",
+        "canonical": "#b9bdc4",
+        "oklch": "oklch(79.7% 0.011 262)",
+        "tonalRamp": [
+          "oklch(15% 0.011 262)",
+          "oklch(26% 0.011 262)",
+          "oklch(38% 0.011 262)",
+          "oklch(49% 0.011 262)",
+          "oklch(61% 0.011 262)",
+          "oklch(72% 0.011 262)",
+          "oklch(84% 0.011 262)",
+          "oklch(95% 0.011 262)"
+        ],
+        "cssVar": "--hab-linha-forte"
+      },
+      "hab-texto-2": {
+        "role": "neutral",
+        "displayName": "Grafite",
+        "canonical": "#464c56",
+        "oklch": "oklch(41.5% 0.018 261)",
+        "tonalRamp": [
+          "oklch(15% 0.018 261)",
+          "oklch(26% 0.018 261)",
+          "oklch(38% 0.018 261)",
+          "oklch(49% 0.018 261)",
+          "oklch(61% 0.018 261)",
+          "oklch(72% 0.018 261)",
+          "oklch(84% 0.018 261)",
+          "oklch(95% 0.018 261)"
+        ],
+        "cssVar": "--hab-texto-2"
+      },
+      "hab-texto-3": {
+        "role": "neutral",
+        "displayName": "Cinza de Legenda",
+        "canonical": "#6b7079",
+        "oklch": "oklch(54.4% 0.015 262)",
+        "tonalRamp": [
+          "oklch(15% 0.015 262)",
+          "oklch(26% 0.015 262)",
+          "oklch(38% 0.015 262)",
+          "oklch(49% 0.015 262)",
+          "oklch(61% 0.015 262)",
+          "oklch(72% 0.015 262)",
+          "oklch(84% 0.015 262)",
+          "oklch(95% 0.015 262)"
+        ],
+        "cssVar": "--hab-texto-3"
+      },
+      "menu-texto": {
+        "role": "neutral",
+        "displayName": "Prata do Menu",
+        "canonical": "#a3a9b3",
+        "oklch": "oklch(73.3% 0.016 261)",
+        "tonalRamp": [
+          "oklch(15% 0.016 261)",
+          "oklch(26% 0.016 261)",
+          "oklch(38% 0.016 261)",
+          "oklch(49% 0.016 261)",
+          "oklch(61% 0.016 261)",
+          "oklch(72% 0.016 261)",
+          "oklch(84% 0.016 261)",
+          "oklch(95% 0.016 261)"
+        ],
+        "source": "literal em src/styles/habitare.css"
+      },
+      "placeholder": {
+        "role": "neutral",
+        "displayName": "Cinza de Espera",
+        "canonical": "#8a9099",
+        "oklch": "oklch(65.1% 0.015 258)",
+        "tonalRamp": [
+          "oklch(15% 0.015 258)",
+          "oklch(26% 0.015 258)",
+          "oklch(38% 0.015 258)",
+          "oklch(49% 0.015 258)",
+          "oklch(61% 0.015 258)",
+          "oklch(72% 0.015 258)",
+          "oklch(84% 0.015 258)",
+          "oklch(95% 0.015 258)"
+        ],
+        "source": "literal em src/styles/habitare.css"
+      },
+      "st-aberta": {
+        "role": "status",
+        "displayName": "Faixa Aberta",
+        "canonical": "#dc2626",
+        "oklch": "oklch(57.7% 0.215 27)",
+        "tonalRamp": [
+          "oklch(15% 0.075 27)",
+          "oklch(26% 0.133 27)",
+          "oklch(38% 0.190 27)",
+          "oklch(49% 0.215 27)",
+          "oklch(61% 0.215 27)",
+          "oklch(72% 0.215 27)",
+          "oklch(84% 0.183 27)",
+          "oklch(95% 0.126 27)"
+        ],
+        "source": "literal em src/styles/habitare.css"
+      },
+      "st-analise": {
+        "role": "status",
+        "displayName": "Faixa Em Análise",
+        "canonical": "#1d4ed8",
+        "oklch": "oklch(48.8% 0.217 264)",
+        "tonalRamp": [
+          "oklch(15% 0.076 264)",
+          "oklch(26% 0.134 264)",
+          "oklch(38% 0.192 264)",
+          "oklch(49% 0.217 264)",
+          "oklch(61% 0.217 264)",
+          "oklch(72% 0.217 264)",
+          "oklch(84% 0.185 264)",
+          "oklch(95% 0.127 264)"
+        ],
+        "source": "literal em src/styles/habitare.css"
+      },
+      "st-andamento": {
+        "role": "status",
+        "displayName": "Faixa Em Andamento",
+        "canonical": "#f59e0b",
+        "oklch": "oklch(76.9% 0.165 70)",
+        "tonalRamp": [
+          "oklch(15% 0.058 70)",
+          "oklch(26% 0.102 70)",
+          "oklch(38% 0.145 70)",
+          "oklch(49% 0.165 70)",
+          "oklch(61% 0.165 70)",
+          "oklch(72% 0.165 70)",
+          "oklch(84% 0.140 70)",
+          "oklch(95% 0.096 70)"
+        ],
+        "source": "literal em src/styles/habitare.css"
+      },
+      "st-resolvida": {
+        "role": "status",
+        "displayName": "Faixa Concluída",
+        "canonical": "#047857",
+        "oklch": "oklch(50.8% 0.105 166)",
+        "tonalRamp": [
+          "oklch(15% 0.037 166)",
+          "oklch(26% 0.065 166)",
+          "oklch(38% 0.093 166)",
+          "oklch(49% 0.105 166)",
+          "oklch(61% 0.105 166)",
+          "oklch(72% 0.105 166)",
+          "oklch(84% 0.089 166)",
+          "oklch(95% 0.061 166)"
+        ],
+        "source": "literal em src/styles/habitare.css"
+      },
+      "st-aberta-texto": {
+        "role": "status",
+        "displayName": "Selo Aberta · texto",
+        "canonical": "#b91c1c",
+        "oklch": "oklch(50.5% 0.190 28)",
+        "tonalRamp": [
+          "oklch(15% 0.067 28)",
+          "oklch(26% 0.117 28)",
+          "oklch(38% 0.168 28)",
+          "oklch(49% 0.190 28)",
+          "oklch(61% 0.190 28)",
+          "oklch(72% 0.190 28)",
+          "oklch(84% 0.162 28)",
+          "oklch(95% 0.111 28)"
+        ],
+        "source": "literal em src/styles/habitare.css"
+      },
+      "st-aberta-fundo": {
+        "role": "status",
+        "displayName": "Selo Aberta · fundo",
+        "canonical": "#fee2e2",
+        "oklch": "oklch(93.6% 0.031 18)",
+        "tonalRamp": [
+          "oklch(15% 0.011 18)",
+          "oklch(26% 0.019 18)",
+          "oklch(38% 0.027 18)",
+          "oklch(49% 0.031 18)",
+          "oklch(61% 0.031 18)",
+          "oklch(72% 0.031 18)",
+          "oklch(84% 0.026 18)",
+          "oklch(95% 0.018 18)"
+        ],
+        "source": "literal em src/styles/habitare.css"
+      },
+      "st-aberta-borda": {
+        "role": "status",
+        "displayName": "Selo Aberta · borda",
+        "canonical": "#fecaca",
+        "oklch": "oklch(88.5% 0.059 18)",
+        "tonalRamp": [
+          "oklch(15% 0.021 18)",
+          "oklch(26% 0.037 18)",
+          "oklch(38% 0.052 18)",
+          "oklch(49% 0.059 18)",
+          "oklch(61% 0.059 18)",
+          "oklch(72% 0.059 18)",
+          "oklch(84% 0.050 18)",
+          "oklch(95% 0.035 18)"
+        ],
+        "source": "literal em src/styles/habitare.css"
+      },
+      "st-analise-fundo": {
+        "role": "status",
+        "displayName": "Selo Em Análise · fundo",
+        "canonical": "#dbeafe",
+        "oklch": "oklch(93.2% 0.032 256)",
+        "tonalRamp": [
+          "oklch(15% 0.011 256)",
+          "oklch(26% 0.019 256)",
+          "oklch(38% 0.028 256)",
+          "oklch(49% 0.032 256)",
+          "oklch(61% 0.032 256)",
+          "oklch(72% 0.032 256)",
+          "oklch(84% 0.027 256)",
+          "oklch(95% 0.018 256)"
+        ],
+        "source": "literal em src/styles/habitare.css"
+      },
+      "st-analise-borda": {
+        "role": "status",
+        "displayName": "Selo Em Análise · borda",
+        "canonical": "#bfdbfe",
+        "oklch": "oklch(88.2% 0.057 254)",
+        "tonalRamp": [
+          "oklch(15% 0.020 254)",
+          "oklch(26% 0.035 254)",
+          "oklch(38% 0.050 254)",
+          "oklch(49% 0.057 254)",
+          "oklch(61% 0.057 254)",
+          "oklch(72% 0.057 254)",
+          "oklch(84% 0.048 254)",
+          "oklch(95% 0.033 254)"
+        ],
+        "source": "literal em src/styles/habitare.css"
+      },
+      "st-andamento-texto": {
+        "role": "status",
+        "displayName": "Selo Em Andamento · texto",
+        "canonical": "#92400e",
+        "oklch": "oklch(47.3% 0.125 46)",
+        "tonalRamp": [
+          "oklch(15% 0.044 46)",
+          "oklch(26% 0.077 46)",
+          "oklch(38% 0.110 46)",
+          "oklch(49% 0.125 46)",
+          "oklch(61% 0.125 46)",
+          "oklch(72% 0.125 46)",
+          "oklch(84% 0.106 46)",
+          "oklch(95% 0.073 46)"
+        ],
+        "source": "literal em src/styles/habitare.css"
+      },
+      "st-andamento-fundo": {
+        "role": "status",
+        "displayName": "Selo Em Andamento · fundo",
+        "canonical": "#fef3c7",
+        "oklch": "oklch(96.2% 0.058 96)",
+        "tonalRamp": [
+          "oklch(15% 0.020 96)",
+          "oklch(26% 0.036 96)",
+          "oklch(38% 0.051 96)",
+          "oklch(49% 0.058 96)",
+          "oklch(61% 0.058 96)",
+          "oklch(72% 0.058 96)",
+          "oklch(84% 0.049 96)",
+          "oklch(95% 0.034 96)"
+        ],
+        "source": "literal em src/styles/habitare.css"
+      },
+      "st-andamento-borda": {
+        "role": "status",
+        "displayName": "Selo Em Andamento · borda",
+        "canonical": "#fde68a",
+        "oklch": "oklch(92.4% 0.115 96)",
+        "tonalRamp": [
+          "oklch(15% 0.040 96)",
+          "oklch(26% 0.071 96)",
+          "oklch(38% 0.102 96)",
+          "oklch(49% 0.115 96)",
+          "oklch(61% 0.115 96)",
+          "oklch(72% 0.115 96)",
+          "oklch(84% 0.098 96)",
+          "oklch(95% 0.067 96)"
+        ],
+        "source": "literal em src/styles/habitare.css"
+      },
+      "st-resolvida-fundo": {
+        "role": "status",
+        "displayName": "Selo Concluída · fundo",
+        "canonical": "#d1fae5",
+        "oklch": "oklch(95.0% 0.051 163)",
+        "tonalRamp": [
+          "oklch(15% 0.018 163)",
+          "oklch(26% 0.031 163)",
+          "oklch(38% 0.045 163)",
+          "oklch(49% 0.051 163)",
+          "oklch(61% 0.051 163)",
+          "oklch(72% 0.051 163)",
+          "oklch(84% 0.043 163)",
+          "oklch(95% 0.030 163)"
+        ],
+        "source": "literal em src/styles/habitare.css"
+      },
+      "st-resolvida-borda": {
+        "role": "status",
+        "displayName": "Selo Concluída · borda",
+        "canonical": "#a7f3d0",
+        "oklch": "oklch(90.5% 0.089 164)",
+        "tonalRamp": [
+          "oklch(15% 0.031 164)",
+          "oklch(26% 0.055 164)",
+          "oklch(38% 0.079 164)",
+          "oklch(49% 0.089 164)",
+          "oklch(61% 0.089 164)",
+          "oklch(72% 0.089 164)",
+          "oklch(84% 0.076 164)",
+          "oklch(95% 0.052 164)"
+        ],
+        "source": "literal em src/styles/habitare.css"
+      }
+    },
+    "typographyMeta": {
+      "display-status": {
+        "displayName": "Display · placa de status",
+        "purpose": "Número grande de cada status nos painéis (Visão Geral, Síndico, Master). Tabular."
+      },
+      "display-numeral": {
+        "displayName": "Display · numeral",
+        "purpose": "Números puros em placas (total de usuários, apartamento denunciado). Não usado para locais de ocorrência."
+      },
+      "display-login": {
+        "displayName": "Display · login",
+        "purpose": "'Bem-vindo.' no login, ponto final em laranja."
+      },
+      "headline": {
+        "displayName": "Título da tela",
+        "purpose": "Topo de cada tela; 1.08rem em branco no topo preto do celular."
+      },
+      "title-local": {
+        "displayName": "Local da placa",
+        "purpose": "Local da ocorrência por extenso sob o rótulo LOCAL, até 2 linhas; mesmo tamanho para todo local."
+      },
+      "title": {
+        "displayName": "Título da placa",
+        "purpose": "Título da ocorrência; 1 linha em listas, 2 no mural."
+      },
+      "body": {
+        "displayName": "Texto",
+        "purpose": "Descrição da ocorrência e leitura corrida."
+      },
+      "body-meta": {
+        "displayName": "Metadados",
+        "purpose": "Data, autor, atribuição, em Cinza de Legenda."
+      },
+      "label-placa": {
+        "displayName": "Rótulo da placa",
+        "purpose": "'LOCAL' em caixa alta espaçada sobre o local."
+      },
+      "label-faixa": {
+        "displayName": "Rótulo da faixa",
+        "purpose": "Status e protocolo em caixa alta na faixa do pé da placa."
+      },
+      "label-nav": {
+        "displayName": "Item do menu",
+        "purpose": "Menu lateral; 600 no item ativo."
+      },
+      "label-nav-inferior": {
+        "displayName": "Item da barra inferior",
+        "purpose": "Rótulos sob os ícones da barra do celular."
+      },
+      "label-chip": {
+        "displayName": "Pílula",
+        "purpose": "Filtros em pílula."
+      },
+      "button": {
+        "displayName": "Botão",
+        "purpose": "Todos os botões, primários e secundários."
+      },
+      "input": {
+        "displayName": "Campo",
+        "purpose": "Campos e selects; nunca abaixo de 16px."
+      }
+    },
+    "shadows": [
+      {
+        "name": "janela",
+        "value": "0 24px 48px -16px rgba(18, 20, 23, 0.35)",
+        "purpose": "Modais e folhas que sobem; único uso de sombra junto com o menu suspenso."
+      },
+      {
+        "name": "menu-suspenso",
+        "value": "0 18px 40px -18px rgba(18, 20, 23, 0.35)",
+        "purpose": "Menu de notificações."
+      },
+      {
+        "name": "anel-foco-campo",
+        "value": "0 0 0 3px rgba(244, 121, 32, 0.35)",
+        "purpose": "Campo em foco, com borda em preto de placa."
+      },
+      {
+        "name": "foco-visivel",
+        "value": "outline: 2px solid #f47920; outline-offset: 2px",
+        "purpose": "Foco por teclado em todos os outros elementos."
+      }
+    ],
+    "motion": [
+      {
+        "name": "hab-ease",
+        "value": "cubic-bezier(0.22, 1, 0.36, 1)",
+        "purpose": "Única curva do sistema (ease-out-quint)."
+      },
+      {
+        "name": "placa-entra",
+        "value": "opacity 0→1 + translateY(8px→0), 300ms, cascata de 40ms até 160ms",
+        "purpose": "Entrada das placas uma vez ao abrir a tela."
+      },
+      {
+        "name": "entrada-sobe",
+        "value": "opacity 0→1 + translateY(8px→0), 350ms, cascata de 60ms até 180ms",
+        "purpose": "Entrada dos blocos da área de conteúdo."
+      },
+      {
+        "name": "faixa-troca",
+        "value": "opacity 0→1 + translateY(70%→0), 320ms",
+        "purpose": "Texto da faixa de status quando o status muda."
+      },
+      {
+        "name": "pressionar",
+        "value": "scale(0.97) botões · scale(0.985) placas · scale(0.98) menu · scale(0.94) barra inferior",
+        "purpose": "Resposta ao toque/clique."
+      },
+      {
+        "name": "estado",
+        "value": "background-color/color/border-color 160–180ms",
+        "purpose": "Hover e troca de estado; sem movimento."
+      },
+      {
+        "name": "janela-entra",
+        "value": "opacity + translateY(10px) + scale(0.985), 260ms",
+        "purpose": "Modal no computador."
+      },
+      {
+        "name": "folha-sobe",
+        "value": "translateY(100%→0), 320ms",
+        "purpose": "Modal como folha no celular."
+      },
+      {
+        "name": "menu-gaveta",
+        "value": "transform 320ms",
+        "purpose": "Menu lateral abrindo como gaveta no celular."
+      },
+      {
+        "name": "reduced-motion",
+        "value": "@media (prefers-reduced-motion: reduce): animation none; transition none em placas e navegação",
+        "purpose": "Obrigatório. Nunca animar filter, blur ou backdrop-filter."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "folha",
+        "value": "640px",
+        "purpose": "≤640: janela vira folha, filtro por data vira botão 'Data'."
+      },
+      {
+        "name": "grade-2",
+        "value": "760px",
+        "purpose": "≥760: listas de placas em 2 colunas."
+      },
+      {
+        "name": "painel-4",
+        "value": "900px",
+        "purpose": "≥900: placas de status em 4 colunas."
+      },
+      {
+        "name": "shell",
+        "value": "1024px",
+        "purpose": "≤1023: topo preto, barra inferior, menu em gaveta; ≥1024: menu lateral fixo."
+      },
+      {
+        "name": "mural-2",
+        "value": "1100px",
+        "purpose": "≥1100: mural em 2 colunas."
+      },
+      {
+        "name": "grade-3",
+        "value": "1360px",
+        "purpose": "≥1360: grades marcadas com 3 colunas."
+      }
+    ],
+    "textures": [
+      {
+        "name": "aluminio-pontilhado",
+        "value": "background: #edeef0 radial-gradient(rgba(18, 20, 23, 0.09) 1px, transparent 1.3px) 0 0 / 20px 20px",
+        "purpose": "Fundo da área de conteúdo; parado, rola com o conteúdo."
+      },
+      {
+        "name": "tinta-pontilhada",
+        "value": "background: #121417 radial-gradient(rgba(255, 255, 255, 0.08) 1.2px, transparent 1.5px) 0 0 / 22px 22px",
+        "purpose": "Painel da marca no login."
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Botão primário",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Ação principal da tela ou da placa: laranja chapado, letra preta, sem sombra.",
+      "html": "<button class=\"ds-btn-pri\" type=\"button\">Atender</button>",
+      "css": ".ds-btn-pri { background: var(--hab-laranja, #f47920); color: var(--hab-tinta, #121417); border: 1px solid #e06a12; border-radius: var(--hab-raio-p, 8px); font: 600 0.85rem var(--hab-fonte-titulo, Poppins, 'Plus Jakarta Sans', system-ui, sans-serif); min-height: 40px; padding: 0.5rem 1.1rem; cursor: pointer; box-shadow: none; transition: background-color 0.16s var(--hab-ease, cubic-bezier(0.22, 1, 0.36, 1)), transform 0.12s var(--hab-ease, cubic-bezier(0.22, 1, 0.36, 1)); } .ds-btn-pri:hover { background: #ff8a33; } .ds-btn-pri:active { transform: scale(0.97); } .ds-btn-pri:focus-visible { outline: 2px solid var(--hab-laranja, #f47920); outline-offset: 2px; } .ds-btn-pri:disabled { opacity: 0.55; cursor: not-allowed; }"
+    },
+    {
+      "name": "Botão secundário",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Ação de apoio: placa branca com filete que escurece no hover.",
+      "html": "<button class=\"ds-btn-sec\" type=\"button\">Limpar</button>",
+      "css": ".ds-btn-sec { background: var(--hab-placa, #fff); color: var(--hab-tinta, #121417); border: 1px solid var(--hab-linha, #d6d8dc); border-radius: var(--hab-raio-p, 8px); font: 600 0.85rem var(--hab-fonte-titulo, Poppins, 'Plus Jakarta Sans', system-ui, sans-serif); min-height: 40px; padding: 0.5rem 1.1rem; cursor: pointer; transition: border-color 0.16s var(--hab-ease, cubic-bezier(0.22, 1, 0.36, 1)), transform 0.12s var(--hab-ease, cubic-bezier(0.22, 1, 0.36, 1)); } .ds-btn-sec:hover { border-color: var(--hab-tinta, #121417); } .ds-btn-sec:active { transform: scale(0.97); } .ds-btn-sec:focus-visible { outline: 2px solid var(--hab-laranja, #f47920); outline-offset: 2px; }"
+    },
+    {
+      "name": "Campo de busca",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Campo padrão: placa branca, filete, 16px; foco com borda preta e anel laranja.",
+      "html": "<label class=\"ds-campo\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"11\" cy=\"11\" r=\"8\"/><path d=\"m21 21-4.3-4.3\"/></svg><input class=\"ds-input\" type=\"search\" placeholder=\"Buscar título, morador, protocolo…\"></label>",
+      "css": ".ds-campo { position: relative; display: block; max-width: 420px; color: var(--hab-texto-3, #6b7079); } .ds-campo svg { position: absolute; left: 0.8rem; top: 50%; transform: translateY(-50%); } .ds-input { width: 100%; font: 400 max(16px, 0.95rem) var(--hab-fonte, 'Plus Jakarta Sans', Inter, system-ui, sans-serif); color: var(--hab-tinta, #121417); background: var(--hab-placa, #fff); border: 1px solid var(--hab-linha, #d6d8dc); border-radius: var(--hab-raio-p, 8px); padding: 0.7rem 0.9rem 0.7rem 2.4rem; transition: border-color 0.16s var(--hab-ease, cubic-bezier(0.22, 1, 0.36, 1)), box-shadow 0.16s var(--hab-ease, cubic-bezier(0.22, 1, 0.36, 1)); } .ds-input::placeholder { color: #8a9099; } .ds-input:focus { outline: none; border-color: var(--hab-tinta, #121417); box-shadow: 0 0 0 3px rgba(244, 121, 32, 0.35); }"
+    },
+    {
+      "name": "Pílulas de filtro e abas",
+      "kind": "chip",
+      "refersTo": "chip-filtro",
+      "description": "Filtros em pílula branca (ativa em preto) e abas segmentadas Em aberto / Concluídas.",
+      "html": "<div class=\"ds-abas\" role=\"tablist\"><button class=\"ds-aba ativa\" role=\"tab\" aria-selected=\"true\">Em aberto <span>7</span></button><button class=\"ds-aba\" role=\"tab\" aria-selected=\"false\">Concluídas <span>1</span></button></div><div class=\"ds-pilulas\"><button class=\"ds-pilula ativa\">Todas</button><button class=\"ds-pilula\">Abertas</button><button class=\"ds-pilula\">Em análise</button></div>",
+      "css": ".ds-abas { display: inline-flex; gap: 2px; background: var(--hab-placa, #fff); border: 1px solid var(--hab-linha, #d6d8dc); border-radius: 10px; padding: 3px; margin-bottom: 0.75rem; } .ds-aba { border: 0; background: none; border-radius: 8px; padding: 0.5rem 0.9rem; font: 600 0.85rem var(--hab-fonte, 'Plus Jakarta Sans', Inter, system-ui, sans-serif); color: var(--hab-texto-2, #464c56); cursor: pointer; transition: background-color 0.16s var(--hab-ease, cubic-bezier(0.22, 1, 0.36, 1)), color 0.16s var(--hab-ease, cubic-bezier(0.22, 1, 0.36, 1)); } .ds-aba span { font-variant-numeric: tabular-nums; margin-left: 0.25rem; opacity: 0.75; } .ds-aba.ativa { background: var(--hab-tinta, #121417); color: #fff; } .ds-pilulas { display: flex; gap: 0.4rem; } .ds-pilula { border: 1px solid var(--hab-linha, #d6d8dc); background: var(--hab-placa, #fff); color: var(--hab-texto-2, #464c56); border-radius: 999px; font: 600 0.82rem var(--hab-fonte, 'Plus Jakarta Sans', Inter, system-ui, sans-serif); min-height: 40px; padding: 0.4rem 0.9rem; cursor: pointer; transition: background-color 0.16s var(--hab-ease, cubic-bezier(0.22, 1, 0.36, 1)), color 0.16s var(--hab-ease, cubic-bezier(0.22, 1, 0.36, 1)), border-color 0.16s var(--hab-ease, cubic-bezier(0.22, 1, 0.36, 1)); } .ds-pilula:hover { border-color: var(--hab-tinta, #121417); color: var(--hab-tinta, #121417); } .ds-pilula.ativa { background: var(--hab-tinta, #121417); border-color: var(--hab-tinta, #121417); color: #fff; } .ds-aba:focus-visible, .ds-pilula:focus-visible { outline: 2px solid var(--hab-laranja, #f47920); outline-offset: 2px; }"
+    },
+    {
+      "name": "Selos de status",
+      "kind": "chip",
+      "refersTo": "selo-aberta",
+      "description": "Pílulas claras com as quatro cores fixas de status, para listas e tabelas.",
+      "html": "<div class=\"ds-selos\"><span class=\"ds-selo ds-st-aberta\">Aberta</span><span class=\"ds-selo ds-st-analise\">Em análise</span><span class=\"ds-selo ds-st-andamento\">Em andamento</span><span class=\"ds-selo ds-st-resolvida\">Concluída</span></div>",
+      "css": ".ds-selos { display: flex; flex-wrap: wrap; gap: 0.4rem; } .ds-selo { font: 700 0.72rem var(--hab-fonte, 'Plus Jakarta Sans', Inter, system-ui, sans-serif); padding: 3px 10px; border-radius: 999px; border: 1px solid; } .ds-st-aberta { color: #b91c1c; background: #fee2e2; border-color: #fecaca; } .ds-st-analise { color: #1d4ed8; background: #dbeafe; border-color: #bfdbfe; } .ds-st-andamento { color: #92400e; background: #fef3c7; border-color: #fde68a; } .ds-st-resolvida { color: #047857; background: #d1fae5; border-color: #a7f3d0; }"
+    },
+    {
+      "name": "Placa da ocorrência",
+      "kind": "card",
+      "refersTo": "placa",
+      "description": "Componente-assinatura: rótulo LOCAL + local por extenso, pictograma em quadro preto, título, descrição, ação e faixa de status no pé.",
+      "html": "<article class=\"ds-placa\" tabindex=\"0\"><div class=\"ds-placa-cabeca\"><div class=\"ds-placa-local\"><span class=\"ds-placa-rotulo\">Local</span><span class=\"ds-placa-valor\">Bloco B, corredor do 3º andar</span></div><span class=\"ds-placa-picto\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M7 16.3c2.2 0 4-1.83 4-4.05 0-1.16-.57-2.26-1.71-3.19S7.29 6.75 7 5.3c-.29 1.45-1.14 2.84-2.29 3.76S3 11.1 3 12.25c0 2.22 1.8 4.05 4 4.05z\"/><path d=\"M12.56 6.6A10.97 10.97 0 0 0 14 3.02c.5 2.5 2 4.9 4 6.5s3 3.5 3 5.5a6.98 6.98 0 0 1-11.91 4.97\"/></svg></span></div><div class=\"ds-placa-corpo\"><h3 class=\"ds-placa-titulo\">Vazamento no teto do corredor</h3><p class=\"ds-placa-texto\">Água pingando perto do elevador desde ontem à noite.</p><div class=\"ds-placa-acoes\"><span class=\"ds-placa-meta\">24/09/2026</span><a class=\"ds-placa-link\" href=\"#\">Atender <svg xmlns=\"http://www.w3.org/2000/svg\" width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M5 12h14\"/><path d=\"m12 5 7 7-7 7\"/></svg></a></div></div><div class=\"ds-faixa ds-faixa-andamento\"><span>Em andamento</span><span class=\"ds-faixa-protocolo\">OCO-2026-0030</span></div></article>",
+      "css": ".ds-placa { max-width: 380px; background: var(--hab-placa, #fff); border: 1px solid var(--hab-linha, #d6d8dc); border-radius: var(--hab-raio, 12px); overflow: hidden; display: flex; flex-direction: column; color: var(--hab-tinta, #121417); cursor: pointer; transition: transform 0.16s var(--hab-ease, cubic-bezier(0.22, 1, 0.36, 1)), border-color 0.16s var(--hab-ease, cubic-bezier(0.22, 1, 0.36, 1)); } .ds-placa:hover { border-color: var(--hab-linha-forte, #b9bdc4); } .ds-placa:active { transform: scale(0.985); } .ds-placa:focus-visible { outline: 2px solid var(--hab-laranja, #f47920); outline-offset: 2px; } .ds-placa-cabeca { display: flex; align-items: center; gap: 0.75rem; padding: 0.85rem 0.95rem 0.6rem; } .ds-placa-local { display: flex; flex-direction: column; flex: 1; min-width: 0; } .ds-placa-rotulo { font: 700 0.64rem var(--hab-fonte, 'Plus Jakarta Sans', Inter, system-ui, sans-serif); letter-spacing: 0.12em; text-transform: uppercase; color: var(--hab-texto-3, #6b7079); } .ds-placa-valor { font: 800 1.15rem/1.25 var(--hab-fonte-titulo, Poppins, 'Plus Jakarta Sans', system-ui, sans-serif); letter-spacing: -0.01em; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; } .ds-placa-picto { flex-shrink: 0; width: 44px; height: 44px; border-radius: 10px; background: var(--hab-tinta, #121417); color: #fff; display: grid; place-items: center; } .ds-placa-corpo { padding: 0 0.95rem 0.85rem; display: flex; flex-direction: column; gap: 0.3rem; } .ds-placa-titulo { font: 600 1.02rem/1.3 var(--hab-fonte-titulo, Poppins, 'Plus Jakarta Sans', system-ui, sans-serif); margin: 0; } .ds-placa-texto { font: 400 0.875rem/1.5 var(--hab-fonte, 'Plus Jakarta Sans', Inter, system-ui, sans-serif); color: var(--hab-texto-2, #464c56); margin: 0; } .ds-placa-acoes { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--hab-linha, #d6d8dc); padding-top: 0.6rem; margin-top: 0.3rem; } .ds-placa-meta { font: 400 0.78rem var(--hab-fonte, 'Plus Jakarta Sans', Inter, system-ui, sans-serif); color: var(--hab-texto-3, #6b7079); font-variant-numeric: tabular-nums; } .ds-placa-link { display: inline-flex; align-items: center; gap: 0.3rem; font: 700 0.85rem var(--hab-fonte, 'Plus Jakarta Sans', Inter, system-ui, sans-serif); color: var(--hab-laranja-texto, #c2410c); text-decoration: none; min-height: 40px; } .ds-placa-link svg { transition: transform 0.16s var(--hab-ease, cubic-bezier(0.22, 1, 0.36, 1)); } .ds-placa:hover .ds-placa-link svg { transform: translateX(2px); } .ds-faixa { display: flex; justify-content: space-between; gap: 0.75rem; padding: 0.55rem 0.95rem; font: 700 0.74rem var(--hab-fonte, 'Plus Jakarta Sans', Inter, system-ui, sans-serif); letter-spacing: 0.06em; text-transform: uppercase; } .ds-faixa-protocolo { font-variant-numeric: tabular-nums; letter-spacing: 0.04em; opacity: 0.9; } .ds-faixa-andamento { background: #f59e0b; color: var(--hab-tinta, #121417); }"
+    },
+    {
+      "name": "Placas de status (painel)",
+      "kind": "card",
+      "refersTo": "faixa-aberta",
+      "description": "Número grande do status sobre a faixa sólida do status; 4 lado a lado no computador, 2×2 no celular.",
+      "html": "<div class=\"ds-painel\"><button class=\"ds-pst\" type=\"button\"><span class=\"ds-pst-num\">4</span><span class=\"ds-pst-sub\">no condomínio</span><span class=\"ds-pst-faixa ab\">Aberta</span></button><button class=\"ds-pst\" type=\"button\"><span class=\"ds-pst-num\">2</span><span class=\"ds-pst-sub\">no condomínio</span><span class=\"ds-pst-faixa an\">Em análise</span></button><button class=\"ds-pst\" type=\"button\"><span class=\"ds-pst-num\">7</span><span class=\"ds-pst-sub\">no condomínio</span><span class=\"ds-pst-faixa and\">Em andamento</span></button><button class=\"ds-pst\" type=\"button\"><span class=\"ds-pst-num\">31</span><span class=\"ds-pst-sub\">no condomínio</span><span class=\"ds-pst-faixa res\">Concluída</span></button></div>",
+      "css": ".ds-painel { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.75rem; max-width: 640px; } @media (min-width: 560px) { .ds-painel { grid-template-columns: repeat(4, minmax(0, 1fr)); } } .ds-pst { display: flex; flex-direction: column; align-items: stretch; text-align: left; padding: 0; background: var(--hab-placa, #fff); border: 1px solid var(--hab-linha, #d6d8dc); border-radius: var(--hab-raio, 12px); overflow: hidden; cursor: pointer; transition: transform 0.16s var(--hab-ease, cubic-bezier(0.22, 1, 0.36, 1)), border-color 0.16s var(--hab-ease, cubic-bezier(0.22, 1, 0.36, 1)); } .ds-pst:hover { border-color: var(--hab-linha-forte, #b9bdc4); } .ds-pst:active { transform: scale(0.985); } .ds-pst:focus-visible { outline: 2px solid var(--hab-laranja, #f47920); outline-offset: 2px; } .ds-pst-num { font: 800 2.6rem/1 var(--hab-fonte-titulo, Poppins, 'Plus Jakarta Sans', system-ui, sans-serif); letter-spacing: -0.03em; color: var(--hab-tinta, #121417); padding: 0.9rem 0.95rem 0.1rem; font-variant-numeric: tabular-nums; } .ds-pst-sub { font: 400 0.74rem var(--hab-fonte, 'Plus Jakarta Sans', Inter, system-ui, sans-serif); color: var(--hab-texto-3, #6b7079); padding: 0 0.95rem 0.75rem; } .ds-pst-faixa { margin-top: auto; padding: 0.55rem 0.95rem; font: 700 0.74rem var(--hab-fonte, 'Plus Jakarta Sans', Inter, system-ui, sans-serif); letter-spacing: 0.06em; text-transform: uppercase; } .ds-pst-faixa.ab { background: #dc2626; color: #fff; } .ds-pst-faixa.an { background: #1d4ed8; color: #fff; } .ds-pst-faixa.and { background: #f59e0b; color: #121417; } .ds-pst-faixa.res { background: #047857; color: #fff; }"
+    },
+    {
+      "name": "Menu lateral",
+      "kind": "nav",
+      "refersTo": "nav-item-ativo",
+      "description": "Moldura preta do computador; item ativo é uma placa laranja com letras pretas.",
+      "html": "<nav class=\"ds-menu\"><p class=\"ds-menu-grupo\">Workspace</p><a class=\"ds-menu-item\" href=\"#\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><rect width=\"7\" height=\"9\" x=\"3\" y=\"3\" rx=\"1\"/><rect width=\"7\" height=\"5\" x=\"14\" y=\"3\" rx=\"1\"/><rect width=\"7\" height=\"9\" x=\"14\" y=\"12\" rx=\"1\"/><rect width=\"7\" height=\"5\" x=\"3\" y=\"16\" rx=\"1\"/></svg><span>Visão Geral</span></a><a class=\"ds-menu-item ativo\" href=\"#\" aria-current=\"page\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M22 12h-4l-3 9L9 3l-3 9H2\"/></svg><span>Mural de Ocorrências</span><b class=\"ds-menu-badge\">3</b></a><a class=\"ds-menu-item\" href=\"#\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><rect width=\"8\" height=\"4\" x=\"8\" y=\"2\" rx=\"1\"/><path d=\"M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2\"/><path d=\"M12 11h4\"/><path d=\"M12 16h4\"/><path d=\"M8 11h.01\"/><path d=\"M8 16h.01\"/></svg><span>Minhas Solicitações</span></a></nav>",
+      "css": ".ds-menu { width: 260px; background: var(--hab-tinta, #121417); padding: 1.1rem 0.85rem; display: flex; flex-direction: column; gap: 2px; border-radius: 0; } .ds-menu-grupo { margin: 0 0 0.15rem; padding: 0 0.7rem; font: 700 0.68rem var(--hab-fonte, 'Plus Jakarta Sans', Inter, system-ui, sans-serif); letter-spacing: 0.12em; text-transform: uppercase; color: #7d838d; } .ds-menu-item { display: flex; align-items: center; gap: 0.7rem; padding: 0.6rem 0.7rem; border-radius: var(--hab-raio-p, 8px); font: 500 0.86rem var(--hab-fonte, 'Plus Jakarta Sans', Inter, system-ui, sans-serif); color: #d3d6dc; text-decoration: none; transition: background-color 0.18s var(--hab-ease, cubic-bezier(0.22, 1, 0.36, 1)), color 0.18s var(--hab-ease, cubic-bezier(0.22, 1, 0.36, 1)), transform 0.12s var(--hab-ease, cubic-bezier(0.22, 1, 0.36, 1)); } .ds-menu-item svg { color: #8a9099; } .ds-menu-item:hover { background: rgba(255, 255, 255, 0.06); color: #fff; } .ds-menu-item:hover svg { color: #fff; } .ds-menu-item:active { transform: scale(0.98); } .ds-menu-item:focus-visible { outline: 2px solid var(--hab-laranja, #f47920); outline-offset: 2px; } .ds-menu-item.ativo { background: var(--hab-laranja, #f47920); color: var(--hab-tinta, #121417); font-weight: 600; } .ds-menu-item.ativo svg { color: var(--hab-tinta, #121417); } .ds-menu-badge { margin-left: auto; min-width: 1.35rem; height: 1.35rem; padding: 0 0.4rem; display: inline-flex; align-items: center; justify-content: center; border-radius: 999px; font: 700 0.7rem var(--hab-fonte, 'Plus Jakarta Sans', Inter, system-ui, sans-serif); font-variant-numeric: tabular-nums; background: var(--hab-tinta, #121417); color: #fff; }"
+    },
+    {
+      "name": "Barra de navegação inferior",
+      "kind": "nav",
+      "refersTo": "nav-inferior",
+      "description": "Navegação do celular/app: destinos do perfil, ação Nova em placa laranja, Menu; área segura inferior.",
+      "html": "<nav class=\"ds-nav-inf\" aria-label=\"Navegação principal\"><button type=\"button\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><rect width=\"7\" height=\"9\" x=\"3\" y=\"3\" rx=\"1\"/><rect width=\"7\" height=\"5\" x=\"14\" y=\"3\" rx=\"1\"/><rect width=\"7\" height=\"9\" x=\"14\" y=\"12\" rx=\"1\"/><rect width=\"7\" height=\"5\" x=\"3\" y=\"16\" rx=\"1\"/></svg>Início</button><button type=\"button\" class=\"ativo\" aria-current=\"page\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M22 12h-4l-3 9L9 3l-3 9H2\"/></svg>Mural<span class=\"ds-nav-bolinha\">2</span></button><button type=\"button\" class=\"acao\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M5 12h14\"/><path d=\"M12 5v14\"/></svg>Nova</button><button type=\"button\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><rect width=\"8\" height=\"4\" x=\"8\" y=\"2\" rx=\"1\"/><path d=\"M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2\"/><path d=\"M12 11h4\"/><path d=\"M12 16h4\"/><path d=\"M8 11h.01\"/><path d=\"M8 16h.01\"/></svg>Minhas</button><button type=\"button\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><line x1=\"4\" x2=\"20\" y1=\"12\" y2=\"12\"/><line x1=\"4\" x2=\"20\" y1=\"6\" y2=\"6\"/><line x1=\"4\" x2=\"20\" y1=\"18\" y2=\"18\"/></svg>Menu</button></nav>",
+      "css": ".ds-nav-inf { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; max-width: 390px; background: var(--hab-placa, #fff); border-top: 1px solid var(--hab-linha, #d6d8dc); padding: 0.35rem 0.25rem calc(0.35rem + env(safe-area-inset-bottom)); } .ds-nav-inf button { position: relative; display: flex; flex-direction: column; align-items: center; gap: 3px; min-height: 48px; border: 0; background: none; cursor: pointer; padding: 0.4rem 0.2rem; border-radius: var(--hab-raio-p, 8px); font: 600 0.66rem var(--hab-fonte, 'Plus Jakarta Sans', Inter, system-ui, sans-serif); color: var(--hab-texto-3, #6b7079); transition: color 0.18s var(--hab-ease, cubic-bezier(0.22, 1, 0.36, 1)), transform 0.12s var(--hab-ease, cubic-bezier(0.22, 1, 0.36, 1)); touch-action: manipulation; } .ds-nav-inf button:active { transform: scale(0.94); } .ds-nav-inf button:focus-visible { outline: 2px solid var(--hab-laranja, #f47920); outline-offset: 2px; } .ds-nav-inf .ativo { color: var(--hab-tinta, #121417); } .ds-nav-inf .ativo::before { content: ''; position: absolute; top: -0.36rem; left: 28%; right: 28%; height: 3px; border-radius: 0 0 3px 3px; background: var(--hab-laranja, #f47920); } .ds-nav-inf .acao { color: var(--hab-tinta, #121417); font-weight: 700; } .ds-nav-inf .acao svg { width: 44px; height: 30px; padding: 4px 11px; box-sizing: border-box; background: var(--hab-laranja, #f47920); color: var(--hab-tinta, #121417); border-radius: 9px; stroke-width: 2.6; } .ds-nav-bolinha { position: absolute; top: 2px; left: calc(50% + 6px); min-width: 16px; height: 16px; padding: 0 4px; border-radius: 999px; background: #dc2626; color: #fff; font-size: 0.6rem; line-height: 16px; text-align: center; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "Sinalização Predial",
+    "overview": "O Habitare fala a língua das placas do próprio prédio. Cada pedido é identificado do jeito que o prédio identifica seus lugares: uma placa branca com o rótulo \"Local\" e o lugar por extenso em letra grossa, um pictograma do serviço num quadro preto e, no pé, a faixa de status como a faixa colorida de uma placa. Quem abre a tela reconhece num relance onde é o problema, de que serviço é e em que etapa está; depois age com o controle que fica sempre no mesmo lugar.\n\nO material é de prédio: fundo de alumínio anodizado com um pontilhado discreto e parado, placas brancas recortadas por filetes de 1px, preto de placa na moldura (menu, topo do celular, pictogramas, numerais) e um único laranja — o da marca — para a marca, a ação principal e o que \"precisa de você\". As cores de status são fixas e conversam com a faixa, nunca com o perfil. Telas internas são simples, densas o bastante para triagem e rápidas; o login pode ter mais presença (painel preto pontilhado com a logo acesa), mas é o mesmo mundo.\n\nO celular de 390px é o app (o Android é este mesmo React via Capacitor): barra de navegação inferior, áreas seguras do entalhe e da barra de gestos, alvos de toque de 40px ou mais e campos com 16px. O movimento é calmo e barato: só opacity e transform. A interface recusa o padrão da categoria — cartões brancos idênticos com pílulas pastel e uma cor de destaque por perfil.",
+    "keyCharacteristics": [
+      "Placa da ocorrência: rótulo \"Local\" + local por extenso, pictograma em quadro preto, título, descrição e faixa de status no pé.",
+      "Um laranja só (#f47920) para todos os perfis; texto laranja sobre branco usa #c2410c.",
+      "Status com cor fixa: Aberta vermelho, Em Análise azul, Em Andamento âmbar, Concluída verde.",
+      "Filetes de 1px separam; sem sombras como separador, sem faixas coloridas laterais.",
+      "Moldura preta (menu lateral no computador, topo preto no celular) sobre fundo de alumínio pontilhado.",
+      "Poppins para títulos, placas e números; Plus Jakarta Sans para leitura e campos.",
+      "Movimento só com opacity/transform, sempre respeitando prefers-reduced-motion."
+    ],
+    "rules": [
+      {
+        "name": "A Regra da Cor Única",
+        "body": "O laranja Habitare é a única cor de destaque, para todo perfil. O perfil aparece como rótulo discreto, nunca como cor. Não existe roxo do Master, azul do síndico nem verde do funcionário.",
+        "section": "colors"
+      },
+      {
+        "name": "A Regra do Laranja Legível",
+        "body": "Laranja preenche com letra preta; laranja escrito sobre branco é sempre #c2410c. Nunca texto branco sobre #f47920, nunca texto #f47920 sobre branco.",
+        "section": "colors"
+      },
+      {
+        "name": "A Regra dos Status Fixos",
+        "body": "Vermelho, azul, âmbar e verde pertencem aos quatro status e a mais nada. Nenhum botão, ícone ou destaque usa essas cores fora do sentido de status (o vermelho também marca contagens pendentes).",
+        "section": "colors"
+      },
+      {
+        "name": "A Regra do Letreiro",
+        "body": "Poppins para o que se lê de longe (títulos, locais, números, botões); Plus Jakarta Sans para o que se lê de perto (texto corrido, metadados, campos). Não inverter.",
+        "section": "typography"
+      },
+      {
+        "name": "A Regra dos Números Alinhados",
+        "body": "Contagens, protocolos, datas do topo e bolinhas usam numerais tabulares (`font-variant-numeric: tabular-nums`), para os números não dançarem quando mudam.",
+        "section": "typography"
+      },
+      {
+        "name": "A Regra dos 16px",
+        "body": "Campo de formulário nunca abaixo de 16px: no celular o navegador dá zoom ao tocar num campo menor.",
+        "section": "typography"
+      },
+      {
+        "name": "A Regra do Polegar",
+        "body": "No celular a ação principal e a navegação ficam embaixo, dentro da área segura; nada essencial depende de hover. Alvos de toque têm pelo menos 40px.",
+        "section": "layout"
+      },
+      {
+        "name": "A Regra do Filete",
+        "body": "Separar é trabalho do filete de 1px (#d6d8dc). Nada de sombra suave como divisória e nada de faixa colorida na lateral de cartões.",
+        "section": "elevation"
+      },
+      {
+        "name": "A Regra do Que Flutua",
+        "body": "Só janela e menu suspenso projetam sombra. Se o elemento está no fluxo da página, ele é plano.",
+        "section": "elevation"
+      },
+      {
+        "name": "A Regra da Placa Completa",
+        "body": "Toda ocorrência, em qualquer tela, aparece como placa: rótulo \"Local\" + local por extenso, pictograma em quadro preto, e faixa de status no pé. Não criar cartão de ocorrência sem faixa.",
+        "section": "components"
+      },
+      {
+        "name": "A Regra do Movimento Barato",
+        "body": "Movimento só com opacity e transform. Nunca animar filter, blur ou backdrop-filter (travou o Chrome do dono em produção).",
+        "section": "components"
+      }
+    ],
+    "dos": [
+      "**Do** usar o laranja #f47920 como única cor de destaque, com texto #121417 por cima, para todos os perfis.",
+      "**Do** escrever laranja sobre branco em #c2410c.",
+      "**Do** mostrar cada ocorrência como placa: \"LOCAL\" + local por extenso (Poppins 800, 1.15rem, até 2 linhas), pictograma lucide em quadro preto de 44px e faixa de status no pé.",
+      "**Do** usar as cores fixas de status: faixa sólida (#dc2626, #1d4ed8, #f59e0b com texto preto, #047857) e selo claro nas listas.",
+      "**Do** separar com filete de 1px #d6d8dc sobre placa branca e fundo de alumínio #edeef0.",
+      "**Do** desenhar primeiro para 390px: barra inferior, áreas seguras (`env(safe-area-inset-*)`), alvos de toque de 40px ou mais, campos com 16px.",
+      "**Do** animar só opacity/transform com `cubic-bezier(0.22, 1, 0.36, 1)` e desligar com `prefers-reduced-motion`.",
+      "**Do** usar numerais tabulares em contagens, protocolos e bolinhas."
+    ],
+    "donts": [
+      "**Don't** dar cor própria a perfil (Master, Síndico, Funcionário, Morador); o perfil é um rótulo discreto.",
+      "**Don't** usar vermelho, azul, âmbar ou verde fora do sentido de status.",
+      "**Don't** usar emoji ou caracteres (✓ ✕ ★ ↑) como ícone; só a família lucide-react, traço único.",
+      "**Don't** colocar faixa colorida na lateral de cartões, nem sombra suave como separador.",
+      "**Don't** pôr sombra em elemento que está no fluxo da página; sombra é só de janela e menu suspenso.",
+      "**Don't** animar filter, blur ou backdrop-filter, nem depender de hover para mostrar uma ação.",
+      "**Don't** interpretar o local escrito pelo morador (converter em \"Andar 05\", \"Apto\"); ele aparece exatamente como foi escrito.",
+      "**Don't** criar campo com fonte menor que 16px."
+    ]
+  }
+}

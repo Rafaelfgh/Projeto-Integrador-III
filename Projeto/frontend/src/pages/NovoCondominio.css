@@ -84,7 +84,7 @@
   gap: 0.5rem;
   margin: 1.5rem 0 1rem 0;
   color: var(--role-primary-color);
-  border-left: 4px solid var(--role-primary-color);
+  border-left: 1px solid var(--role-primary-color);
   padding-left: 10px;
 }
 
@@ -152,8 +152,8 @@
   width: 100%;
   padding: 12px;
   border: none;
-  background: var(--role-primary-color);
-  color: white;
+  background: var(--hab-laranja);
+  color: var(--hab-tinta);
   font-weight: 700;
   border-radius: 8px;
   cursor: pointer;
@@ -208,7 +208,7 @@
 }
 
 .nc-passos li.atual span,
-.nc-passos li.feito span { background: var(--role-primary-color); color: #fff; }
+.nc-passos li.feito span { background: var(--hab-laranja); color: var(--hab-tinta); }
 .nc-passos li.feito { color: #475569; }
 
 .nc-erro {

@@ -22,7 +22,7 @@ import './GestaoFuncionarios.css';
 // ficha com foto e remover (só o master). A foto é gravada pela Edge Function:
 // o funcionário não consegue trocá-la.
 
-const COR_FUNCIONARIO = '#16a34a';
+const COR_FUNCIONARIO = '#121417'; // preto de placa (identidade única, sem cor por perfil)
 const FORM_VAZIO = { nome: '', email: '', senha: 'Mudar@123', especialidades: [], foto: null };
 
 // Mensagem de erro vinda da Edge Function (o corpo traz { error })

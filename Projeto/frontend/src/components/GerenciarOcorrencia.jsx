@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { separarLocal } from '../utils/placa';
 import { X, User, Home, Camera, Search as Lupa, Send, CheckCircle2, UserCog, Clock, Lock } from 'lucide-react';
 import { supabase } from '../backend/supabaseClient';
 import { useVisualizadorImagem } from '../contexts/visualizadorImagem';
@@ -147,7 +148,8 @@ const GerenciarOcorrencia = ({ ocorrenciaId, onFechar, onAtualizada }) => {
                 <div className="go-linha"><User size={14} /> {oc.Moradores?.nome || 'Morador'} · {unidade}</div>
                 <div className="go-linha"><Clock size={14} /> Aberta em {formatarData(oc.created_at)}</div>
                 <div className="go-linha"><UserCog size={14} /> {oc.atribuido_a ? `Responsável: ${nomes[oc.atribuido_a] || 'funcionário'}` : 'Sem responsável'}</div>
-                <p className="go-descricao">{oc.descricao}</p>
+                <p className="go-descricao">{separarLocal(oc.descricao).texto}</p>
+                {separarLocal(oc.descricao).local && <p className="go-local"><strong>Local:</strong> {separarLocal(oc.descricao).local}</p>}
                 {oc.anexos?.length > 0 && (
                   <div className="go-fotos">
                     {oc.anexos.map((url, i) => (
