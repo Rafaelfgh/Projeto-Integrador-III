@@ -252,7 +252,7 @@ const PainelDev = () => {
           </div>
         </header>
 
-        <div className="dashboard-content-scroll" style={{ backgroundColor: '#f8fafc' }}>
+        <div className="dashboard-content-scroll">
           <div className="dev-container">
             <div className="dev-barra">
               <div className="dev-abas" role="tablist">

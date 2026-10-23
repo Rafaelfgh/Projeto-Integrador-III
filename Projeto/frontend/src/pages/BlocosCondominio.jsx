@@ -98,7 +98,7 @@ const BlocosCondominio = () => {
 
         <ContextBanner />
 
-        <div className="dashboard-content-scroll" style={{ backgroundColor: '#f8fafc' }}>
+        <div className="dashboard-content-scroll">
           <div className="bc-container">
             <section className="bc-card">
               <header className="bc-card-topo">

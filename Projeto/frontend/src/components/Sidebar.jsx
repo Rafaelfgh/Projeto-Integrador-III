@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-  LayoutDashboard, FileEdit, FileWarning, Activity, ClipboardList, Building, BarChart, LogOut, Settings, Users, PenTool, Shield, UserPlus, Package, Clock, ShieldCheck, Map, MessageSquare, Calendar, Star, Vote, CheckSquare, FileText, CheckCircle2, ChevronRight, Home, Hourglass, Megaphone, ScanSearch, Mail, Layers
+  LayoutDashboard, FileEdit, FileWarning, Activity, ClipboardList, Building, BarChart, LogOut, Settings, Users, PenTool, Shield, UserPlus, Package, Clock, ShieldCheck, Map, MessageSquare, Calendar, Star, Vote, CheckSquare, FileText, CheckCircle2, ChevronRight, Home, Hourglass, Megaphone, ScanSearch, Mail, Layers, Menu, Plus
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -57,9 +57,37 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
     );
   };
 
+  // Barra inferior do celular: os destinos mais usados de cada perfil + "Menu" (abre o menu completo)
+  const ITENS_INFERIOR = {
+    MORADOR: [['/dashboard', LayoutDashboard, 'Início'], ['/feed', Activity, 'Mural'], ['/ocorrencia', Plus, 'Nova'], ['/solicitacoes', ClipboardList, 'Minhas']],
+    SINDICO: [['/painel?tab=overview', LayoutDashboard, 'Painel'], ['/feed', Activity, 'Mural'], ['/ocorrencias-analise', ScanSearch, 'Análise', contadores.analise], ['/ocorrencias-pessoais', Home, 'Pessoais', contadores.pessoais]],
+    FUNCIONARIO: [['/painel-funcionario', PenTool, 'Tarefas'], ['/recados', Mail, 'Recados', recados.total], ['/avisos', Megaphone, 'Avisos']],
+    MASTER: [['/painel-master?tab=overview', LayoutDashboard, 'Visão'], ['/feed', Activity, 'Mural'], ['/painel-master?tab=usuarios', Users, 'Moradores', contadores.moradores_pendentes], ['/ocorrencias-analise', ScanSearch, 'Análise', contadores.analise]],
+    DEV: [['/painel-dev', Building, 'Condomínios']],
+  };
+  const ativoInferior = (alvo) => {
+    const [caminho, busca] = alvo.split('?');
+    if (caminho !== currentPath) return false;
+    if (!busca) return true;
+    return location.search === `?${busca}` || (busca === 'tab=overview' && !location.search);
+  };
+
   return (
     <>
       <AbrirOcorrenciaPorLink />
+      <nav className="nav-inferior" aria-label="Navegação principal">
+        {(ITENS_INFERIOR[visualContext] || []).map(([alvo, Icone, rotulo, n]) => (
+          <button key={alvo} type="button" className={ativoInferior(alvo) ? 'ativo' : ''} aria-current={ativoInferior(alvo) ? 'page' : undefined} onClick={() => handleNavClick(alvo)}>
+            <Icone />
+            {rotulo}
+            {n > 0 && <span className="nav-inferior-bolinha">{n > 99 ? '99+' : n}</span>}
+          </button>
+        ))}
+        <button type="button" onClick={() => setSidebarOpen(true)} aria-label="Abrir menu completo">
+          <Menu />
+          Menu
+        </button>
+      </nav>
       <aside className={`dashboard-sidebar ${sidebarOpen ? 'sidebar-open' : 'sidebar-closed'}`}>
 
         {/* ── Header ── */}

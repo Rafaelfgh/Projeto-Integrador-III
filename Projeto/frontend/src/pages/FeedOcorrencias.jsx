@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { PlacaLocal, FaixaStatus } from '../components/Placa';
+import { separarLocal } from '../utils/placa';
 import FiltroData, { FILTRO_DATA_VAZIO, passaFiltroData, anosDe } from '../components/FiltroData';
 import { combinaBusca } from '../utils/busca';
 import ErroCarregamento from '../components/ErroCarregamento';
 import {
-  Menu, Search, BellOff, Clock, FileEdit, Send, Trash2, MessageCircle, Loader2,
+  Menu, Search, BellOff, Clock, Send, Trash2, MessageCircle, Loader2,
   RefreshCw, ChevronDown, ChevronUp, UserCog, CheckCircle2, Pin, Pencil
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -22,13 +24,6 @@ import { protocoloOcorrencia } from '../utils/protocolo';
 import './Dashboard.css';
 import './FeedOcorrencias.css';
 
-const STATUS_CONFIG = {
-  'Aberta':       { class: 'f-status-red st-aberta',          label: 'Aberta'       },
-  'Em Análise':   { class: 'f-status-yellow st-analise',      label: 'Em Análise'   },
-  'Em Andamento': { class: 'f-status-yellow st-andamento',    label: 'Em Andamento' },
-  'Resolvida':    { class: 'f-status-green st-resolvida',     label: 'Concluída'    },
-};
-
 // Concluídas ficam no mural dos moradores por 14 dias (o síndico mantém o histórico completo)
 const DIAS_CONCLUIDAS = 14;
 
@@ -36,7 +31,6 @@ const PAPEL_LABEL = { SINDICO: 'Síndico', MASTER: 'Administração', FUNCIONARI
 
 const COMENTARIO_CAMPOS = 'id, ocorrencia_id, autor_id, autor_nome, autor_papel, texto, created_at, editado_em';
 
-const getStatusCfg = (status) => STATUS_CONFIG[status] || { class: 'f-status-yellow', label: status || '—' };
 
 const formatarData = (data) => {
   if (!data) return '—';
@@ -60,6 +54,8 @@ const FeedOcorrencias = () => {
   const [filtroData,     setFiltroData]     = useState(FILTRO_DATA_VAZIO);
   const [statusFilter,   setStatusFilter]   = useState('Todos');
   const [expandido,      setExpandido]      = useState({});
+  // Texto longo fica em 3 linhas para os cartões terem o mesmo tamanho; "Ver mais" abre o resto
+  const [textoAberto,    setTextoAberto]    = useState({});
   const [novoComentario, setNovoComentario] = useState({});
   const [erroComentario, setErroComentario] = useState({});
   const [editandoPron,   setEditandoPron]   = useState({});
@@ -71,7 +67,7 @@ const FeedOcorrencias = () => {
   const [gerenciando,    setGerenciando]    = useState(null);
   const navigate  = useNavigate();
   const { currentUser } = useAuth();
-  const { rotulo } = useCategorias();
+  const { rotulo, porSlug } = useCategorias();
   const abrirImagem = useVisualizadorImagem();
 
   const isGestor = currentUser?.role === 'SINDICO' || currentUser?.role === 'MASTER';
@@ -286,7 +282,7 @@ const FeedOcorrencias = () => {
           </div>
         </header>
 
-        <div className="dashboard-content-scroll" style={{ backgroundColor: '#f8fafc' }}>
+        <div className="dashboard-content-scroll">
           <div className="feed-container">
 
             {/* Abas */}
@@ -345,55 +341,40 @@ const FeedOcorrencias = () => {
             ) : erroCarga ? (
               <ErroCarregamento onTentar={fetchTudo} />
             ) : filtradas.length > 0 ? (
-              <div className="feed-ticket-list">
+              <div className="feed-ticket-list lista-placas">
                 {filtradas.map(item => {
-                  const statusCfg     = getStatusCfg(item.status);
                   const lista         = comentarios[item.id] || [];
                   const estaExpandido = !!expandido[item.id];
                   const isResolvida   = item.status === 'Resolvida';
                   const editando      = editandoPron[item.id] !== undefined;
                   const ehMinha       = item.morador_id === currentUser?.id;
 
-                  return (
-                    <div
-                      key={item.id}
-                      className={`feed-ticket${isResolvida ? ' feed-ticket-resolvida' : ''}`}
-                    >
-                      {/* Header */}
-                      <div className="feed-ticket-header">
-                        <div className="feed-user-info">
-                          <div className="feed-user-avatar">
-                            {isResolvida
-                              ? <CheckCircle2 size={20} color="white" />
-                              : (item.moradorNome?.charAt(0) || <FileEdit size={16} />)
-                            }
-                          </div>
-                          <div className="feed-user-meta">
-                            <span className="feed-user-name">
-                              {item.moradorNome}{ehMinha && ' (você)'}
-                            </span>
-                            <span className="feed-post-time">
-                              <Clock size={12} /> {formatarData(item.created_at)}
-                            </span>
-                          </div>
-                        </div>
-                        <div style={{ display:'flex', alignItems:'center', gap:'0.5rem', flexWrap:'wrap', justifyContent:'flex-end' }}>
-                          <div className={`feed-ticket-status ${statusCfg.class}`}>
-                            <div className="status-dot"></div>
-                            {statusCfg.label}
-                          </div>
-                        </div>
-                      </div>
+                  const { texto: descricao } = separarLocal(item.descricao);
 
-                      {/* Corpo */}
-                      <div className="feed-ticket-body">
-                        <h4 className={`feed-ticket-title${isResolvida ? ' feed-ticket-title-resolvida' : ''}`}>
-                          {item.titulo}
-                        </h4>
-                        <p className="feed-ticket-desc">{item.descricao}</p>
+                  return (
+                    <article key={item.id} className={`placa placa-entra feed-placa${isResolvida ? ' feed-placa-resolvida' : ''}`}>
+                      <PlacaLocal ocorrencia={item} categoriaNome={porSlug[item.categoria]?.nome} />
+
+                      <div className="placa-corpo">
+                        <h3 className="placa-titulo placa-titulo-limitado" title={item.titulo}>{item.titulo}</h3>
+                        {descricao && (
+                          <>
+                            <p className={`placa-texto${textoAberto[item.id] ? '' : ' placa-texto-limitado'}`}>{descricao}</p>
+                            {(descricao.length > 150 || descricao.split('\n').length > 3) && (
+                              <button type="button" className="placa-ver-mais" onClick={() => setTextoAberto(p => ({ ...p, [item.id]: !p[item.id] }))}>
+                                {textoAberto[item.id] ? 'Ver menos' : 'Ver mais'}
+                              </button>
+                            )}
+                          </>
+                        )}
+                        <div className="placa-meta">
+                          <span>{porSlug[item.categoria]?.nome || 'Outros'}</span>
+                          <span><Clock size={12} /> {formatarData(item.created_at)}</span>
+                          <span>por {item.moradorNome}{ehMinha && ' (você)'}</span>
+                        </div>
                         {isResolvida && item.concluidaPor ? (
                           <p className="feed-atribuicao">
-                            <UserCog size={13} /> Resolvida por <strong>{item.concluidaPor}</strong>
+                            <UserCog size={13} /> Concluída por <strong>{item.concluidaPor}</strong> em {formatarDia(item.concluida_em)}
                           </p>
                         ) : item.funcionarioNome && !isResolvida ? (
                           <p className="feed-atribuicao">
@@ -423,7 +404,7 @@ const FeedOcorrencias = () => {
                       {/* Pronunciamento do síndico: espaço fixo, sempre visível */}
                       <div className={`feed-pronunciamento${item.pronunciamento ? ' tem-texto' : ''}`}>
                         <div className="feed-pron-header">
-                          <span className="feed-pron-label"><Pin size={13} /> Pronunciamento do síndico</span>
+                          <span className="feed-pron-label"><Pin size={13} /> Pronunciamento</span>
                           {isGestor && !editando && (
                             <button
                               className="feed-pron-edit"
@@ -457,7 +438,7 @@ const FeedOcorrencias = () => {
                           </div>
                         ) : item.pronunciamento ? (
                           <>
-                            <p className="feed-pron-texto">{item.pronunciamento}</p>
+                            <p className={`feed-pron-texto${textoAberto[item.id] ? '' : ' placa-texto-limitado'}`}>{item.pronunciamento}</p>
                             <span className="feed-pron-data">{formatarData(item.pronunciamento_em)}</span>
                           </>
                         ) : (
@@ -465,29 +446,22 @@ const FeedOcorrencias = () => {
                         )}
                       </div>
 
-                      {/* Footer */}
-                      <div className="feed-ticket-footer">
-                        <div className="feed-tags">
-                          <span className="feed-tag">{protocoloOcorrencia(item.id, item.created_at)}</span>
-                          <span className="feed-tag">{rotulo(item.categoria)}</span>
-                          {isResolvida && (
-                            <span className="feed-tag feed-tag-resolvida">Concluída em {formatarDia(item.concluida_em)}</span>
-                          )}
-                        </div>
-                        {isGestor && !isResolvida && (
-                          <button className="feed-gerenciar" onClick={() => setGerenciando(item.id)}>
-                            Gerenciar
-                          </button>
-                        )}
+                      {/* Ações: sempre no mesmo lugar do cartão */}
+                      <div className="placa-acoes feed-placa-acoes">
                         <button
                           className="feed-comments-toggle"
                           aria-expanded={estaExpandido}
                           onClick={() => toggleExpandido(item.id)}
                         >
-                          <MessageCircle size={14} />
+                          <MessageCircle size={15} />
                           {lista.length} {lista.length === 1 ? 'comentário' : 'comentários'}
                           {estaExpandido ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
                         </button>
+                        {isGestor && !isResolvida && (
+                          <button className="btn-hab feed-gerenciar" onClick={() => setGerenciando(item.id)}>
+                            Gerenciar
+                          </button>
+                        )}
                       </div>
 
                       {/* Comentários: aba expansível para manter o card com tamanho padrão */}
@@ -589,7 +563,9 @@ const FeedOcorrencias = () => {
                           )}
                         </div>
                       )}
-                    </div>
+
+                      <FaixaStatus status={item.status} protocolo={protocoloOcorrencia(item.id, item.created_at)} />
+                    </article>
                   );
                 })}
               </div>

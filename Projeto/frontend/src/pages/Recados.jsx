@@ -181,7 +181,7 @@ const Recados = () => {
 
         <ContextBanner />
 
-        <div className="dashboard-content-scroll" style={{ backgroundColor: '#f8fafc' }}>
+        <div className="dashboard-content-scroll">
           <div className="rc-container">
             {ehGestao && (
               <div className="rc-barra">

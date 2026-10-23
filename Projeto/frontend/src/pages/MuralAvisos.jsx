@@ -319,7 +319,7 @@ const MuralAvisos = () => {
 
         <ContextBanner />
 
-        <div className="dashboard-content-scroll" style={{ backgroundColor: '#f8fafc' }}>
+        <div className="dashboard-content-scroll">
           <div className="av-container">
 
             <div className="av-barra">

@@ -89,7 +89,7 @@ export const AuthProvider = ({ children }) => {
     setVisualContext(null);
     localStorage.removeItem('@PM:user');
     // Reseta imediatamente para o laranja padrão da marca
-    document.documentElement.style.setProperty('--role-primary-color', '#ea580c');
+    document.documentElement.style.setProperty('--role-primary-color', '#c2410c');
   }, []);
 
   const logout = () => {
@@ -186,7 +186,8 @@ export const AuthProvider = ({ children }) => {
 
   // Injetar variável de cor CSS dinamicamente com base no contexto visual
   useEffect(() => {
-    const mainColor = visualContext ? (CONTEXT_CONFIG[visualContext]?.color || '#ea580c') : '#ea580c';
+    // Uma cor só para todos os perfis (decisão do dono, 23/10): o laranja Habitare
+    const mainColor = '#c2410c';
     document.documentElement.style.setProperty('--role-primary-color', mainColor);
   }, [visualContext]);
 

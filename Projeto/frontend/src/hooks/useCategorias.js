@@ -40,7 +40,8 @@ export const useCategorias = () => {
   const porSlug = Object.fromEntries(categorias.map(c => [c.slug, c]));
   const rotulo = (slug) => {
     const c = porSlug[slug];
-    return c ? `${c.icone} ${c.nome}` : (slug || 'Outros');
+    // só o nome: os pictogramas vêm de components/Placa.jsx (sem emoji como ícone)
+    return c ? c.nome : (slug || 'Outros');
   };
 
   return { categorias, porSlug, rotulo };

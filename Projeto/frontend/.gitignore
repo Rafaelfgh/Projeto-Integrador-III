@@ -25,3 +25,10 @@ dist-ssr
 
 # Credenciais
 .env
+
+# Impeccable: rascunhos e capturas locais
+.impeccable/mocks/
+.impeccable/review/
+.impeccable/decision-payload.json
+# página temporária de teste de celular
+public/__celular.html

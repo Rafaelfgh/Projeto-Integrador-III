@@ -283,7 +283,7 @@ const GestaoFuncionarios = () => {
 
         <ContextBanner />
 
-        <div className="dashboard-content-scroll" style={{ backgroundColor: '#f8fafc' }}>
+        <div className="dashboard-content-scroll">
           <div className="gf-container">
             <div className="gf-barra">
               <div className="gf-busca">
@@ -420,7 +420,7 @@ const GestaoFuncionarios = () => {
                     disabled={bloqueado}
                     onClick={() => setForm({ ...form, especialidades: alternar(form.especialidades, c.slug) })}
                   >
-                    {ativo && <Check size={13} />} {c.icone} {c.nome}
+                    {ativo && <Check size={13} />} {c.nome}
                   </button>
                 );
               })}
@@ -458,7 +458,7 @@ const GestaoFuncionarios = () => {
                   disabled={ocupado}
                   onClick={() => setEspEdit({ ...espEdit, selecionadas: alternar(espEdit.selecionadas, c.slug) })}
                 >
-                  {ativo && <Check size={13} />} {c.icone} {c.nome}
+                  {ativo && <Check size={13} />} {c.nome}
                 </button>
               );
             })}

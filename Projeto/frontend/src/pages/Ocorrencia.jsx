@@ -283,7 +283,7 @@ const Ocorrencia = () => {
                         <option value="" disabled>Selecione uma categoria</option>
                         {categorias.map(c => (
                           <option key={c.slug} value={c.slug}>
-                            {c.icone} {c.nome}{c.descricao ? ` (${c.descricao})` : ''}
+                            {c.nome}{c.descricao ? ` (${c.descricao})` : ''}
                           </option>
                         ))}
                       </select>

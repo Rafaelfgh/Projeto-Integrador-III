@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { FaixaStatus, Pictograma } from '../components/Placa';
+import { classeStatus } from '../utils/statusOcorrencia';
 import ErroCarregamento from '../components/ErroCarregamento';
 import {
   Menu, Search, UserCheck, Shield, User, Building, MoreVertical, Check, X, Users, UserPlus, FileText, Ban, Edit2, Key, LayoutDashboard, Clock, Settings, AlertTriangle, Eye, TrendingUp, TrendingDown, DollarSign, AlertCircle, Loader2, Trash2, ShieldOff, Wrench
@@ -287,7 +289,6 @@ const PainelMaster = () => {
   const pipeAnalise   = ocorrencias.filter(o => o.status === 'Em Análise').length;
   const pipeAndamento = ocorrencias.filter(o => o.status === 'Em Andamento').length;
   const pipeConcluida = ocorrencias.filter(o => o.status === 'Resolvida').length;
-  const totalOcc = ocorrencias.length || 1;
 
   if (erroCarga) {
     return (
@@ -355,65 +356,62 @@ const PainelMaster = () => {
         <div className="dashboard-content-scroll" style={{ padding: '2rem' }}>
 
           {activeTab === 'overview' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px' }}>
+            <div className="mo-visao">
+              {/* Placas de status do condomínio */}
+              <div className="painel-placas">
                 {[
-                  { label: 'OCORRÊNCIAS ABERTAS', value: String(ocorrencias.length - pipeConcluida), trend: 'requerem atenção', trendColor: '#f59e0b' },
-                  { label: 'TOTAL DE OCORRÊNCIAS', value: String(ocorrencias.length), trend: 'registradas no sistema', trendColor: '#16a34a' },
-                  { label: 'USUÁRIOS CADASTRADOS', value: String(totalUsers), trend: `${pendingUsers} pendentes de aprovação`, trendColor: pendingUsers > 0 ? '#f59e0b' : '#16a34a' },
-                ].map((k, i) => (
-                  <div key={i} style={{ background: '#f8fafc', borderRadius: '10px', padding: '20px' }}>
-                    <p style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: '#94a3b8', letterSpacing: '0.07em', margin: '0 0 10px' }}>{k.label}</p>
-                    <p style={{ fontSize: '32px', fontWeight: 600, color: '#0f172a', margin: '0 0 8px', lineHeight: 1 }}>{k.value}</p>
-                    <p style={{ fontSize: '12px', color: k.trendColor, margin: 0, fontWeight: 500 }}>{k.trend}</p>
-                  </div>
+                  { status: 'Aberta', valor: pipeAberta },
+                  { status: 'Em Análise', valor: pipeAnalise },
+                  { status: 'Em Andamento', valor: pipeAndamento },
+                  { status: 'Resolvida', valor: pipeConcluida },
+                ].map(k => (
+                  <button key={k.status} type="button" className="placa placa-clicavel placa-status" onClick={() => navigate(k.status === 'Em Análise' ? '/ocorrencias-analise' : k.status === 'Resolvida' ? '/ocorrencias-concluidas' : '/feed')}>
+                    <span className="placa-status-numero">{k.valor}</span>
+                    <span className="placa-status-sub">de {ocorrencias.length} ocorrências</span>
+                    <FaixaStatus status={k.status} />
+                  </button>
                 ))}
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
-                <div style={{ background: '#fff', borderRadius: '10px', padding: '20px', border: '1px solid #e2e8f0' }}>
-                  <h3 style={{ fontSize: '14px', fontWeight: 600, color: '#0f172a', margin: '0 0 4px' }}>Pipeline de ocorrências</h3>
-                  <p style={{ fontSize: '12px', color: '#94a3b8', margin: '0 0 24px' }}>Todas as ocorrências do sistema por status.</p>
-                  <div style={{ display: 'flex', alignItems: 'flex-end', gap: '10px', height: '130px' }}>
-                    {[
-                      { label: 'Aberta', value: pipeAberta, color: '#EF4444' },
-                      { label: 'Em análise', value: pipeAnalise, color: '#3B82F6' },
-                      { label: 'Em andamento', value: pipeAndamento, color: '#F59E0B' },
-                      { label: 'Concluída', value: pipeConcluida, color: '#10B981' },
-                    ].map((col, i) => {
-                      const barH = Math.max(10, Math.round((col.value / totalOcc) * 100));
-                      return (
-                        <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-end', gap: '4px', height: '100%' }}>
-                          <span style={{ fontSize: '16px', fontWeight: 600, color: '#0f172a' }}>{col.value}</span>
-                          <div style={{ width: '100%', height: `${barH}px`, background: col.color, borderRadius: '4px 4px 0 0' }} />
-                          <span style={{ fontSize: '10px', color: '#94a3b8', textAlign: 'center', textTransform: 'uppercase', letterSpacing: '0.03em', lineHeight: 1.3 }}>{col.label}</span>
-                        </div>
-                      );
-                    })}
+              <div className="mo-colunas">
+                <section className="placa mo-moradores">
+                  <div className="placa-cabeca">
+                    <div className="placa-local">
+                      <span className="placa-rotulo">Usuários cadastrados</span>
+                      <span className="placa-valor">{totalUsers}</span>
+                    </div>
+                    <span className="placa-picto"><Users size={20} /></span>
                   </div>
-                </div>
+                  <div className="placa-corpo">
+                    <p className="placa-texto">
+                      {pendingUsers > 0
+                        ? <><strong>{pendingUsers} {pendingUsers === 1 ? 'pedido' : 'pedidos'} de acesso</strong> esperando a sua aprovação.</>
+                        : 'Nenhum pedido de acesso pendente.'}
+                    </p>
+                  </div>
+                  <div className="placa-acoes">
+                    <button type="button" className={pendingUsers > 0 ? 'btn-hab' : 'btn-secondary'} style={{ padding: '0.55rem 1rem' }} onClick={() => navigate('/painel-master?tab=usuarios')}>
+                      {pendingUsers > 0 ? 'Revisar pedidos' : 'Ver moradores'}
+                    </button>
+                  </div>
+                </section>
 
-                <div style={{ background: '#fff', borderRadius: '10px', padding: '20px', border: '1px solid #e2e8f0' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '0 0 4px' }}>
-                    <h3 style={{ fontSize: '14px', fontWeight: 600, color: '#0f172a', margin: 0 }}>Últimas Ocorrências</h3>
-                  </div>
-                  <p style={{ fontSize: '12px', color: '#94a3b8', margin: '0 0 24px' }}>Atividades recentes registradas.</p>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                    {ocorrencias.slice(0, 3).map((occ, i) => (
-                      <div key={i} style={{ borderLeft: `4px solid ${occ.status === 'Resolvida' ? '#10B981' : '#f59e0b'}`, paddingLeft: '12px' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '4px' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                            <span style={{ fontSize: '13px', fontWeight: 700, color: '#0f172a' }}>{occ.titulo}</span>
-                          </div>
-                          <span style={{ fontSize: '11px', color: '#94a3b8', flexShrink: 0, marginLeft: '8px' }}>{new Date(occ.created_at).toLocaleDateString()}</span>
+                <section className="placa mo-ultimas">
+                  <h3 className="section-title" style={{ margin: '0.9rem 0.95rem 0.25rem' }}>Últimas ocorrências</h3>
+                  <ul className="mo-lista">
+                    {ocorrencias.slice().sort((x, y) => new Date(y.created_at) - new Date(x.created_at)).slice(0, 4).map(occ => (
+                      <li key={occ.id}>
+                        <Pictograma categoria={occ.categoria} tamanho={16} />
+                        <div className="mo-lista-texto">
+                          <strong>{occ.titulo}</strong>
+                          <span>{new Date(occ.created_at).toLocaleDateString('pt-BR')}</span>
                         </div>
-                        <p style={{ fontSize: '12px', color: '#64748b', margin: '0 0 8px', lineHeight: 1.5, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{occ.descricao}</p>
-                      </div>
+                        <span className={`mo-pilula ${classeStatus(occ.status)}`}>{occ.status === 'Resolvida' ? 'Concluída' : occ.status}</span>
+                      </li>
                     ))}
-                    {ocorrencias.length === 0 && <p style={{ fontSize: '12px', color: '#94a3b8' }}>Nenhuma ocorrência registrada.</p>}
-                  </div>
-                </div>
-
+                    {ocorrencias.length === 0 && <li className="mo-vazio">Nenhuma ocorrência registrada.</li>}
+                  </ul>
+                </section>
               </div>
             </div>
           )}

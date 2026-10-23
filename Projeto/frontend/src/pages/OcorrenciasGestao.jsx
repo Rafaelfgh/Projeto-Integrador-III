@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { PlacaLocal, FaixaStatus } from '../components/Placa';
+import { separarLocal } from '../utils/placa';
 import ErroCarregamento from '../components/ErroCarregamento';
 import { Menu, Home, User, UserCog, CalendarDays, Hourglass, RefreshCw, Inbox, ScanSearch } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -36,8 +38,6 @@ const MODOS = {
   },
 };
 
-const STATUS_LABEL = { 'Resolvida': 'Concluída' };
-const STATUS_CLASSE = { 'Aberta': 'oc-st-aberta st-aberta', 'Em Análise': 'oc-st-analise st-analise', 'Em Andamento': 'oc-st-andamento st-andamento', 'Resolvida': 'oc-st-concluida st-resolvida' };
 
 const formatarData = (d) => (d
   ? new Date(d).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })
@@ -49,7 +49,7 @@ const diasDesde = (d) => Math.floor((Date.now() - new Date(d).getTime()) / 864e5
 const OcorrenciasGestao = ({ modo }) => {
   const navigate = useNavigate();
   const { currentUser } = useAuth();
-  const { rotulo } = useCategorias();
+  const { porSlug } = useCategorias();
   const config = MODOS[modo];
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -141,7 +141,7 @@ const OcorrenciasGestao = ({ modo }) => {
 
         <ContextBanner />
 
-        <div className="dashboard-content-scroll" style={{ backgroundColor: '#f8fafc' }}>
+        <div className="dashboard-content-scroll">
           <div className="oc-container">
 
             {modo === 'pessoais' && (
@@ -161,35 +161,32 @@ const OcorrenciasGestao = ({ modo }) => {
             ) : visiveis.length === 0 ? (
               <div className="oc-vazio"><Inbox size={40} /><h4>{config.vazio}</h4></div>
             ) : (
-              <div className="oc-lista">
+              <div className="placas-grade">
                 {visiveis.map(item => {
                   const unidade = item.Moradores ? `Bloco ${item.Moradores.bloco}, Apt ${item.Moradores.apartamento}` : '';
                   return (
-                    <article key={item.id} className={`oc-card oc-card-${modo}`}>
-                      <header className="oc-card-topo">
-                        <div className="oc-card-titulo">
-                          <span className="oc-protocolo">{protocoloOcorrencia(item.id, item.created_at)}</span>
-                          <h3>{item.titulo}</h3>
-                          <div className="oc-tags">
-                            <span className="oc-tag">{rotulo(item.categoria)}</span>
-                            {item.privacidade === 'pessoal' && <span className="oc-tag oc-tag-privada"><Home size={11} /> {unidade}</span>}
-                          </div>
-                        </div>
-                        <span className={`oc-status ${STATUS_CLASSE[item.status] || ''}`}>{STATUS_LABEL[item.status] || item.status}</span>
-                      </header>
+                    <article key={item.id} className={`placa placa-entra oc-placa oc-card-${modo}`}>
+                      <PlacaLocal
+                        ocorrencia={item}
+                        unidade={{ bloco: item.Moradores?.bloco, apartamento: item.Moradores?.apartamento }}
+                        categoriaNome={porSlug[item.categoria]?.nome}
+                      />
 
-                      <div className="oc-meta">
-                        <span><User size={14} /> {item.Moradores?.nome || 'Morador'}{unidade && ` · ${unidade}`}</span>
-                        <span><CalendarDays size={14} /> Aberta {formatarData(item.created_at)}</span>
-                        <span><UserCog size={14} /> {item.atribuido_a ? nomes[item.atribuido_a] || 'Funcionário' : 'Sem responsável'}</span>
+                      <div className="placa-corpo">
+                        <h3 className="placa-titulo">{item.titulo}</h3>
+                        <p className="placa-texto">{separarLocal(item.descricao).texto}</p>
+                        <div className="placa-meta">
+                          <span>{porSlug[item.categoria]?.nome || 'Outros'}</span>
+                          <span><User size={13} /> {item.Moradores?.nome || 'Morador'}{item.privacidade === 'pessoal' && unidade && ` · ${unidade}`}</span>
+                          <span><CalendarDays size={13} /> Aberta {formatarData(item.created_at)}</span>
+                          <span><UserCog size={13} /> {item.atribuido_a ? nomes[item.atribuido_a] || 'Funcionário' : 'Sem responsável'}</span>
+                        </div>
                         {modo === 'prolongadas' && (
-                          <span className="oc-duracao">
-                            <Hourglass size={14} /> Em andamento há {diasDesde(item.andamento_em)} dias · por {item.andamento_por_nome || nomes[item.andamento_por] || 'Administração'}
-                          </span>
+                          <p className="oc-duracao">
+                            <Hourglass size={14} /> Em andamento há <strong>{diasDesde(item.andamento_em)} dias</strong> · por {item.andamento_por_nome || nomes[item.andamento_por] || 'Administração'}
+                          </p>
                         )}
                       </div>
-
-                      <p className="oc-texto">{item.descricao}</p>
 
                       {item.status === 'Em Análise' && (
                         <div className="oc-analise">
@@ -205,9 +202,11 @@ const OcorrenciasGestao = ({ modo }) => {
 
                       <AtualizacaoOcorrencia ocorrencia={item} nomes={nomes} fotos={fotos} />
 
-                      <div className="oc-rodape">
-                        <button className="oc-btn-gerenciar" onClick={() => setGerenciando(item.id)}>Gerenciar</button>
+                      <div className="placa-acoes oc-placa-acoes">
+                        <button className="btn-hab oc-gerenciar" onClick={() => setGerenciando(item.id)}>Gerenciar</button>
                       </div>
+
+                      <FaixaStatus status={item.status} protocolo={protocoloOcorrencia(item.id, item.created_at)} />
                     </article>
                   );
                 })}

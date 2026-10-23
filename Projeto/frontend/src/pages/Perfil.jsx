@@ -195,7 +195,7 @@ const Perfil = () => {
         </header>
 
         {/* Perfil Content */}
-        <div className="dashboard-content-scroll" style={{ backgroundColor: '#f8fafc' }}>
+        <div className="dashboard-content-scroll">
           <div className="perfil-page-container">
             
             {/* Banner & User Meta */}

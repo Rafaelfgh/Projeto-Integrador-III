@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
+import { FaixaStatus } from '../components/Placa';
 import ErroCarregamento from '../components/ErroCarregamento';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Menu, CheckCircle2, AlertCircle, Clock, BarChart3, X, Send, ShieldAlert,
-  MapPin, FileText,
+  MapPin, FileText, User,
 } from 'lucide-react';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip,
@@ -370,7 +371,8 @@ const TabelaComAbas = ({ ocorrencias, reclamacoes, onGerenciar, onAbrirReclamaca
 };
 
 // ---------------------------------------------------------------------------
-// DrawerReclamacao — privacidade: denunciante anônimo, local do denunciado visível
+// DrawerReclamacao — só a gestão vê reclamações: mostra quem registrou e o local denunciado
+// (o denunciado e os demais moradores nunca veem).
 // ---------------------------------------------------------------------------
 const DrawerReclamacao = ({ reclamacao, onFechar, currentUser, onRespondida }) => {
   const [resposta,  setResposta]  = useState('');
@@ -436,7 +438,7 @@ const DrawerReclamacao = ({ reclamacao, onFechar, currentUser, onRespondida }) =
               <div>
                 <h2 style={{ margin:0, fontSize:18, color:'#0f172a', fontWeight:700 }}>Reclamação Particular</h2>
                 <p style={{ margin:'4px 0 0', fontSize:12, color:'#7e22ce', fontWeight:600 }}>
-                  🔒 Confidencial — denunciante anônimo
+                  🔒 Confidencial — visível só para a gestão
                 </p>
               </div>
             </div>
@@ -447,6 +449,20 @@ const DrawerReclamacao = ({ reclamacao, onFechar, currentUser, onRespondida }) =
         </div>
 
         <div style={{ padding:24, flex:1, display:'flex', flexDirection:'column', gap:20 }}>
+
+          {/* Quem registrou (decisão do dono, 20/10: o síndico vê o nome) */}
+          <div style={{ background:'#fff', border:'1px solid #e2e8f0', borderRadius:14, padding:16 }}>
+            <div style={{ display:'flex', alignItems:'center', gap:8, color:'#64748b', marginBottom:10 }}>
+              <User size={15} />
+              <span style={{ fontSize:12, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.05em' }}>Registrada por</span>
+            </div>
+            <p style={{ margin:0, fontSize:15, fontWeight:700, color:'#0f172a' }}>{reclamacao.Moradores?.nome || 'Morador'}</p>
+            {reclamacao.Moradores?.bloco && (
+              <p style={{ margin:'2px 0 0', fontSize:13, color:'#64748b' }}>
+                Bloco {reclamacao.Moradores.bloco}, Apt {reclamacao.Moradores.apartamento}
+              </p>
+            )}
+          </div>
 
           {/* Local denunciado — síndico precisa saber onde agir */}
           <div style={{ background:'#fff', border:'1px solid #e2e8f0', borderRadius:14, padding:16 }}>
@@ -732,35 +748,26 @@ const PainelSindico = () => {
           ) : (
           <div className="dashboard-content-inner" style={{ maxWidth:1400, margin:'0 auto' }}>
 
-            <div style={{ marginBottom:'1.25rem' }}>
-              <h3 style={{ fontSize:15, fontWeight:700, color:'#0f172a', margin:'0 0 2px' }}>Ocorrências do Condomínio</h3>
-              <p style={{ fontSize:12, color:'#94a3b8', margin:0 }}>Distribuição automática por setor · Monitoramento em tempo real</p>
-            </div>
+            <h3 className="section-title" style={{ margin:'0 0 0.75rem' }}>Ocorrências do condomínio</h3>
 
-            {/* KPIs */}
-            <div className="ps-kpis-grid" style={{ marginBottom:'1.25rem' }}>
+            {/* Placas de status (mesma linguagem das placas das ocorrências) */}
+            <div className="painel-placas">
               {[
-                { label:'ABERTAS',     value:kpis.abertas.value,    trend:kpis.abertas.trendValue,    trendType:kpis.abertas.trend,    borderColor:'#ef4444', iconBg:'#fef2f2', iconColor:'#ef4444', Icon:AlertCircle  },
-                { label:'EM ANDAMENTO',value:kpis.analise.value,    trend:kpis.analise.trendValue,    trendType:kpis.analise.trend,    borderColor:'#f59e0b', iconBg:'#fffbeb', iconColor:'#f59e0b', Icon:Clock        },
-                { label:'RESOLVIDAS',  value:kpis.resolvidas.value, trend:kpis.resolvidas.trendValue, trendType:kpis.resolvidas.trend, borderColor:'#10b981', iconBg:'#f0fdf4', iconColor:'#10b981', Icon:CheckCircle2 },
-                { label:'TOTAL (MÊS)', value:kpis.total.value,      trend:'—',                        trendType:'neutral',             borderColor:'#ea580c', iconBg:'#fff7ed', iconColor:'#ea580c', Icon:BarChart3    },
-              ].map((k, i) => {
-                const trendColor = k.trendType === 'up' ? (k.label === 'ABERTAS' ? '#dc2626' : '#16a34a') : k.trendType === 'down' ? '#16a34a' : '#94a3b8';
-                return (
-                  <div key={i} style={{ background:'#fff', borderRadius:10, padding:'18px 20px', border:'1px solid #e2e8f0', borderLeft:`4px solid ${k.borderColor}` }}>
-                    <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:12 }}>
-                      <p style={{ fontSize:11, fontWeight:700, textTransform:'uppercase', color:'#94a3b8', letterSpacing:'0.07em', margin:0 }}>{k.label}</p>
-                      <div style={{ width:28, height:28, borderRadius:7, background:k.iconBg, color:k.iconColor, display:'flex', alignItems:'center', justifyContent:'center' }}>
-                        <k.Icon size={14} />
-                      </div>
-                    </div>
-                    <p style={{ fontSize:32, fontWeight:700, color:'#0f172a', margin:'0 0 6px', lineHeight:1 }}>{k.value}</p>
-                    <p style={{ fontSize:12, color:trendColor, margin:0, fontWeight:500 }}>
-                      {k.trendType === 'up' ? '↑ ' : k.trendType === 'down' ? '↓ ' : ''}{k.trend}
-                    </p>
-                  </div>
-                );
-              })}
+                { status:'Aberta',       valor:kpis.abertas.value,    tendencia:kpis.abertas.trendValue },
+                { status:'Em Andamento', valor:kpis.analise.value,    tendencia:kpis.analise.trendValue },
+                { status:'Resolvida',    valor:kpis.resolvidas.value, tendencia:kpis.resolvidas.trendValue },
+              ].map(k => (
+                <div key={k.status} className="placa placa-status">
+                  <span className="placa-status-numero">{k.valor}</span>
+                  <span className="placa-status-sub">{k.tendencia || 'no condomínio'}</span>
+                  <FaixaStatus status={k.status} />
+                </div>
+              ))}
+              <div className="placa placa-status">
+                <span className="placa-status-numero">{kpis.total.value}</span>
+                <span className="placa-status-sub">abertas neste mês</span>
+                <div className="placa-faixa placa-faixa-neutra">Total do mês</div>
+              </div>
             </div>
 
             <div className="ps-main-grid">

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { FaixaStatus } from '../components/Placa';
 import { classeStatus } from '../utils/statusOcorrencia';
 import FiltroData, { FILTRO_DATA_VAZIO, temFiltroData, passaFiltroData, anosDe } from '../components/FiltroData';
 import ErroCarregamento from '../components/ErroCarregamento';
@@ -34,6 +35,14 @@ import NotificationMenu from '../components/NotificationMenu';
 import { supabase } from '../backend/supabaseClient';
 import './Dashboard.css';
 
+// As 4 etapas, na mesma ordem e escala de toda tela
+const PLACAS_STATUS = [
+  { status: 'Aberta', rotulo: 'Abertas' },
+  { status: 'Em Análise', rotulo: 'Em análise' },
+  { status: 'Em Andamento', rotulo: 'Em andamento' },
+  { status: 'Resolvida', rotulo: 'Concluídas' },
+];
+
 const Dashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const navigate = useNavigate();
@@ -41,41 +50,6 @@ const Dashboard = () => {
   const isGestor = currentUser?.role === 'SINDICO' || currentUser?.role === 'MASTER';
 
   // SaaS-style stats com mini sparklines
-  const stats = [
-    { 
-      title: 'Ocorrências Abertas', 
-      value: '12', 
-      icon: AlertCircle, 
-      color: 'text-rose-500', 
-      bg: 'bg-rose-50',
-      trend: '+2 este mês',
-      trendIcon: TrendingUp,
-      trendColor: 'text-rose-500',
-      sparkline: 'M0,25 C10,24 20,20 30,22 C40,15 50,25 60,18 C70,12 80,18 90,5 L100,5'
-    },
-    { 
-      title: 'Em Análise', 
-      value: '5', 
-      icon: Clock, 
-      color: 'text-amber-500', 
-      bg: 'bg-amber-50',
-      trend: '-1 esta semana',
-      trendIcon: TrendingDown,
-      trendColor: 'text-amber-500',
-      sparkline: 'M0,10 C15,12 25,8 40,15 C50,22 65,18 80,25 L100,28'
-    },
-    { 
-      title: 'Resolvidas', 
-      value: '28', 
-      icon: CheckCircle2, 
-      color: 'text-emerald-500', 
-      bg: 'bg-emerald-50',
-      trend: '+15% comparado ao mês passado',
-      trendIcon: TrendingUp,
-      trendColor: 'text-emerald-500',
-      sparkline: 'M0,28 C15,25 25,18 40,20 C50,15 65,8 80,10 L100,2'
-    },
-  ];
 
 
   const currentDate = new Date().toLocaleDateString('pt-BR', {
@@ -90,12 +64,6 @@ const Dashboard = () => {
   const temFiltro = temFiltroData(filtroData);
   const filtradas = todas.filter(x => passaFiltroData(x.criado_em, filtroData));
   const activities = filtradas.slice(0, temFiltro ? 50 : 5);
-  const contar = (cond) => filtradas.filter(cond).length.toString();
-  const statsData = [
-    { ...stats[0], value: contar(x => x.status === 'Aberta'), trend: temFiltro ? 'No período filtrado' : 'Atualizado hoje' },
-    { ...stats[1], value: contar(x => x.status === 'Em Andamento' || x.status === 'Em Análise'), trend: temFiltro ? 'No período filtrado' : 'Atualizado hoje' },
-    { ...stats[2], value: contar(x => x.status === 'Resolvida'), trend: temFiltro ? 'No período filtrado' : 'Atualizado hoje' },
-  ];
   const [carga, setCarga] = useState('carregando'); // 'carregando' | 'ok' | 'erro'
   const [tentativa, setTentativa] = useState(0);
 
@@ -223,59 +191,25 @@ const Dashboard = () => {
             
             <FiltroData valor={filtroData} onChange={setFiltroData} anos={anosDe(todas.map(x => x.criado_em))} />
 
-            {/* Seção das Métricas (Stats Cards com Sparklines) */}
-            <div className="stats-grid">
-              {statsData.map((stat, idx) => (
-                <div key={idx} className="stat-card">
-                  {/* Row superior: Título + Ícone */}
-                  <div className="stat-card-header">
-                    <span className="stat-title">{stat.title}</span>
-                    <div className={`stat-icon-wrapper ${stat.bg}`}>
-                      <stat.icon className={`${stat.color}`} size={18} />
-                    </div>
-                  </div>
-                  
-                  {/* Corpo: Valor + Sparkline Graph */}
-                  <div className="stat-card-body">
-                    <div className="stat-value">{stat.value}</div>
-                    
-                    <div className="stat-sparkline-container">
-                       <svg viewBox="0 0 100 30" preserveAspectRatio="none" className="sparkline-svg">
-                          <defs>
-                            <linearGradient id={`grad-${idx}`} x1="0%" y1="0%" x2="0%" y2="100%">
-                              <stop offset="0%" stopColor="currentColor" stopOpacity="0.2" className={stat.color} />
-                              <stop offset="100%" stopColor="currentColor" stopOpacity="0" className={stat.color} />
-                            </linearGradient>
-                          </defs>
-                          {/* Área preenchida (gradiente suave) */}
-                          <path 
-                             d={`${stat.sparkline} L100,30 L0,30 Z`} 
-                             fill={`url(#grad-${idx})`} 
-                             className={stat.color}
-                          />
-                          {/* Linha da Sparkline */}
-                          <path 
-                             d={stat.sparkline} 
-                             fill="none" 
-                             stroke="currentColor" 
-                             strokeWidth="2.5" 
-                             strokeLinecap="round" 
-                             strokeLinejoin="round" 
-                             className={stat.color}
-                          />
-                       </svg>
-                    </div>
-                  </div>
-
-                  {/* Footer: Trend analysis */}
-                  <div className="stat-card-footer">
-                     <div className={`stat-trend ${stat.trendColor}`}>
-                        <stat.trendIcon size={14} strokeWidth={2.5}/>
-                        <span>{stat.trend}</span>
-                     </div>
-                  </div>
-                </div>
-              ))}
+            {/* Placas de status: quantas ocorrências e reclamações há em cada etapa */}
+            <div className="painel-placas" role="list">
+              {PLACAS_STATUS.map(({ status, rotulo }) => {
+                const n = filtradas.filter(x => x.status === status).length;
+                return (
+                  <button
+                    key={status}
+                    type="button"
+                    role="listitem"
+                    className="placa placa-clicavel placa-status"
+                    onClick={() => navigate('/feed')}
+                    aria-label={`${n} ${rotulo}`}
+                  >
+                    <span className="placa-status-numero">{n}</span>
+                    <span className="placa-status-sub">{temFiltro ? 'no período' : 'no condomínio'}</span>
+                    <FaixaStatus status={status} />
+                  </button>
+                );
+              })}
             </div>
 
             {/* Grid dos Atalhos Rápidos com Cards Interativos */}

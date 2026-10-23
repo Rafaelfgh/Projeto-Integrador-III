@@ -1,4 +1,6 @@
 import React, { useState, useRef, useMemo, useEffect, useCallback } from 'react';
+import { PlacaLocal, FaixaStatus, Pictograma } from '../components/Placa';
+import { separarLocal } from '../utils/placa';
 import FiltroData, { FILTRO_DATA_VAZIO, passaFiltroData, anosDe } from '../components/FiltroData';
 import { combinaBusca } from '../utils/busca';
 import { useCategorias } from '../hooks/useCategorias';
@@ -81,55 +83,37 @@ const FILTROS = [
   { key: 'Em Andamento', label: 'Em andamento' },
 ];
 
-const chip = (cor, fundo, borda) => ({
-  fontSize: 11, fontWeight: 700, color: cor, background: fundo, border: `1px solid ${borda}`, borderRadius: 999, padding: '2px 8px',
-});
-
 // ======================================================
 // CARD
 // ======================================================
 
-const OcorrenciaCard = ({ ocorrencia, onAbrir }) => {
-  const categoria = getCategoriaMeta(ocorrencia.categoria);
-  const status    = getStatusMeta(ocorrencia.status);
+const OcorrenciaCard = ({ ocorrencia, onAbrir, categoriaNome }) => {
   const protocolo = protocoloOcorrencia(ocorrencia.id, ocorrencia.created_at);
+  const { texto } = separarLocal(ocorrencia.descricao);
 
   return (
-    <div className="ms-premium-card">
-      <div className="ms-card-header">
-        <span className={`ms-status ${status.class}`}>{status.label}</span>
-        <div className={`ms-card-icon-wrap ${categoria.class}`}>
-          <span style={{ fontSize: 18 }}>{categoria.icon}</span>
-        </div>
-      </div>
-
-      <div className="ms-card-body">
-        <div style={{ display:'flex', gap:6, flexWrap:'wrap', alignItems:'center' }}>
-          <span className="ms-protocol-tag">{protocolo}</span>
+    <button type="button" className="placa placa-clicavel placa-entra pf-placa" onClick={() => onAbrir(ocorrencia)}>
+      <PlacaLocal
+        ocorrencia={ocorrencia}
+        unidade={{ bloco: ocorrencia.morador_bloco, apartamento: ocorrencia.morador_apto }}
+        categoriaNome={categoriaNome}
+      />
+      <div className="placa-corpo">
+        <h3 className="placa-titulo">{ocorrencia.titulo}</h3>
+        {texto && <p className="placa-texto placa-texto-curto">{texto}</p>}
+        <div className="placa-meta">
           {ocorrencia.origem === 'atribuida'
-            ? <span style={chip('#c2410c', '#fff7ed', '#fed7aa')}>Atribuída pelo síndico</span>
-            : ocorrencia.status !== 'Resolvida' && <span style={chip('#1d4ed8', '#eff6ff', '#bfdbfe')}>Sua especialidade · disponível</span>}
-          {ocorrencia.privacidade === 'pessoal' && (
-            <span style={chip('#6d28d9', '#f5f3ff', '#ddd6fe')}>Pessoal · {ocorrencia.unidade}</span>
-          )}
-        </div>
-        <h4 className="ms-card-title">{ocorrencia.titulo}</h4>
-      </div>
-
-      <div className="ms-card-divider"></div>
-
-      <div className="ms-card-footer">
-        <div className="ms-card-date">
-          <CalendarDays size={14} />
-          {ocorrencia.status === 'Resolvida' && ocorrencia.concluida_em
+            ? <span className="pf-origem atribuida">Atribuída pelo síndico</span>
+            : ocorrencia.status !== 'Resolvida' && <span className="pf-origem livre">Sua especialidade · disponível</span>}
+          {ocorrencia.privacidade === 'pessoal' && <span className="pf-origem pessoal">No apartamento</span>}
+          <span><CalendarDays size={12} /> {ocorrencia.status === 'Resolvida' && ocorrencia.concluida_em
             ? `Concluída em ${new Date(ocorrencia.concluida_em).toLocaleDateString('pt-BR')}`
-            : new Date(ocorrencia.created_at).toLocaleDateString('pt-BR')}
+            : new Date(ocorrencia.created_at).toLocaleDateString('pt-BR')}</span>
+          <span className="ms-acompanhar">{ocorrencia.status === 'Resolvida' ? 'Ver' : 'Atender'} <ArrowRight size={14} /></span>
         </div>
-        <button className="ms-card-action" onClick={() => onAbrir(ocorrencia)}>
-          Gerenciar <ArrowRight size={16} />
-        </button>
       </div>
-    </div>
+      <FaixaStatus status={ocorrencia.status} protocolo={protocolo} />
+    </button>
   );
 };
 
@@ -238,8 +222,8 @@ const OcorrenciaDrawer = ({ ocorrencia, onFechar, onAtualizada, currentUser, nom
         <div style={{ padding:24, borderBottom:'1px solid #f1f5f9' }}>
           <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start' }}>
             <div style={{ display:'flex', gap:14 }}>
-              <div className={`ms-card-icon-wrap ${categoria.class}`}>
-                <span style={{ fontSize:18 }}>{categoria.icon}</span>
+              <div>
+                <Pictograma categoria={ocorrencia.categoria} titulo={categoria.label} />
               </div>
               <div>
                 <span className="ms-protocol-tag">{protocoloOcorrencia(ocorrencia.id, ocorrencia.created_at)}</span>
@@ -455,7 +439,7 @@ const PainelFuncionario = () => {
   const [loading,      setLoading]      = useState(true);
   const [erroCarga,    setErroCarga]    = useState(false);
   const [filtroData,   setFiltroData]   = useState(FILTRO_DATA_VAZIO);
-  const { rotulo } = useCategorias();
+  const { rotulo, porSlug } = useCategorias();
   const [selecionada,  setSelecionada]  = useState(null);
   const [params, setParams] = useSearchParams();
 
@@ -519,6 +503,8 @@ const PainelFuncionario = () => {
         status:       o.status || 'Aberta',
         anexos:       Array.isArray(o.anexos) ? o.anexos : [],
         morador_nome: morador?.nome || 'Morador',
+        morador_bloco: morador?.bloco || '',
+        morador_apto:  morador?.apartamento || '',
         unidade:      morador ? `Bloco ${morador.bloco}, Apt ${morador.apartamento}` : '',
         origem:       o.atribuido_a === currentUser.id ? 'atribuida' : 'especialidade',
       };
@@ -598,12 +584,12 @@ const PainelFuncionario = () => {
 
         <ContextBanner />
 
-        <div className="dashboard-content-scroll" style={{ backgroundColor:'#f8fafc' }}>
+        <div className="dashboard-content-scroll">
           <div className="ms-container">
 
             {/* SENHA PROVISÓRIA */}
             {currentUser?.precisaTrocarSenha && (
-              <div role="alert" style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:16, flexWrap:'wrap', background:'#fffbeb', border:'1px solid #fde68a', borderLeft:'4px solid #f59e0b', borderRadius:14, padding:'14px 18px', marginBottom:20 }}>
+              <div role="alert" style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:16, flexWrap:'wrap', background:'#fffbeb', border:'1px solid #fde68a', borderRadius:14, padding:'14px 18px', marginBottom:20 }}>
                 <div style={{ display:'flex', alignItems:'center', gap:12 }}>
                   <KeyRound size={20} color="#b45309" />
                   <div>
@@ -668,12 +654,13 @@ const PainelFuncionario = () => {
             ) : erroCarga ? (
               <ErroCarregamento onTentar={buscarTarefas} />
             ) : ocorrenciasFiltradas.length > 0 ? (
-              <div className="ms-cards-grid">
+              <div className="placas-grade tres">
                 {ocorrenciasFiltradas.map(ocorrencia => (
                   <OcorrenciaCard
                     key={ocorrencia.id}
                     ocorrencia={ocorrencia}
                     onAbrir={setSelecionada}
+                    categoriaNome={porSlug[ocorrencia.categoria]?.nome}
                   />
                 ))}
               </div>

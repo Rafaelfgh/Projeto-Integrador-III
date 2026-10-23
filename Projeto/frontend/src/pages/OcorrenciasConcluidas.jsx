@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { PlacaLocal, FaixaStatus } from '../components/Placa';
+import { separarLocal } from '../utils/placa';
 import FiltroData, { FILTRO_DATA_VAZIO, passaFiltroData, anosDe, temFiltroData } from '../components/FiltroData';
 import { combinaBusca } from '../utils/busca';
 import ErroCarregamento from '../components/ErroCarregamento';
@@ -47,7 +49,7 @@ const formatarDuracao = (ms) => {
 const OcorrenciasConcluidas = () => {
   const navigate = useNavigate();
   const { currentUser } = useAuth();
-  const { categorias, rotulo } = useCategorias();
+  const { categorias, rotulo, porSlug } = useCategorias();
   const abrirImagem = useVisualizadorImagem();
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -190,7 +192,7 @@ const OcorrenciasConcluidas = () => {
 
         <ContextBanner />
 
-        <div className="dashboard-content-scroll" style={{ backgroundColor: '#f8fafc' }}>
+        <div className="dashboard-content-scroll">
           <div className="oc-container">
 
             {/* Indicadores */}
@@ -229,7 +231,7 @@ const OcorrenciasConcluidas = () => {
               </div>
               <select value={categoria} onChange={(e) => { setCategoria(e.target.value); setPagina(1); }}>
                 <option value="todas">Todas as categorias</option>
-                {categorias.map(c => <option key={c.slug} value={c.slug}>{c.icone} {c.nome}</option>)}
+                {categorias.map(c => <option key={c.slug} value={c.slug}>{c.nome}</option>)}
               </select>
               <select value={funcionario} onChange={(e) => { setFuncionario(e.target.value); setPagina(1); }}>
                 <option value="todos">Todos os funcionários</option>
@@ -262,23 +264,24 @@ const OcorrenciasConcluidas = () => {
                 <p>Ajuste os filtros ou o período.</p>
               </div>
             ) : (
-              <div className="oc-lista">
+              <div className="oc-lista lista-placas">
                 {visiveis.map(item => {
                   const expandido = !!aberto[item.id];
                   const provas    = item.resolucao?.evidencias || [];
                   return (
-                    <article key={item.id} className="oc-card">
-                      <header className="oc-card-topo">
-                        <div className="oc-card-titulo">
-                          <span className="oc-protocolo">{protocoloOcorrencia(item.id, item.created_at)}</span>
-                          <h3>{item.titulo}</h3>
-                          <div className="oc-tags">
-                            <span className="oc-tag">{rotulo(item.categoria)}</span>
-                            {item.privacidade === 'pessoal' && <span className="oc-tag oc-tag-privada"><Lock size={11} /> Pessoal</span>}
-                          </div>
+                    <article key={item.id} className="placa placa-entra oc-placa oc-concluida-placa">
+                      <PlacaLocal
+                        ocorrencia={item}
+                        unidade={{ bloco: item.Moradores?.bloco, apartamento: item.Moradores?.apartamento }}
+                        categoriaNome={porSlug[item.categoria]?.nome}
+                      />
+                      <div className="placa-corpo oc-concluida-titulo">
+                        <h3 className="placa-titulo">{item.titulo}</h3>
+                        <div className="placa-meta">
+                          <span>{porSlug[item.categoria]?.nome || 'Outros'}</span>
+                          {item.privacidade === 'pessoal' && <span className="pf-origem pessoal"><Lock size={10} /> Pessoal</span>}
                         </div>
-                        <span className="oc-status"><CheckCircle2 size={14} /> Concluída</span>
-                      </header>
+                      </div>
 
                       <div className="oc-meta">
                         <span><User size={14} /> {item.moradorNome}{item.unidade && ` · ${item.unidade}`}</span>
@@ -291,7 +294,7 @@ const OcorrenciasConcluidas = () => {
                       <div className="oc-colunas">
                         <div className="oc-bloco">
                           <h4>Ocorrência</h4>
-                          <p>{item.descricao}</p>
+                          <p>{separarLocal(item.descricao).texto}</p>
                           {item.anexos.length > 0 && (
                             <div className="oc-fotos">
                               {item.anexos.map((url, i) => (
@@ -357,6 +360,7 @@ const OcorrenciasConcluidas = () => {
                           )}
                         </>
                       )}
+                      <FaixaStatus status="Resolvida" protocolo={protocoloOcorrencia(item.id, item.created_at)} />
                     </article>
                   );
                 })}

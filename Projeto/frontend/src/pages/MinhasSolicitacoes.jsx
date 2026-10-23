@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { PlacaLocal, Pictograma, FaixaStatus } from '../components/Placa';
+import { separarLocal } from '../utils/placa';
 import FiltroData, { FILTRO_DATA_VAZIO, passaFiltroData, anosDe } from '../components/FiltroData';
 import { combinaBusca } from '../utils/busca';
 import { useCategorias } from '../hooks/useCategorias';
@@ -59,7 +61,7 @@ const MinhasSolicitacoes = () => {
   const [carga, setCarga] = useState('carregando'); // 'carregando' | 'ok' | 'erro'
   const [tentativa, setTentativa] = useState(0);
   const [filtroData, setFiltroData] = useState(FILTRO_DATA_VAZIO);
-  const { rotulo } = useCategorias();
+  const { rotulo, porSlug } = useCategorias();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeFilter, setActiveFilter] = useState('Todos');
   const [aba, setAba] = useState('ocorrencias');          // 'ocorrencias' | 'reclamacoes'
@@ -80,17 +82,6 @@ const MinhasSolicitacoes = () => {
     document.addEventListener('click', handleClickOutside);
     return () => document.removeEventListener('click', handleClickOutside);
   }, []);
-
-  const getCategoryTheme = (cat) => {
-    switch(cat?.toLowerCase()) {
-      case 'hidraulica': return { icon: <Droplet size={20} strokeWidth={2.5}/>, class: 'ms-icon-blue' };
-      case 'eletrica': return { icon: <Zap size={20} strokeWidth={2.5}/>, class: 'ms-icon-yellow' };
-      case 'barulho': return { icon: <Volume2 size={20} strokeWidth={2.5}/>, class: 'ms-icon-red' };
-      case 'limpeza': return { icon: <Trash2 size={20} strokeWidth={2.5}/>, class: 'ms-icon-green' };
-      case 'reclamacao': return { icon: <FileWarning size={20} strokeWidth={2.5}/>, class: 'ms-icon-red' };
-      default: return { icon: <FileText size={20} strokeWidth={2.5}/>, class: 'ms-icon-purple' };
-    }
-  };
 
   const getStatusClass = (status) => {
     switch(status) {
@@ -314,7 +305,7 @@ const MinhasSolicitacoes = () => {
         </header>
 
         {/* List Content */}
-        <div className="dashboard-content-scroll" style={{ backgroundColor: '#f8fafc' }}>
+        <div className="dashboard-content-scroll">
           <div className="ms-container">
             
             {/* Actions Bar */}
@@ -399,57 +390,44 @@ const MinhasSolicitacoes = () => {
             ) : carga === 'erro' ? (
               <ErroCarregamento onTentar={() => setTentativa(t => t + 1)} />
             ) : filteredRequests.length > 0 ? (
-              <div className="ms-cards-grid">
+              <div className="placas-grade tres">
                 {filteredRequests.map(req => {
-                  const theme = getCategoryTheme(req.category);
+                  const ehReclamacao = req.tipo === 'reclamacao';
+                  const { texto } = separarLocal(req.description);
                   return (
-                    <div key={req.id} className="ms-premium-card">
-                      {/* Card Header */}
-                      <div className="ms-card-header">
-                        <span className={`ms-status ${getStatusClass(req.status)}`}>
-                          {req.status === 'Resolvida' && <div style={{width: 6, height: 6, borderRadius: '50%', backgroundColor: '#16a34a'}}></div>}
-                          {(req.status === 'Em Análise' || req.status === 'Em Andamento') && <div style={{width: 6, height: 6, borderRadius: '50%', backgroundColor: '#d97706'}}></div>}
-                          {req.status === 'Aberta' && <div style={{width: 6, height: 6, borderRadius: '50%', backgroundColor: '#ef4444'}}></div>}
-                          {req.status}
-                        </span>
-                        <div className={`ms-card-icon-wrap ${theme.class}`}>
-                          {theme.icon}
+                    <button
+                      type="button"
+                      key={req.id}
+                      className="placa placa-clicavel placa-entra ms-placa"
+                      onClick={() => setSelectedRequest(req)}
+                      aria-label={`Acompanhar ${req.title}, ${req.protocol}`}
+                    >
+                      {ehReclamacao ? (
+                        <div className="placa-cabeca">
+                          <div className="placa-local">
+                            <span className="placa-rotulo">{req.blocoDenunciado && req.blocoDenunciado !== 'Ver unidade' ? `Denunciado · Bloco ${req.blocoDenunciado}` : 'Unidade denunciada'}</span>
+                            <span className="placa-valor">{req.apartamentoDenunciado || '—'}</span>
+                          </div>
+                          <Pictograma categoria="reclamacao" titulo="Reclamação" />
+                        </div>
+                      ) : (
+                        <PlacaLocal
+                          ocorrencia={req.ocorrencia}
+                          unidade={{ bloco: currentUser?.bloco, apartamento: currentUser?.apartamento }}
+                          categoriaNome={porSlug[req.category]?.nome}
+                        />
+                      )}
+                      <div className="placa-corpo">
+                        <h3 className="placa-titulo">{req.title}</h3>
+                        {texto && <p className="placa-texto placa-texto-curto">{texto}</p>}
+                        <div className="placa-meta">
+                          {!ehReclamacao && <span className={`ms-tipo ${req.pessoal ? 'pessoal' : 'publica'}`}>{req.pessoal ? 'Pessoal' : 'Pública'}</span>}
+                          <span><CalendarDays size={12} /> {req.date}</span>
+                          <span className="ms-acompanhar">Acompanhar <ArrowRight size={14} /></span>
                         </div>
                       </div>
-
-                      {/* Card Body */}
-                      <div className="ms-card-body">
-                        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
-                          <span className="ms-protocol-tag">{req.protocol}</span>
-                          {req.tipo === 'ocorrencia' && (
-                            <span style={{ fontSize: 11, fontWeight: 700, borderRadius: 999, padding: '2px 8px', color: req.pessoal ? '#6d28d9' : '#0f766e', background: req.pessoal ? '#f5f3ff' : '#f0fdfa' }}>
-                              {req.pessoal ? 'Pessoal' : 'Pública'}
-                            </span>
-                          )}
-                        </div>
-                        <h4 className="ms-card-title">{req.title}</h4>
-                      </div>
-
-                      <div className="ms-card-divider"></div>
-
-                      {/* Card Footer */}
-                      <div className="ms-card-footer">
-                        <div className="ms-card-date">
-                          <CalendarDays size={14} />
-                          {req.date}
-                        </div>
-                        <div
-                          className="ms-card-action"
-                          role="button"
-                          tabIndex={0}
-                          onClick={() => setSelectedRequest(req)}
-                          onKeyDown={(e) => { if (e.key === 'Enter') setSelectedRequest(req); }}
-                          style={{ cursor: 'pointer' }}
-                        >
-                          Acompanhar <ArrowRight size={16} />
-                        </div>
-                      </div>
-                    </div>
+                      <FaixaStatus status={req.status} protocolo={req.protocol} />
+                    </button>
                   );
                 })}
               </div>

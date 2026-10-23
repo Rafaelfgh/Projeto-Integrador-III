@@ -10,14 +10,14 @@
 }
 
 :root {
-  --role-primary-color: #ea580c;
+  --role-primary-color: #c2410c;
 }
 
 /* Telas públicas (login, cadastro de morador e de condomínio) são sempre laranja,
    seja qual for o perfil da última sessão — a cor do perfil vale só dentro do sistema. */
 .login-page,
 .nc-page {
-  --role-primary-color: #ea580c;
+  --role-primary-color: #c2410c;
 }
 
 @layer utilities {
@@ -120,92 +120,7 @@ h1, h2, h3, h4, h5, h6,
 .entrada-suave > * { animation: none; }
 }
 
-/* ── Padrão visual das telas internas (cartões, botões e campos no estilo do login) ──
-   Mantém a cor de cada perfil (--role-primary-color). ":root" na frente dá prioridade
-   sobre o CSS de cada tela; o login tem o próprio visual e fica de fora. */
-
-/* Cartões: cantos arredondados iguais em todo o site */
-:root :is(.stat-card, .quick-action-card, .pf-task-card, .ms-premium-card, .employee-card,
-  .rc-card, .gu-stat-card, .gu-alert-card, .gu-financial-card, .ps-card, .dev-card, .av-card,
-  .portaria-metric-card, .pf-metric-card, .perfil-hero-card, .oc-card, .nc-card,
-  .saas-card-container, .visibility-card) {
-  border-radius: 1rem;
-}
-
-/* Botão principal: degradê na cor do perfil, sobe um pouco no hover, sem sombra */
-:root :is(.btn-primary, .nc-btn-primary, .btn-saas-primary, .btn-primary-saas, .gf-btn-pri,
-  .rc-btn-pri, .av-btn-pri, .dev-btn-pri, .eb-btn-pri, .janela-btn-pri, .btn-qa-primary,
-  .btn-ms-new, .oc-btn-gerenciar, .pa-btn-submit):not(.login-page *) {
-  background: linear-gradient(135deg,
-    color-mix(in srgb, var(--role-primary-color) 82%, white) 0%,
-    var(--role-primary-color) 100%);
-  color: #fff;
-  border: none;
-  border-radius: 0.75rem;
-  box-shadow: none;
-  font-family: 'Poppins', 'Inter', sans-serif;
-  font-weight: 600;
-  transition: transform 0.2s, filter 0.2s;
-}
-:root :is(.btn-primary, .nc-btn-primary, .btn-saas-primary, .btn-primary-saas, .gf-btn-pri,
-  .rc-btn-pri, .av-btn-pri, .dev-btn-pri, .eb-btn-pri, .janela-btn-pri, .btn-qa-primary,
-  .btn-ms-new, .oc-btn-gerenciar, .pa-btn-submit):not(.login-page *):hover:not(:disabled) {
-  background: linear-gradient(135deg,
-    color-mix(in srgb, var(--role-primary-color) 82%, white) 0%,
-    var(--role-primary-color) 100%);
-  box-shadow: none;
-  filter: brightness(1.04);
-  transform: translateY(-1px);
-}
-
-/* Botão secundário: branco, borda cinza clara, escurece a borda no hover */
-:root :is(.btn-secondary, .btn-outline-primary, .btn-qa-outline, .btn-qa-secondary,
-  .btn-cancel-saas, .nc-btn-outline, .janela-btn-sec, .av-btn-sec, .dev-btn-sec, .eb-btn-sec,
-  .go-btn-secundario):not(.login-page *) {
-  background: #fff;
-  color: #0f172a;
-  border: 1px solid #e2e8f0;
-  border-radius: 0.75rem;
-  box-shadow: none;
-  font-family: 'Poppins', 'Inter', sans-serif;
-  font-weight: 600;
-  transition: border-color 0.2s, transform 0.2s;
-}
-:root :is(.btn-secondary, .btn-outline-primary, .btn-qa-outline, .btn-qa-secondary,
-  .btn-cancel-saas, .nc-btn-outline, .janela-btn-sec, .av-btn-sec, .dev-btn-sec, .eb-btn-sec,
-  .go-btn-secundario):not(.login-page *):hover:not(:disabled) {
-  background: #fff;
-  border-color: #94a3b8;
-  transform: translateY(-1px);
-}
-
-/* Campos: fonte do login, cantos arredondados, borda clara e contorno suave na cor do perfil */
-:root :is(.saas-input, .pa-input, .gu-input, .nc-input, .janela-input, .search-input,
-  .ms-search-input, .feed-search-input, .feed-comment-input, .pm-filtro-select, .gu-role-select,
-  .feed-select, .pf-select, .fd-select, .saas-select, .nc-select, .pf-textarea,
-  .saas-input-group input:not([type=checkbox]):not([type=radio]):not([type=file]), .saas-input-group textarea):not(.login-page *) {
-  font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
-  border-radius: 0.75rem;
-  border: 1px solid #e2e8f0;
-  background-color: #fff;
-  transition: border-color 0.2s, box-shadow 0.2s;
-}
-:root :is(.saas-input, .pa-input, .gu-input, .nc-input, .janela-input, .search-input,
-  .ms-search-input, .feed-search-input, .feed-comment-input, .pm-filtro-select, .gu-role-select,
-  .feed-select, .pf-select, .fd-select, .saas-select, .nc-select, .pf-textarea,
-  .saas-input-group input:not([type=checkbox]):not([type=radio]):not([type=file]), .saas-input-group textarea):not(.login-page *):focus {
-  outline: none;
-  border-color: var(--role-primary-color);
-  box-shadow: 0 0 0 4px color-mix(in srgb, var(--role-primary-color) 15%, transparent);
-}
-:root :is(.input-label, .pa-input-label, .saas-label, .saas-input-group label):not(.login-page *) {
-  font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  :root :is(.btn-primary, .nc-btn-primary, .btn-saas-primary, .gf-btn-pri, .rc-btn-pri,
-    .av-btn-pri, .janela-btn-pri, .btn-secondary, .janela-btn-sec) { transition: none; }
-}
+/* Cartões, botões, campos e cores de status: ver src/styles/habitare.css */
 
 /* Rodinha da espera da sessão (ProtectedRoute) */
 .carregando-sessao {
@@ -227,10 +142,3 @@ h1, h2, h3, h4, h5, h6,
 }
 .filtro-data .saas-select { width: auto; min-width: 7rem; padding: 0.5rem 0.75rem; font-size: 0.85rem; cursor: pointer; }
 .filtro-data-limpar { padding: 0.5rem 0.9rem; font-size: 0.85rem; cursor: pointer; }
-
-/* ── Cores oficiais dos status (utils/statusOcorrencia.js) ──
-   Valem por cima das cores antigas de cada tela. */
-:root .st-aberta     { color: #b91c1c; background-color: #fee2e2; border-color: #fecaca; }
-:root .st-analise    { color: #1d4ed8; background-color: #dbeafe; border-color: #bfdbfe; }
-:root .st-andamento  { color: #b45309; background-color: #fef3c7; border-color: #fde68a; }
-:root .st-resolvida  { color: #047857; background-color: #d1fae5; border-color: #a7f3d0; }
