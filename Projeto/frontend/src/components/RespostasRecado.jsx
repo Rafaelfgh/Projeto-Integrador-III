@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { MessageSquareReply, RefreshCw, Send, Loader2 } from 'lucide-react';
+import { MessageSquareReply, RefreshCw, Send, Loader2, Lock } from 'lucide-react';
 import { supabase } from '../backend/supabaseClient';
 import { useAuth } from '../contexts/AuthContext';
 import { contemPalavrao, MSG_PALAVRAO } from '../utils/palavroes';
@@ -14,7 +14,8 @@ const formatarHora = (data) => new Date(data).toLocaleString('pt-BR', {
   day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit',
 });
 
-export default function RespostasRecado({ recadoId, onRespondido, onCarregado }) {
+// encerrado: texto do motivo quando o recado não aceita mais respostas (quem enviou deixou de ser síndico)
+export default function RespostasRecado({ recadoId, onRespondido, onCarregado, encerrado = null }) {
   const { currentUser } = useAuth();
   const [respostas,  setRespostas]  = useState([]);
   const [carregando, setCarregando] = useState(true);
@@ -93,6 +94,11 @@ export default function RespostasRecado({ recadoId, onRespondido, onCarregado })
         })}
       </div>
 
+      {encerrado ? (
+        <p className="conv-encerrado" role="note">
+          <Lock size={14} /> Recado encerrado: {encerrado}. Dá para ler, mas não aceita mais respostas.
+        </p>
+      ) : (
       <div className="conv-form">
         <textarea
           maxLength={1000}
@@ -107,6 +113,7 @@ export default function RespostasRecado({ recadoId, onRespondido, onCarregado })
           </button>
         </div>
       </div>
+      )}
       {erro && <p className="conv-erro" role="alert">{erro}</p>}
     </section>
   );

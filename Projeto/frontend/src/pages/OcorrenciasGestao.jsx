@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { PlacaLocal, FaixaStatus } from '../components/Placa';
 import { separarLocal } from '../utils/placa';
 import ErroCarregamento from '../components/ErroCarregamento';
-import { Menu, Home, User, UserCog, CalendarDays, Hourglass, RefreshCw, Inbox, ScanSearch } from 'lucide-react';
+import { Menu, Home, User, UserCog, CalendarDays, Hourglass, RefreshCw, Inbox, ScanSearch, AlarmClock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import NotificationMenu from '../components/NotificationMenu';
@@ -31,6 +31,11 @@ const MODOS = {
     subtitulo: 'Problemas dentro dos apartamentos: só você vê e encaminha a um funcionário',
     vazio: 'Nenhuma ocorrência pessoal por aqui',
   },
+  abertas: {
+    titulo: `Abertas +${DIAS_PROLONGADO} dias`,
+    subtitulo: `Abertas há mais de ${DIAS_PROLONGADO} dias sem análise nem atendimento: ninguém começou a cuidar delas ainda`,
+    vazio: `Nenhuma ocorrência aberta há mais de ${DIAS_PROLONGADO} dias sem atendimento`,
+  },
   prolongadas: {
     titulo: `Em andamento +${DIAS_PROLONGADO} dias`,
     subtitulo: 'Para você acompanhar. Não quer dizer que estejam atrasadas',
@@ -45,7 +50,7 @@ const formatarData = (d) => (d
 
 const diasDesde = (d) => Math.floor((Date.now() - new Date(d).getTime()) / 864e5);
 
-// Listas de acompanhamento do síndico/master: pessoais e em andamento prolongado
+// Listas de acompanhamento do síndico/master: análise, pessoais, abertas e em andamento prolongados
 const OcorrenciasGestao = ({ modo }) => {
   const navigate = useNavigate();
   const { currentUser } = useAuth();
@@ -74,6 +79,11 @@ const OcorrenciasGestao = ({ modo }) => {
       consulta = consulta.eq('privacidade', 'pessoal').order('created_at', { ascending: false });
     } else if (modo === 'analise') {
       consulta = consulta.eq('privacidade', 'mural').eq('status', 'Em Análise').order('analise_em');
+    } else if (modo === 'abertas') {
+      // "Aberta" = ainda sem análise e sem andamento (as pessoais já nascem Em Análise)
+      consulta = consulta.eq('status', 'Aberta')
+        .lt('created_at', new Date(Date.now() - DIAS_PROLONGADO * 864e5).toISOString())
+        .order('created_at');
     } else {
       consulta = consulta.eq('status', 'Em Andamento')
         .lt('andamento_em', new Date(Date.now() - DIAS_PROLONGADO * 864e5).toISOString())
@@ -181,6 +191,11 @@ const OcorrenciasGestao = ({ modo }) => {
                           <span><CalendarDays size={13} /> Aberta {formatarData(item.created_at)}</span>
                           <span><UserCog size={13} /> {item.atribuido_a ? nomes[item.atribuido_a] || 'Funcionário' : 'Sem responsável'}</span>
                         </div>
+                        {modo === 'abertas' && (
+                          <p className="oc-duracao">
+                            <AlarmClock size={14} /> Aberta há <strong>{diasDesde(item.created_at)} dias</strong> sem análise nem atendimento
+                          </p>
+                        )}
                         {modo === 'prolongadas' && (
                           <p className="oc-duracao">
                             <Hourglass size={14} /> Em andamento há <strong>{diasDesde(item.andamento_em)} dias</strong> · por {item.andamento_por_nome || nomes[item.andamento_por] || 'Administração'}

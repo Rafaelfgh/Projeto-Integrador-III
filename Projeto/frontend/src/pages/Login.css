@@ -437,24 +437,22 @@
 }
 /* Link do administrador: sublinhado e seta, para ficar claro que é clicável */
 .login-link-admin {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3rem;
+  display: inline-block;
   margin-top: 1rem;
-  padding: 0.15rem 0.4rem;
+  padding: 0.2rem 0.4rem;
   border-radius: 0.4rem;
-  background: #ffffff;
   color: #334155;
   font-size: 0.82rem;
-  font-weight: 500;
-  text-decoration: underline;
-  text-decoration-color: #f47920;
-  text-underline-offset: 3px;
+  font-weight: 600;
+  line-height: 1.45;
+  text-align: center;
+  text-wrap: balance;
+  text-decoration: none;
   transition: color 0.2s;
 }
+.login-link-admin svg { display: inline-block; vertical-align: -3px; margin-left: 0.3rem; transition: transform 0.2s; }
 .login-link-admin:hover { color: #c2410c; }
-.login-link-admin::after { content: '→'; transition: transform 0.2s; }
-.login-link-admin:hover::after { transform: translateX(3px); }
+.login-link-admin:hover svg { transform: translateX(3px); }
 
 @media (prefers-reduced-motion: reduce) {
   .btn-primary, .btn-primary::after, .login-btn-secundario { transition: none; }

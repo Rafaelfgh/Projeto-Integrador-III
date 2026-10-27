@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Mail, Lock, User, Building, Loader2, Eye, EyeOff } from 'lucide-react';
+import { Mail, Lock, User, Building, Loader2, Eye, EyeOff, ArrowRight } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { carregarPerfil } from '../services/perfilService';
 import { supabase } from '../backend/supabaseClient';
@@ -196,6 +196,7 @@ const Login = () => {
             </Link>
             <Link to="/novo-condominio" className="login-link-admin">
               Sou administrador e quero solicitar o cadastro do meu condomínio
+              <ArrowRight size={16} strokeWidth={2.2} aria-hidden="true" />
             </Link>
           </div>
         </div>

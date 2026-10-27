@@ -40,6 +40,11 @@ const ETIQUETA = {
   display: 'inline-block', minWidth: 100, boxSizing: 'border-box', textAlign: 'center', textAlignLast: 'center',
   fontFamily: 'inherit', textTransform: 'uppercase',
 };
+// Botões de ação com ícone: ícone e texto na mesma linha, centralizados, mesma largura
+const BOTAO_ACAO = {
+  ...ETIQUETA, display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+  gap: 4, minWidth: 116, whiteSpace: 'nowrap', lineHeight: 1.4,
+};
 
 // Lista de perfil (Morador/Síndico) em formato de bolha: seta desenhada na cor do perfil,
 // com folga da borda (a seta padrão do navegador fica colada e não aceita espaçamento)
@@ -535,7 +540,7 @@ const PainelMaster = () => {
                               </td>
                               <td style={estiloTd(true)}>
                                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-                                  <button disabled style={{ ...ETIQUETA, fontSize: '11px', fontWeight: 700, color: '#94a3b8', background: '#f1f5f9', border: 'none', borderRadius: '99px', padding: '3px 10px', cursor: 'not-allowed', opacity: 0.6 }}>
+                                  <button disabled style={{ ...BOTAO_ACAO, fontSize: '11px', fontWeight: 700, color: '#94a3b8', background: '#f1f5f9', border: 'none', borderRadius: '99px', padding: '3px 10px', cursor: 'not-allowed', opacity: 0.6 }}>
                                     <X size={11} /> Bloquear
                                   </button>
                                   <div style={{ position: 'relative', display: 'inline-flex' }}
@@ -635,13 +640,13 @@ const PainelMaster = () => {
                               <td style={estiloTd(true)}>
                                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
                                   {user.status === 'PENDENTE' && (
-                                    <button onClick={() => handleApprove(user)} style={{ ...ETIQUETA, fontSize: '11px', fontWeight: 700, color: '#16a34a', background: '#dcfce7', border: 'none', borderRadius: '99px', padding: '3px 10px', cursor: 'pointer' }}><Check size={11} /> Liberar</button>
+                                    <button onClick={() => handleApprove(user)} style={{ ...BOTAO_ACAO, fontSize: '11px', fontWeight: 700, color: '#16a34a', background: '#dcfce7', border: 'none', borderRadius: '99px', padding: '3px 10px', cursor: 'pointer' }}><Check size={11} /> Liberar</button>
                                   )}
                                   {user.status === 'PENDENTE' && (
-                                    <button onClick={() => handleBlock(user)} title="Recusar o pedido (vai para Bloqueados)" style={{ ...ETIQUETA, fontSize: '11px', fontWeight: 700, color: '#dc2626', background: '#fee2e2', border: 'none', borderRadius: '99px', padding: '3px 10px', cursor: 'pointer' }}><X size={11} /> Recusar</button>
+                                    <button onClick={() => handleBlock(user)} title="Recusar o pedido (vai para Bloqueados)" style={{ ...BOTAO_ACAO, fontSize: '11px', fontWeight: 700, color: '#dc2626', background: '#fee2e2', border: 'none', borderRadius: '99px', padding: '3px 10px', cursor: 'pointer' }}><X size={11} /> Recusar</button>
                                   )}
                                   {user.status !== 'PENDENTE' && user.id !== currentUser?.id && (
-                                    <button onClick={() => handleBlock(user)} style={{ ...ETIQUETA, fontSize: '11px', fontWeight: 700, color: isBlocked ? '#16a34a' : '#dc2626', background: isBlocked ? '#dcfce7' : '#fee2e2', border: 'none', borderRadius: '99px', padding: '3px 10px', cursor: 'pointer' }}>
+                                    <button onClick={() => handleBlock(user)} style={{ ...BOTAO_ACAO, fontSize: '11px', fontWeight: 700, color: isBlocked ? '#16a34a' : '#dc2626', background: isBlocked ? '#dcfce7' : '#fee2e2', border: 'none', borderRadius: '99px', padding: '3px 10px', cursor: 'pointer' }}>
                                       {isBlocked ? <><Check size={11} /> Desbloquear</> : <><X size={11} /> Bloquear</>}
                                     </button>
                                   )}
@@ -703,7 +708,7 @@ const PainelMaster = () => {
             <p className="janela-texto">
               {promover
                 ? <>O síndico acompanha ocorrências e reclamações, encaminha tarefas aos funcionários e publica avisos. <strong>Só pode haver um síndico por vez.</strong></>
-                : <>O que ele registrou como síndico (encaminhamentos, pronunciamentos, respostas) continua no histórico.</>}
+                : <>O que ele registrou como síndico (encaminhamentos, pronunciamentos, respostas) continua no histórico. <strong>Os recados que ele enviou aos funcionários ficam encerrados:</strong> continuam visíveis, mas ninguém pode mais responder.</>}
             </p>
           </Janela>
         );

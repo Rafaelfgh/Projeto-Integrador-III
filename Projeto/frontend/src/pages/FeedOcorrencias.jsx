@@ -6,7 +6,7 @@ import { combinaBusca } from '../utils/busca';
 import ErroCarregamento from '../components/ErroCarregamento';
 import {
   Menu, Search, BellOff, Clock, Send, Trash2, MessageCircle, Loader2,
-  RefreshCw, ChevronDown, ChevronUp, UserCog, CheckCircle2, Pin, Pencil
+  RefreshCw, ChevronDown, ChevronUp, UserCog, CheckCircle2, Pin, Pencil, Maximize2, ImageOff
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import NotificationMenu from '../components/NotificationMenu';
@@ -19,6 +19,7 @@ import { EVENTO_CONTADORES } from '../hooks/useContadoresGestao';
 import { useVisualizadorImagem } from '../contexts/visualizadorImagem';
 import AtualizacaoOcorrencia from '../components/AtualizacaoOcorrencia';
 import GerenciarOcorrencia from '../components/GerenciarOcorrencia';
+import Janela from '../components/Janela';
 import { OCORRENCIA_CAMPOS, carregarNomes, assinarEvidencias } from '../services/ocorrenciaService';
 import { protocoloOcorrencia } from '../utils/protocolo';
 import './Dashboard.css';
@@ -26,6 +27,8 @@ import './FeedOcorrencias.css';
 
 // Concluídas ficam no mural dos moradores por 14 dias (o síndico mantém o histórico completo)
 const DIAS_CONCLUIDAS = 14;
+// Fotos que cabem no espaço fixo do cartão (a última mostra "+N" se houver mais)
+const MAX_FOTOS_CARTAO = 4;
 
 const PAPEL_LABEL = { SINDICO: 'Síndico', MASTER: 'Administração', FUNCIONARIO: 'Equipe' };
 
@@ -54,8 +57,8 @@ const FeedOcorrencias = () => {
   const [filtroData,     setFiltroData]     = useState(FILTRO_DATA_VAZIO);
   const [statusFilter,   setStatusFilter]   = useState('Todos');
   const [expandido,      setExpandido]      = useState({});
-  // Texto longo fica em 3 linhas para os cartões terem o mesmo tamanho; "Ver mais" abre o resto
-  const [textoAberto,    setTextoAberto]    = useState({});
+  // Cartão de tamanho fixo: texto longo termina em "…"; "Detalhes" abre tudo numa janela
+  const [detalhe,        setDetalhe]        = useState(null);
   const [novoComentario, setNovoComentario] = useState({});
   const [erroComentario, setErroComentario] = useState({});
   const [editandoPron,   setEditandoPron]   = useState({});
@@ -357,52 +360,49 @@ const FeedOcorrencias = () => {
 
                       <div className="placa-corpo">
                         <h3 className="placa-titulo placa-titulo-limitado" title={item.titulo}>{item.titulo}</h3>
-                        {descricao && (
-                          <>
-                            <p className={`placa-texto${textoAberto[item.id] ? '' : ' placa-texto-limitado'}`}>{descricao}</p>
-                            {(descricao.length > 150 || descricao.split('\n').length > 3) && (
-                              <button type="button" className="placa-ver-mais" onClick={() => setTextoAberto(p => ({ ...p, [item.id]: !p[item.id] }))}>
-                                {textoAberto[item.id] ? 'Ver menos' : 'Ver mais'}
-                              </button>
-                            )}
-                          </>
-                        )}
+                        {/* Espaços fixos: descrição (2 linhas), atribuição (1 linha) e fotos — vazios quando não há */}
+                        <p className={`placa-texto feed-descricao${descricao ? '' : ' feed-descricao-vazia'}`} title={descricao || undefined}>{descricao || 'Sem descrição.'}</p>
                         <div className="placa-meta">
                           <span>{porSlug[item.categoria]?.nome || 'Outros'}</span>
                           <span><Clock size={12} /> {formatarData(item.created_at)}</span>
                           <span>por {item.moradorNome}{ehMinha && ' (você)'}</span>
                         </div>
-                        {isResolvida && item.concluidaPor ? (
-                          <p className="feed-atribuicao">
-                            <UserCog size={13} /> Concluída por <strong>{item.concluidaPor}</strong> em {formatarDia(item.concluida_em)}
-                          </p>
-                        ) : item.funcionarioNome && !isResolvida ? (
-                          <p className="feed-atribuicao">
-                            <UserCog size={13} /> Atribuída a <strong>{item.funcionarioNome}</strong>
-                          </p>
-                        ) : null}
+                        <p className="feed-atribuicao">
+                          {isResolvida && item.concluidaPor ? (
+                            <><UserCog size={13} /> <span>Concluída por <strong>{item.concluidaPor}</strong> em {formatarDia(item.concluida_em)}</span></>
+                          ) : item.funcionarioNome && !isResolvida ? (
+                            <><UserCog size={13} /> <span>Atribuída a <strong>{item.funcionarioNome}</strong></span></>
+                          ) : <span className="feed-atribuicao-vazia"><UserCog size={13} /> Sem responsável</span>}
+                        </p>
 
-                        {item.anexos.length > 0 && (
-                          <div className="feed-anexos">
-                            {item.anexos.map((url, idx) => (
-                              <button key={idx} type="button" className="img-zoom" title="Ampliar foto" onClick={() => abrirImagem(item.anexos, idx)}>
+                        <div className="feed-anexos">
+                          {item.anexos.slice(0, MAX_FOTOS_CARTAO).map((url, idx) => {
+                            const resto = idx === MAX_FOTOS_CARTAO - 1 ? item.anexos.length - MAX_FOTOS_CARTAO : 0;
+                            return (
+                              <button key={idx} type="button" className="img-zoom feed-anexo-botao" title="Ampliar foto" onClick={() => abrirImagem(item.anexos, idx)}>
                                 <img
                                   src={url}
                                   alt={`Anexo ${idx + 1}`}
                                   className="feed-anexo-thumb"
                                   onError={(e) => { e.currentTarget.style.display = 'none'; }}
                                 />
+                                {resto > 0 && <span className="feed-anexo-mais">+{resto}</span>}
                               </button>
-                            ))}
-                          </div>
-                        )}
+                            );
+                          })}
+                          {item.anexos.length === 0 && (
+                            <div className="feed-anexos-vazio"><ImageOff size={18} /> <span>Sem fotos anexadas</span></div>
+                          )}
+                        </div>
                       </div>
 
-                      {/* Andamento / conclusão (descrição e foto da prova) */}
-                      <AtualizacaoOcorrencia ocorrencia={item} nomes={nomes} fotos={fotos} />
+                      {/* Andamento / conclusão: espaço fixo, vazio quando ainda não há */}
+                      <div className="feed-slot-atu">
+                        <AtualizacaoOcorrencia ocorrencia={item} nomes={nomes} fotos={fotos} compacto />
+                      </div>
 
                       {/* Pronunciamento do síndico: espaço fixo, sempre visível */}
-                      <div className={`feed-pronunciamento${item.pronunciamento ? ' tem-texto' : ''}`}>
+                      <div className={`feed-pronunciamento${item.pronunciamento ? ' tem-texto' : ''}${editando ? ' editando' : ''}`}>
                         <div className="feed-pron-header">
                           <span className="feed-pron-label"><Pin size={13} /> Pronunciamento</span>
                           {isGestor && !editando && (
@@ -438,7 +438,7 @@ const FeedOcorrencias = () => {
                           </div>
                         ) : item.pronunciamento ? (
                           <>
-                            <p className={`feed-pron-texto${textoAberto[item.id] ? '' : ' placa-texto-limitado'}`}>{item.pronunciamento}</p>
+                            <p className="feed-pron-texto" title={item.pronunciamento}>{item.pronunciamento}</p>
                             <span className="feed-pron-data">{formatarData(item.pronunciamento_em)}</span>
                           </>
                         ) : (
@@ -457,11 +457,16 @@ const FeedOcorrencias = () => {
                           {lista.length} {lista.length === 1 ? 'comentário' : 'comentários'}
                           {estaExpandido ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
                         </button>
-                        {isGestor && !isResolvida && (
-                          <button className="btn-hab feed-gerenciar" onClick={() => setGerenciando(item.id)}>
-                            Gerenciar
+                        <span className="feed-acoes-direita">
+                          <button type="button" className="feed-detalhes" onClick={() => setDetalhe(item)} aria-label="Ver detalhes da ocorrência">
+                            <Maximize2 size={14} /> <span className="feed-detalhes-texto">Detalhes</span>
                           </button>
-                        )}
+                          {isGestor && !isResolvida && (
+                            <button className="btn-hab feed-gerenciar" onClick={() => setGerenciando(item.id)}>
+                              Gerenciar
+                            </button>
+                          )}
+                        </span>
                       </div>
 
                       {/* Comentários: aba expansível para manter o card com tamanho padrão */}
@@ -583,6 +588,44 @@ const FeedOcorrencias = () => {
           </div>
         </div>
       </main>
+
+      {/* Detalhes: o texto inteiro (descrição, andamento/conclusão e pronunciamento) sem esticar o cartão */}
+      {detalhe && (() => {
+        const atual = ocorrencias.find(o => o.id === detalhe.id) || detalhe;
+        const { texto, local } = separarLocal(atual.descricao);
+        return (
+          <Janela
+            icone={Maximize2}
+            titulo={atual.titulo}
+            subtitulo={`${local ? `${local} · ` : ''}${porSlug[atual.categoria]?.nome || 'Outros'} · ${formatarData(atual.created_at)} · por ${atual.moradorNome}`}
+            largura="grande"
+            onFechar={() => setDetalhe(null)}
+            fecharAoClicarFora
+            rodape={<button type="button" className="janela-btn janela-btn-sec" onClick={() => setDetalhe(null)}>Fechar</button>}
+          >
+            {texto && <p className="janela-texto" style={{ whiteSpace: 'pre-wrap' }}>{texto}</p>}
+            {atual.anexos.length > 0 && (
+              <div className="feed-anexos feed-anexos-janela">
+                {atual.anexos.map((url, idx) => (
+                  <button key={idx} type="button" className="img-zoom" title="Ampliar foto" onClick={() => abrirImagem(atual.anexos, idx)}>
+                    <img src={url} alt={`Anexo ${idx + 1}`} className="feed-anexo-thumb" />
+                  </button>
+                ))}
+              </div>
+            )}
+            <AtualizacaoOcorrencia ocorrencia={atual} nomes={nomes} fotos={fotos} />
+            <div className={`feed-pronunciamento feed-pron-janela${atual.pronunciamento ? ' tem-texto' : ''}`}>
+              <span className="feed-pron-label"><Pin size={13} /> Pronunciamento do síndico</span>
+              {atual.pronunciamento ? (
+                <>
+                  <p className="feed-pron-texto feed-pron-texto-inteiro">{atual.pronunciamento}</p>
+                  <span className="feed-pron-data">{formatarData(atual.pronunciamento_em)}</span>
+                </>
+              ) : <p className="feed-pron-vazio">O síndico ainda não se pronunciou sobre esta ocorrência.</p>}
+            </div>
+          </Janela>
+        );
+      })()}
 
       {gerenciando && (
         <GerenciarOcorrencia

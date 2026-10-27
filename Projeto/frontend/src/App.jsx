@@ -58,6 +58,7 @@ function App() {
             <Route path="/ocorrencias-concluidas" element={<OcorrenciasConcluidas />} />
             <Route path="/ocorrencias-analise" element={<OcorrenciasGestao key="analise" modo="analise" />} />
             <Route path="/ocorrencias-pessoais" element={<OcorrenciasGestao key="pessoais" modo="pessoais" />} />
+            <Route path="/abertas-prolongadas" element={<OcorrenciasGestao key="abertas" modo="abertas" />} />
             <Route path="/andamento-prolongado" element={<OcorrenciasGestao key="prolongadas" modo="prolongadas" />} />
             <Route path="/funcionarios" element={<GestaoFuncionarios />} />
           </Route>

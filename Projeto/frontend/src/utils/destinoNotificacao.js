@@ -17,6 +17,7 @@ const DO_AUTOR = new Set(['OCORRENCIA_RECEBIDA', 'STATUS_OCORRENCIA', 'NOVO_COME
 const PAGINA_GESTAO = {
   ANALISE_SOLICITADA: '/ocorrencias-analise',
   ANDAMENTO_PROLONGADO: '/andamento-prolongado',
+  ABERTA_PROLONGADA: '/abertas-prolongadas',
   TAREFA_FINALIZADA: '/ocorrencias-concluidas',
   NOVA_MENSAGEM: '/ocorrencias-pessoais', // conversa só existe nas pessoais
 };

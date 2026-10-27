@@ -1,15 +1,16 @@
 import React, { useState } from 'react';
 import { STATUS_COR, classeStatus } from '../utils/statusOcorrencia';
 import { FaixaStatus, Pictograma } from '../components/Placa';
+import { placaDaOcorrencia } from '../utils/placa';
 import ErroCarregamento from '../components/ErroCarregamento';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
-  Menu, CheckCircle2, AlertCircle, Clock, BarChart3, X, Send, ShieldAlert,
-  MapPin, FileText, User,
+  Menu, CheckCircle2, BarChart3, X, Send, ShieldAlert,
+  MapPin, FileText, User, ChevronRight, Inbox, Users,
 } from 'lucide-react';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip,
-  ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell
+  ResponsiveContainer,
 } from 'recharts';
 import { useAuth } from '../contexts/AuthContext';
 import Sidebar from '../components/Sidebar';
@@ -21,28 +22,7 @@ import { contemPalavrao, MSG_PALAVRAO } from '../utils/palavroes';
 import './Dashboard.css';
 import './PainelSindico.css';
 
-export const CATEGORIA_SETOR = {
-  'hidraulica':    'manutencao',
-  'manutencao':    'manutencao',
-  'limpeza':       'limpeza',
-  'jardinagem':    'limpeza',
-  'seguranca':     'seguranca',
-  'areas_comuns':  'infraestrutura',
-  'estrutural':    'infraestrutura',
-  'barulho':       'seguranca',
-  'garagem':       'infraestrutura',
-  'Hidráulica':    'manutencao',
-  'Elétrica':      'infraestrutura',
-  'Infraestrutura':'infraestrutura',
-  'Limpeza':       'limpeza',
-  'Barulho':       'seguranca',
-  'Portaria':      'seguranca',
-  'Jardinagem':    'limpeza',
-  'Manutenção Geral':'manutencao',
-  'Outros':        'manutencao',
-};
-
-export const CATEGORIA_LABEL = {
+const CATEGORIA_LABEL = {
   'hidraulica':   'Hidráulica',
   'manutencao':   'Manutenção',
   'limpeza':      'Limpeza',
@@ -54,40 +34,29 @@ export const CATEGORIA_LABEL = {
   'garagem':      'Garagem/Estacionamento',
 };
 
-export const SETOR_LABEL = {
-  manutencao:    'Manutenção',
-  infraestrutura:'Infraestrutura',
-  limpeza:       'Limpeza',
-  seguranca:     'Segurança',
+// Tipos de reclamação (mesmos valores da tela Nova Reclamação)
+const TIPO_RECLAMACAO = {
+  barulho: 'Barulho fora do horário',
+  lixo: 'Descarte irregular de lixo',
+  estacionamento: 'Uso indevido de vaga',
+  pets: 'Problemas com pets',
+  outro: 'Outro tipo',
 };
 
-export const SETOR_COLOR = {
-  manutencao:    { bg: '#fff7ed', text: '#c2410c', border: '#fed7aa' },
-  infraestrutura:{ bg: '#eff6ff', text: '#1d4ed8', border: '#bfdbfe' },
-  limpeza:       { bg: '#f0fdf4', text: '#15803d', border: '#bbf7d0' },
-  seguranca:     { bg: '#fdf4ff', text: '#7e22ce', border: '#e9d5ff' },
+// A reclamação é gravada como texto: "Tipo de Violação: x\nData: aaaa-mm-dd\nHora: hh:mm\n\nDescrição do Morador: ..."
+const lerReclamacao = (txt = '') => {
+  const pega = (rotulo) => (String(txt).match(new RegExp(`${rotulo}:[ \\t]*(.*)`))?.[1] || '').trim();
+  const tipo = pega('Tipo de Violação');
+  const [a, m, d] = pega('Data').split('-');
+  const hora = pega('Hora');
+  return {
+    tipo: TIPO_RECLAMACAO[tipo] || (tipo ? tipo.charAt(0).toUpperCase() + tipo.slice(1) : 'Reclamação'),
+    quando: d ? `${d}/${m}/${a}${hora ? ` · ${hora}` : ''}` : '',
+    texto: (String(txt).split('Descrição do Morador:')[1] ?? txt).trim(),
+  };
 };
 
-const kpiData = {
-  abertas:   { value: 8,  trend: 'up',      trendValue: '12%' },
-  analise:   { value: 5,  trend: 'down',    trendValue: '4%'  },
-  resolvidas:{ value: 24, trend: 'up',      trendValue: '18%' },
-  total:     { value: 37, trend: 'neutral', trendValue: '0%'  },
-};
-
-
-const dataStatus = [
-  { name: 'Abertas',    value: 8,  fill: '#ef4444' },
-  { name: 'Em Análise', value: 5,  fill: '#f59e0b' },
-  { name: 'Resolvidas', value: 24, fill: '#10b981' },
-];
-
-const recentOccurrences = [
-  { id: 1, title: 'Vazamento no banheiro',    subtitle: 'Apt 301 - Bloco A', category: 'Hidráulica',  status: 'Aberta',      timeOpen: 'há 2 horas', responsible: null,         isReclamacao: false },
-  { id: 2, title: 'Falta de luz no corredor', subtitle: '3º Andar - Bloco B', category: 'Elétrica',   status: 'Em Andamento', timeOpen: 'há 5 horas', responsible: 'João Silva', isReclamacao: false },
-  { id: 3, title: 'Festa com som alto',       subtitle: 'Apt 502 - Bloco C',  category: 'Barulho',    status: 'Aberta',      timeOpen: 'há 1 dia',   responsible: null,         isReclamacao: false },
-].map(occ => ({ ...occ, setor: CATEGORIA_SETOR[occ.category] ?? 'manutencao' }));
-
+const iniciais = (nome = '') => nome.trim().split(/\s+/).slice(0, 2).map(p => p.charAt(0).toUpperCase()).join('') || '?';
 
 const heatmapDays  = ['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'];
 const heatmapTimes = ['08h','10h','12h','14h','16h','18h','20h'];
@@ -139,9 +108,12 @@ const calcularMapaCalor = (ocs) => {
 // Em andamento há mais de 2 dias (no lugar do "SLA" de exemplo)
 const calcularParadas = (ocs) => ocs
   .filter(o => o.status === 'Em Andamento' && o.andamento_em && Date.now() - new Date(o.andamento_em).getTime() > 2 * DIA_MS)
-  .map(o => ({ id: o.id, titulo: o.titulo, categoria: o.categoria, dias: Math.floor((Date.now() - new Date(o.andamento_em).getTime()) / DIA_MS) }))
-  .sort((a, b) => b.dias - a.dias)
-  .slice(0, 5);
+  .map(o => ({
+    id: o.id, titulo: o.titulo, categoria: o.categoria,
+    responsavel: o.Funcionarios?.nome || o.andamento_por_nome || '',
+    dias: Math.floor((Date.now() - new Date(o.andamento_em).getTime()) / DIA_MS),
+  }))
+  .sort((a, b) => b.dias - a.dias);
 
 // ---------------------------------------------------------------------------
 // CustomTooltip
@@ -162,240 +134,153 @@ const CustomTooltip = ({ active, payload, label }) => {
   );
 };
 
-const SetorBadge = ({ setor }) => {
-  const cfg = SETOR_COLOR[setor] ?? SETOR_COLOR.manutencao;
+// ---------------------------------------------------------------------------
+// Cartão do painel: cabeçalho, corpo e pé alinhados entre os cartões vizinhos
+// ---------------------------------------------------------------------------
+const Cartao = ({ titulo, sub, extra, children, pe, className = '' }) => (
+  <section className={`sd-card ${className}`}>
+    <header className="sd-card-cabeca">
+      <div className="sd-card-cabeca-textos">
+        <h3 className="sd-card-titulo">{titulo}</h3>
+        {sub && <p className="sd-card-sub">{sub}</p>}
+      </div>
+      {extra}
+    </header>
+    <div className="sd-card-corpo">{children}</div>
+    {pe && <footer className="sd-card-pe">{pe}</footer>}
+  </section>
+);
+
+const Vazio = ({ icone, titulo, texto }) => {
+  const Icone = icone;
   return (
-    <span style={{
-      display:'inline-flex', alignItems:'center', gap:4, padding:'2px 8px',
-      borderRadius:20, fontSize:'0.72rem', fontWeight:600,
-      background:cfg.bg, color:cfg.text, border:`1px solid ${cfg.border}`, whiteSpace:'nowrap',
-    }}>
-      {SETOR_LABEL[setor]}
-    </span>
+  <div className="sd-vazio">
+    <Icone size={22} strokeWidth={1.8} />
+    <strong>{titulo}</strong>
+    {texto && <span>{texto}</span>}
+  </div>
   );
 };
 
-const ResponsavelChip = ({ name }) => (
-  <div style={{ display:'flex', alignItems:'center', gap:'0.5rem', fontSize:'0.8rem', color:'#334155', fontWeight:500 }}>
-    <div style={{ width:24, height:24, borderRadius:'50%', background:'#e2e8f0', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'0.6rem', fontWeight:700 }}>
-      {name.charAt(0)}
+const LIMITE_LISTA = 5;   // linhas nos cartões de atenção (iguais nos dois, para alinhar)
+const PASSO_REGISTROS = 8;
+
+// ---------------------------------------------------------------------------
+// Registros recentes — ocorrências e reclamações em abas, linhas em colunas fixas
+// ---------------------------------------------------------------------------
+const RegistrosRecentes = ({ ocorrencias, reclamacoes, onGerenciar, onAbrirReclamacao, respondidas, onVerMural }) => {
+  const [aba, setAba] = useState('ocorrencias');
+  const [mostrar, setMostrar] = useState(PASSO_REGISTROS);
+  const lista = aba === 'ocorrencias' ? ocorrencias : reclamacoes;
+  const visiveis = lista.slice(0, mostrar);
+  const restantes = lista.length - visiveis.length;
+  const trocarAba = (k) => { setAba(k); setMostrar(PASSO_REGISTROS); };
+
+  const abas = (
+    <div className="ms-abas sd-abas" role="tablist">
+      {[['ocorrencias', 'Ocorrências', ocorrencias.length], ['reclamacoes', 'Reclamações', reclamacoes.length]].map(([k, rot, n]) => (
+        <button key={k} type="button" role="tab" aria-selected={aba === k} className={aba === k ? 'ativa' : ''} onClick={() => trocarAba(k)}>
+          {rot} <span>{n}</span>
+        </button>
+      ))}
     </div>
-    {name}
-  </div>
-);
+  );
 
-// ---------------------------------------------------------------------------
-// TabelaComAbas — separa Ocorrências de Reclamações em abas distintas
-// ---------------------------------------------------------------------------
-const TabelaComAbas = ({ ocorrencias, reclamacoes, onGerenciar, onAbrirReclamacao, respondidas }) => {
-  const [abaAtiva, setAbaAtiva] = useState('ocorrencias');
-
-  const abas = [
-    { key: 'ocorrencias', label: 'Ocorrências', count: ocorrencias.length },
-    { key: 'reclamacoes', label: 'Reclamações', count: reclamacoes.length },
-  ];
-
-  const tabStyle = (key) => ({
-    padding: '0.6rem 1.25rem',
-    fontSize: '0.85rem',
-    fontWeight: 600,
-    cursor: 'pointer',
-    border: 'none',
-    borderBottom: abaAtiva === key ? '2px solid #f97316' : '2px solid transparent',
-    background: 'none',
-    color: abaAtiva === key ? '#f97316' : '#64748b',
-    transition: 'all 0.15s',
-    display: 'flex',
-    alignItems: 'center',
-    gap: 6,
-    fontFamily: 'inherit',
-  });
-
-  const countBadge = (n, active) => ({
-    display: 'inline-flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    minWidth: 20,
-    height: 20,
-    borderRadius: 999,
-    fontSize: '0.7rem',
-    fontWeight: 700,
-    background: active ? '#fff7ed' : '#f1f5f9',
-    color: active ? '#f97316' : '#94a3b8',
-    padding: '0 6px',
-  });
+  const pe = (restantes > 0 || aba === 'ocorrencias') && (
+    <>
+      {restantes > 0
+        ? <button type="button" className="sd-link" onClick={() => setMostrar(m => m + PASSO_REGISTROS)}>Mostrar mais ({restantes})</button>
+        : <span />}
+      {aba === 'ocorrencias' && <button type="button" className="sd-link" onClick={onVerMural}>Abrir o Mural de Ocorrências <ChevronRight size={15} /></button>}
+    </>
+  );
 
   return (
-    <div className="ps-card" style={{ padding: '1.25rem 0 0 0', overflow: 'hidden' }}>
-      {/* Header com abas */}
-      <div style={{ padding: '0 1.5rem', borderBottom: '1px solid #f1f5f9' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
-          <div>
-            <h3 className="ps-section-title">Registros Recentes</h3>
-            <p className="ps-section-subtitle">Gerencie ocorrências e reclamações separadamente</p>
+    <Cartao
+      className="sd-registros"
+      titulo={aba === 'ocorrencias' ? 'Ocorrências mais recentes' : 'Reclamações recebidas'}
+      sub={aba === 'ocorrencias' ? 'Do mural e pessoais, das mais novas para as mais antigas' : 'Só você vê. Abra para ler e responder ao morador.'}
+      extra={abas}
+      pe={pe}
+    >
+      {aba === 'ocorrencias' ? (
+        ocorrencias.length === 0 ? <Vazio icone={Inbox} titulo="Nenhuma ocorrência registrada" /> : (
+          <div className="sd-tabela sd-tabela-oc" role="table">
+            <div className="sd-tr sd-th" role="row">
+              <span role="columnheader">Ocorrência</span>
+              <span role="columnheader">Status</span>
+              <span role="columnheader">Aberta em</span>
+              <span role="columnheader">Responsável</span>
+              <span role="columnheader" className="sd-sr">Ação</span>
+            </div>
+            {visiveis.map(o => (
+              <div key={o.id} className="sd-tr" role="row">
+                <div className="sd-td sd-td-oc" role="cell">
+                  <Pictograma categoria={o.category} tamanho={16} titulo={o.categoryLabel} />
+                  <div className="sd-texto">
+                    <span className="sd-nome-linha">
+                      <span className="sd-nome" title={o.title}>{o.title}</span>
+                      {o.pessoal && <span className="sd-tag">Pessoal</span>}
+                    </span>
+                    <span className="sd-detalhe" title={`${o.local} · ${o.categoryLabel}`}>
+                      {o.local} · {o.categoryLabel}<span className="sd-so-celular"> · {o.data}</span>
+                    </span>
+                  </div>
+                </div>
+                <div className="sd-td sd-td-status" role="cell">
+                  <span className={`badge-pill sd-pill ${classeStatus(o.status)}`}>{o.status === 'Resolvida' ? 'Concluída' : o.status}</span>
+                </div>
+                <div className="sd-td sd-td-data" role="cell">{o.data}</div>
+                <div className="sd-td sd-td-resp" role="cell">
+                  {o.responsible
+                    ? <><span className="sd-avatar sd-avatar-p" aria-hidden="true">{iniciais(o.responsible)}</span><span className="sd-resp-nome" title={o.responsible}>{o.responsible}</span></>
+                    : <span className="sd-sem">Sem responsável</span>}
+                </div>
+                <div className="sd-td sd-td-acao" role="cell">
+                  <button type="button" className="sd-btn" onClick={() => onGerenciar(o.id)}>Gerenciar</button>
+                </div>
+              </div>
+            ))}
           </div>
-        </div>
-        <div style={{ display: 'flex', gap: 0 }}>
-          {abas.map(a => (
-            <button key={a.key} style={tabStyle(a.key)} onClick={() => setAbaAtiva(a.key)}>
-              {a.label}
-              <span style={countBadge(a.count, abaAtiva === a.key)}>{a.count}</span>
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Aba Ocorrências */}
-      {abaAtiva === 'ocorrencias' && (
-        <div className="ps-table-wrapper">
-          <table className="ps-table-modern" style={{ tableLayout: 'fixed', width: '100%' }}>
-            <colgroup>
-              <col style={{ width: '30%' }} />
-              <col style={{ width: '16%' }} />
-              <col style={{ width: '14%' }} />
-              <col style={{ width: '12%' }} />
-              <col style={{ width: '28%' }} />
-            </colgroup>
-            <thead>
-              <tr>
-                <th>Ocorrência</th>
-                <th>Setor</th>
-                <th>Status</th>
-                <th>Data</th>
-                <th>Responsável</th>
-              </tr>
-            </thead>
-            <tbody>
-              {ocorrencias.length === 0 ? (
-                <tr>
-                  <td colSpan={5} style={{ textAlign: 'center', padding: '2rem', color: '#94a3b8', fontSize: '0.85rem' }}>
-                    Nenhuma ocorrência registrada
-                  </td>
-                </tr>
-              ) : ocorrencias.map(occ => (
-                <tr key={occ.id}>
-                  <td>
-                    <div style={{ fontWeight: 600, color: '#1e293b', fontSize: '0.85rem' }}>
-                      {occ.title}
-                      {occ.pessoal && (
-                        <span style={{ marginLeft: 6, fontSize: '0.68rem', fontWeight: 700, color: '#ffffff', background: '#121417', borderRadius: 999, padding: '1px 7px' }}>Pessoal</span>
-                      )}
+        )
+      ) : (
+        reclamacoes.length === 0 ? <Vazio icone={ShieldAlert} titulo="Nenhuma reclamação recebida" /> : (
+          <div className="sd-tabela sd-tabela-rec" role="table">
+            <div className="sd-tr sd-th" role="row">
+              <span role="columnheader">Reclamação</span>
+              <span role="columnheader">Unidade denunciada</span>
+              <span role="columnheader">Ocorrido em</span>
+              <span role="columnheader" className="sd-sr">Ação</span>
+            </div>
+            {visiveis.map(r => {
+              const info = lerReclamacao(r.descricao);
+              const blocoValido = r.bloco_denunciado && r.bloco_denunciado !== 'Ver unidade';
+              const apto = String(r.apartamento_denunciado || '—').replace(/^ap(to|t)?\.?\s*/i, ''); // registros antigos: "AP 802"
+              const unidade = `${blocoValido ? `Bloco ${String(r.bloco_denunciado).toUpperCase()} · ` : ''}Apto ${apto}`;
+              return (
+                <div key={r.id} className="sd-tr" role="row">
+                  <div className="sd-td sd-td-oc" role="cell">
+                    <Pictograma categoria="reclamacao" tamanho={16} titulo="Reclamação" />
+                    <div className="sd-texto">
+                      <span className="sd-nome-linha">
+                        <span className="sd-nome" title={info.tipo}>{info.tipo}</span>
+                        {respondidas.has(r.rawId) && <span className="sd-tag sd-tag-ok">Respondida</span>}
+                      </span>
+                      <span className="sd-detalhe" title={info.texto}>{info.texto || 'Sem descrição'}</span>
                     </div>
-                    <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: 4 }}>
-                      {occ.subtitle} · {occ.categoryLabel || occ.category}
-                    </div>
-                  </td>
-                  <td><SetorBadge setor={occ.setor} /></td>
-                  <td>
-                    <span className={`badge-pill ${classeStatus(occ.status)}`}>
-                      {occ.status === 'Resolvida' ? 'Concluída' : occ.status}
-                    </span>
-                  </td>
-                  <td>
-                    <div className="time-open"><Clock size={12} /> {occ.timeOpen}</div>
-                  </td>
-                  <td>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-                      {occ.responsible
-                        ? <ResponsavelChip name={occ.responsible} />
-                        : <span style={{ fontSize: '0.78rem', color: '#94a3b8' }}>Sem responsável</span>}
-                      <button
-                        onClick={() => onGerenciar(occ.id)}
-                        className="btn-hab ps-btn-gerenciar"
-                      >
-                        Gerenciar
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                  </div>
+                  <div className="sd-td sd-td-unidade" role="cell">{unidade}</div>
+                  <div className="sd-td sd-td-data" role="cell">{info.quando || r.data}</div>
+                  <div className="sd-td sd-td-acao" role="cell">
+                    <button type="button" className="sd-btn" onClick={() => onAbrirReclamacao(r)}>Responder</button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )
       )}
-
-      {/* Aba Reclamações */}
-      {abaAtiva === 'reclamacoes' && (
-        <div className="ps-table-wrapper">
-          <table className="ps-table-modern" style={{ tableLayout: 'fixed', width: '100%' }}>
-            <colgroup>
-              <col style={{ width: '35%' }} />
-              <col style={{ width: '25%' }} />
-              <col style={{ width: '18%' }} />
-              <col style={{ width: '22%' }} />
-            </colgroup>
-            <thead>
-              <tr>
-                <th>Descrição</th>
-                <th>Local denunciado</th>
-                <th>Data</th>
-                <th>Ação</th>
-              </tr>
-            </thead>
-            <tbody>
-              {reclamacoes.length === 0 ? (
-                <tr>
-                  <td colSpan={4} style={{ textAlign: 'center', padding: '2rem', color: '#94a3b8', fontSize: '0.85rem' }}>
-                    Nenhuma reclamação registrada
-                  </td>
-                </tr>
-              ) : reclamacoes.map(rec => {
-                const foiRespondida = respondidas.has(rec.rawId);
-                return (
-                <tr
-                  key={rec.id}
-                  onClick={() => onAbrirReclamacao(rec)}
-                  style={{
-                    cursor: 'pointer',
-                    background: foiRespondida ? 'white' : '#fdf4ff',
-                    opacity: foiRespondida ? 0.75 : 1,
-                  }}
-                >
-                  <td>
-                    <div style={{ fontWeight: 600, color: '#1e293b', fontSize: '0.85rem' }}>
-                      Reclamação particular
-                    </div>
-                    <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: 4, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-                      {rec.descricao || 'Sem descrição'}
-                    </div>
-                  </td>
-                  <td>
-                    {/* Registros antigos tinham bloco_denunciado = 'Ver unidade' (bug corrigido).
-                        Se for esse valor ou nulo, mostra só o apartamento sem o bloco. */}
-                    {(() => {
-                      const blocoValido = rec.bloco_denunciado && rec.bloco_denunciado !== 'Ver unidade';
-                      const apt = rec.apartamento_denunciado || '—';
-                      return blocoValido ? (
-                        <>
-                          <div style={{ fontWeight:600, color:'#0f172a', fontSize:'0.85rem' }}>Bloco {rec.bloco_denunciado}</div>
-                          <div style={{ fontSize:'0.75rem', color:'#64748b', marginTop:2 }}>Apt {apt}</div>
-                        </>
-                      ) : (
-                        <div style={{ fontWeight:600, color:'#0f172a', fontSize:'0.85rem' }}>Apt {apt}</div>
-                      );
-                    })()}
-                  </td>
-                  <td>
-                    <div className="time-open"><Clock size={12} /> {rec.timeOpen}</div>
-                  </td>
-                  <td>
-                    <span style={{ fontSize: '0.75rem', color: '#7e22ce', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}>
-                      <ShieldAlert size={13} /> Ver e responder
-                    </span>
-                  </td>
-                </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      )}
-
-      <div style={{ padding: '0.75rem 1.5rem', borderTop: '1px solid #e2e8f0', display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
-        <button style={{ padding: '0.25rem 0.75rem', background: 'white', border: '1px solid #cbd5e1', borderRadius: 6, cursor: 'pointer', fontSize: '0.8rem' }}>Anterior</button>
-        <button style={{ padding: '0.25rem 0.75rem', background: 'white', border: '1px solid #cbd5e1', borderRadius: 6, cursor: 'pointer', fontSize: '0.8rem' }}>Próxima</button>
-      </div>
-    </div>
+    </Cartao>
   );
 };
 
@@ -612,18 +497,18 @@ const PainelSindico = () => {
   const { currentUser } = useAuth();
   const navigate = useNavigate();
 
-  const [occurrencesList, setOccurrencesList] = useState([]);
+  const [ocorrenciasLista, setOcorrenciasLista] = useState([]);
   const [funcionarios,    setFuncionarios]    = useState([]);
-  const [kpis,            setKpis]            = useState(kpiData);
-  const [statusChart,     setStatusChart]     = useState(dataStatus);
   const [ocsReais,        setOcsReais]        = useState([]);
   const [gerenciando,     setGerenciando]     = useState(null);
+  const [equipeToda,      setEquipeToda]      = useState(false);
 
   const [carga, setCarga] = useState('carregando'); // 'carregando' | 'ok' | 'erro'
   const evolucao        = React.useMemo(() => calcularEvolucao(ocsReais), [ocsReais]);
   const categoriasReais = React.useMemo(() => calcularCategorias(ocsReais), [ocsReais]);
   const mapaCalor       = React.useMemo(() => calcularMapaCalor(ocsReais), [ocsReais]);
   const paradas         = React.useMemo(() => calcularParadas(ocsReais), [ocsReais]);
+  const emAndamento     = ocsReais.filter(o => o.status === 'Em Andamento').length;
 
   const fetchDados = React.useCallback(async () => {
     if (!currentUser?.condominio_id) return;
@@ -664,75 +549,32 @@ const PainelSindico = () => {
       abertas: abertasPorFunc[f.id] || 0,
     })));
 
-    let all = [];
-    if (occ) {
-      all = all.concat(occ.map(o => ({
-        id:            o.id,
-        isReclamacao:  false,
-        title:         o.titulo,
-        subtitle:      o.Moradores ? `Bloco ${o.Moradores.bloco} - Apt ${o.Moradores.apartamento}` : 'Área Comum',
-        category:      o.categoria || 'Outros',
-        categoryLabel: CATEGORIA_LABEL[o.categoria] || o.categoria,
-        status:        o.status || 'Aberta',
-        pessoal:       o.privacidade === 'pessoal',
-        timeOpen:      new Date(o.created_at).toLocaleDateString(),
-        responsible:   o.Funcionarios?.nome || null,
-        atribuido_a:   o.atribuido_a || null,
-        setor:         CATEGORIA_SETOR[o.categoria] || 'manutencao',
-        criado_em:     new Date(o.created_at).getTime(),
-      })));
-    }
+    const dataBR = (d) => new Date(d).toLocaleDateString('pt-BR');
+    setOcorrenciasLista((occ || []).map(o => ({
+      id:            o.id,
+      title:         o.titulo,
+      local:         placaDaOcorrencia(o, o.Moradores).valor,
+      category:      o.categoria,
+      categoryLabel: CATEGORIA_LABEL[o.categoria] || o.categoria || 'Outros',
+      status:        o.status || 'Aberta',
+      pessoal:       o.privacidade === 'pessoal',
+      data:          dataBR(o.created_at),
+      responsible:   o.Funcionarios?.nome || null,
+    })));
 
-    if (rec) {
-      all = all.concat(rec.map(r => ({
-        id:                    `r-${r.id}`,
-        rawId:                 r.id,
-        isReclamacao:          true,
-        title:                 'Reclamação Particular',
-        subtitle:              `Bloco ${r.bloco_denunciado || '?'} - Apt ${r.apartamento_denunciada || r.apartamento_denunciado || '?'}`,
-        category:              'barulho',
-        categoryLabel:         'Reclamação',
-        status:                'Aberta',
-        timeOpen:              new Date(r.created_at).toLocaleDateString(),
-        responsible:           null,
-        atribuido_a:           null,
-        setor:                 'seguranca',
-        criado_em:             new Date(r.created_at).getTime(),
-        // Dados do drawer — denunciante anônimo pro síndico, mas morador_id
-        // guardado pra poder enviar notificação de resposta
-        morador_id:            r.morador_id,
-        descricao:             r.descricao,
-        bloco_denunciado:      r.bloco_denunciado,
-        apartamento_denunciado: r.apartamento_denunciada || r.apartamento_denunciado,
-      })));
-    }
-
-    all.sort((a, b) => b.criado_em - a.criado_em);
-    setTodasReclamacoes(all.filter(x => x.isReclamacao));
-
-    if (all.length > 0) {
-      setOccurrencesList(all.slice(0, 15));
-
-      const abertas     = all.filter(x => x.status === 'Aberta').length;
-      const emAndamento = all.filter(x => x.status === 'Em Andamento').length;
-      const resolvidas  = all.filter(x => x.status === 'Resolvida').length;
-
-      setKpis({
-        abertas:   { value: abertas,      trend: 'neutral', trendValue: '' },
-        analise:   { value: emAndamento,  trend: 'neutral', trendValue: '' },
-        resolvidas:{ value: resolvidas,   trend: 'neutral', trendValue: '' },
-        total:     { value: all.length,   trend: 'neutral', trendValue: '' },
-      });
-      // Distribuição das ocorrências (sem reclamações), nas mesmas 4 etapas das placas
-      setStatusChart([
-        { name: 'Abertas',      value: (occ || []).filter(o => o.status === 'Aberta').length,       fill: STATUS_COR['Aberta'] },
-        { name: 'Em Análise',   value: (occ || []).filter(o => o.status === 'Em Análise').length,   fill: STATUS_COR['Em Análise'] },
-        { name: 'Em Andamento', value: (occ || []).filter(o => o.status === 'Em Andamento').length, fill: STATUS_COR['Em Andamento'] },
-        { name: 'Concluídas',   value: (occ || []).filter(o => o.status === 'Resolvida').length,    fill: STATUS_COR['Resolvida'] },
-      ]);
-    } else {
-      setOccurrencesList(recentOccurrences);
-    }
+    // Reclamações: o drawer usa morador_id para enviar a resposta ao morador
+    setTodasReclamacoes((rec || []).map(r => ({
+      id:                     `r-${r.id}`,
+      rawId:                  r.id,
+      isReclamacao:           true,
+      data:                   dataBR(r.created_at),
+      timeOpen:               dataBR(r.created_at),
+      morador_id:             r.morador_id,
+      Moradores:              r.Moradores, // quem registrou (só o síndico vê)
+      descricao:              r.descricao,
+      bloco_denunciado:       r.bloco_denunciado,
+      apartamento_denunciado: r.apartamento_denunciada || r.apartamento_denunciado,
+    })));
     setCarga('ok');
   }, [currentUser?.condominio_id]);
 
@@ -783,166 +625,185 @@ const PainelSindico = () => {
           ) : carga === 'carregando' ? (
             <div style={{ padding: '3rem', textAlign: 'center', color: '#94a3b8' }}>Carregando...</div>
           ) : (
-          <div className="dashboard-content-inner" style={{ maxWidth:1400, margin:'0 auto' }}>
+          <div className="dashboard-content-inner sd-pagina">
 
-            <h3 className="section-title" style={{ margin:'0 0 0.75rem' }}>Ocorrências do condomínio</h3>
-
-            {/* Placas de status: as 4 etapas, como na Visão Geral (ocorrências reais) */}
-            <div className="painel-placas">
-              {['Aberta', 'Em Análise', 'Em Andamento', 'Resolvida'].map(st => (
-                <div key={st} className="placa placa-status">
-                  <span className="placa-status-numero">{ocsReais.filter(o => o.status === st).length}</span>
-                  <span className="placa-status-sub">de {ocsReais.length} ocorrências</span>
-                  <FaixaStatus status={st} />
-                </div>
-              ))}
-            </div>
-
-            <div className="ps-main-grid">
-              {/* LEFT COLUMN */}
-              <div style={{ display:'flex', flexDirection:'column', gap:'1.5rem' }}>
-
-                <div className="ps-charts-row">
-                  <div className="ps-card">
-                    <h3 className="ps-section-title">Evolução de Ocorrências</h3>
-                    <p className="ps-section-subtitle">Abertas e concluídas por semana (últimas 8)</p>
-                    <div className="ps-chart-container">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <AreaChart data={evolucao} margin={{ top:10, right:10, left:-20, bottom:0 }}>
-                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                          <XAxis dataKey="name" tick={{ fontSize:11, fill:'#94a3b8' }} tickLine={false} axisLine={false} dy={10} />
-                          <YAxis tick={{ fontSize:11, fill:'#94a3b8' }} tickLine={false} axisLine={false} dx={-10} />
-                          <RechartsTooltip content={<CustomTooltip />} />
-                          <Area type="monotone" dataKey="abertas"    stroke="#ef4444" strokeWidth={2} fillOpacity={0.05} fill="#ef4444" activeDot={{ r:4, strokeWidth:0 }} />
-                          <Area type="monotone" dataKey="resolvidas" stroke="#10b981" strokeWidth={2} fillOpacity={0.05} fill="#10b981" activeDot={{ r:4, strokeWidth:0 }} />
-                        </AreaChart>
-                      </ResponsiveContainer>
-                    </div>
+            {/* 1. Situação geral: as 4 etapas, como na Visão Geral */}
+            <section className="sd-secao">
+              <h3 className="sd-secao-titulo">Ocorrências do condomínio</h3>
+              <div className="painel-placas sd-placas">
+                {['Aberta', 'Em Análise', 'Em Andamento', 'Resolvida'].map(st => (
+                  <div key={st} className="placa placa-status">
+                    <span className="placa-status-numero">{ocsReais.filter(o => o.status === st).length}</span>
+                    <span className="placa-status-sub">de {ocsReais.length} ocorrências</span>
+                    <FaixaStatus status={st} />
                   </div>
-                  <div className="ps-card">
-                    <h3 className="ps-section-title">Por Categoria</h3>
-                    <p className="ps-section-subtitle">Volume absoluto por tipo</p>
-                    <div className="ps-chart-container">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={categoriasReais} layout="vertical" margin={{ top:10, right:10, left:10, bottom:0 }}>
-                          <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f1f5f9" />
-                          <XAxis type="number" hide />
-                          <YAxis type="category" dataKey="name" tick={{ fontSize:11, fill:'#475569' }} tickLine={false} axisLine={false} width={80} />
-                          <RechartsTooltip cursor={{ fill:'#f8fafc' }} content={<CustomTooltip />} />
-                          <Bar dataKey="value" radius={[0,4,4,0]} barSize={16}>
-                            {categoriasReais.map((entry, i) => <Cell key={i} fill={entry.fill} />)}
-                          </Bar>
-                        </BarChart>
-                      </ResponsiveContainer>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Heatmap */}
-                <div className="ps-card">
-                  <h3 className="ps-section-title">Mapa de Calor Semanal</h3>
-                  <p className="ps-section-subtitle">Dias e horários em que as ocorrências são abertas</p>
-                  <div className="heatmap-container">
-                    <div className="heatmap-header">{heatmapTimes.map(t => <div key={t} className="heatmap-time-label">{t}</div>)}</div>
-                    {heatmapDays.map((day, dIdx) => (
-                      <div key={day} className="heatmap-row">
-                        <div className="heatmap-day-label">{day}</div>
-                        {mapaCalor.nivel[dIdx].map((val, tIdx) => (
-                          <div key={tIdx} className={`heatmap-cell hm-lvl-${val}`} title={`${mapaCalor.contagem[dIdx][tIdx]} ocorrência(s)`} />
-                        ))}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-              </div>{/* /left */}
-
-              {/* RIGHT COLUMN */}
-              <div style={{ display:'flex', flexDirection:'column', gap:'1.5rem' }}>
-
-                <div className="ps-card">
-                  <h3 className="ps-section-title">Distribuição de Status</h3>
-                  <div className="ps-chart-donut-container" style={{ height:200 }}>
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie data={statusChart} cx="50%" cy="50%" innerRadius={60} outerRadius={85} paddingAngle={2} cornerRadius={4} dataKey="value" stroke="none">
-                          {statusChart.map((entry, i) => <Cell key={i} fill={entry.fill} />)}
-                        </Pie>
-                        <RechartsTooltip content={<CustomTooltip />} />
-                      </PieChart>
-                    </ResponsiveContainer>
-                    <div className="donut-center-text" />
-                  </div>
-                  <div className="ps-legend-vertical">
-                    {statusChart.map(s => (
-                      <div key={s.name} className="legend-item-v">
-                        <div className="legend-item-v-left"><div className="legend-dot" style={{ backgroundColor:s.fill }} />{s.name}</div>
-                        <div className="legend-item-v-val">{s.value}</div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="ps-card">
-                  <h3 className="ps-section-title">Paradas há mais de 2 dias</h3>
-                  <p className="ps-section-subtitle" style={{ marginBottom:'1rem' }}>Em andamento sem conclusão</p>
-                  <div className="widget-list">
-                    {paradas.length === 0 && <p className="ps-section-subtitle">Nenhuma ocorrência parada. Tudo em dia.</p>}
-                    {paradas.map(p => (
-                      <button key={p.id} type="button" className="widget-item widget-item-botao" onClick={() => setGerenciando(p.id)}>
-                        <div className="widget-item-left">
-                          <Pictograma categoria={p.categoria} tamanho={16} />
-                          <div className="w-texts">
-                            <span className="w-title">{p.titulo}</span>
-                            <span className="w-subtitle">{CATEGORIA_LABEL[p.categoria] || 'Outros'}</span>
-                          </div>
-                        </div>
-                        <div className={p.dias >= 5 ? 'w-badge-danger' : 'w-badge-warning'}>{p.dias} dias</div>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-              </div>{/* /right */}
-            </div>
-
-            {/* Carga da equipe em largura inteira, funcionários em grade */}
-            <div className="ps-card ps-carga">
-              <h3 className="ps-section-title">Carga da Equipe</h3>
-              <p className="ps-section-subtitle" style={{ marginBottom:'1rem' }}>Tarefas em aberto por funcionário</p>
-              <div className="widget-list">
-                {funcionarios.length > 0
-                  ? [...funcionarios].sort((a, b) => b.abertas - a.abertas).map(emp => (
-                      <div key={emp.id} className="widget-item">
-                        <div className="widget-item-left">
-                          <div className="w-icon-box" style={{ background:'#f1f5f9', color:'#475569', fontSize:'0.7rem', fontWeight:700 }}>{emp.nome?.charAt(0) || 'F'}</div>
-                          <div className="w-texts">
-                            <span className="w-title">{emp.nome}</span>
-                            <span className="w-subtitle">
-                              {emp.especialidades.length > 0
-                                ? emp.especialidades.map(c => CATEGORIA_LABEL[c] || c).join(' · ')
-                                : 'Sem especialidade'}
-                            </span>
-                          </div>
-                        </div>
-                        <div className="w-right-val">{emp.abertas}</div>
-                      </div>
-                    ))
-                  : <p style={{ color:'#94a3b8', fontSize:'0.85rem', margin:0 }}>Nenhum funcionário ativo cadastrado.</p>
-                }
+                ))}
               </div>
-            </div>
+            </section>
 
-            {/* Registros recentes ocupam a largura inteira: cada coluna com seu espaço */}
-            <div className="ps-registros">
-              <TabelaComAbas
-                ocorrencias={occurrencesList.filter(o => !o.isReclamacao)}
-                reclamacoes={occurrencesList.filter(o => o.isReclamacao)}
+            {/* 2. O que precisa do síndico agora: dois cartões de mesma altura, linhas alinhadas */}
+            <section className="sd-secao">
+              <h3 className="sd-secao-titulo">Precisa de atenção</h3>
+              <div className="sd-duas">
+                <Cartao
+                  titulo="Em andamento há mais de 2 dias"
+                  sub="Começaram e ainda não foram concluídas"
+                  extra={<span className={`sd-contador${paradas.length ? ' sd-contador-alerta' : ''}`}>{paradas.length}</span>}
+                  pe={paradas.length > 0 && (
+                    <>
+                      <span className="sd-pe-info">{paradas.length > LIMITE_LISTA ? `Mostrando ${LIMITE_LISTA} de ${paradas.length}` : ''}</span>
+                      <button type="button" className="sd-link" onClick={() => navigate('/andamento-prolongado')}>Ver todas <ChevronRight size={15} /></button>
+                    </>
+                  )}
+                >
+                  {paradas.length === 0 ? (
+                    <Vazio icone={CheckCircle2} titulo="Nada parado" texto="Nenhuma ocorrência em andamento há mais de 2 dias." />
+                  ) : (
+                    <ul className="sd-lista">
+                      {paradas.slice(0, LIMITE_LISTA).map(p => (
+                        <li key={p.id}>
+                          <button type="button" className="sd-linha sd-linha-botao" onClick={() => setGerenciando(p.id)}>
+                            <Pictograma categoria={p.categoria} tamanho={16} titulo={CATEGORIA_LABEL[p.categoria] || 'Outros'} />
+                            <span className="sd-texto">
+                              <span className="sd-nome" title={p.titulo}>{p.titulo}</span>
+                              <span className="sd-detalhe" title={p.responsavel}>
+                                {p.responsavel ? `Com ${p.responsavel}` : 'Sem responsável'} · {CATEGORIA_LABEL[p.categoria] || 'Outros'}
+                              </span>
+                            </span>
+                            <span className={`sd-dias${p.dias >= 5 ? ' sd-dias-grave' : ''}`}>{p.dias} dias</span>
+                          </button>
+                        </li>
+                      ))}
+                      {paradas.length < LIMITE_LISTA && (
+                        <li className="sd-nota">
+                          {emAndamento - paradas.length > 0
+                            ? `As outras ${emAndamento - paradas.length} em andamento estão dentro do prazo.`
+                            : 'Não há outras ocorrências em andamento.'}
+                        </li>
+                      )}
+                    </ul>
+                  )}
+                </Cartao>
+
+                <Cartao
+                  titulo="Carga da equipe"
+                  sub="Tarefas em aberto atribuídas a cada funcionário"
+                  extra={<span className="sd-contador">{funcionarios.length}</span>}
+                  pe={funcionarios.length > LIMITE_LISTA && (
+                    <>
+                      <span className="sd-pe-info">{equipeToda ? '' : `Mostrando ${LIMITE_LISTA} de ${funcionarios.length}`}</span>
+                      <button type="button" className="sd-link" onClick={() => setEquipeToda(v => !v)}>
+                        {equipeToda ? 'Mostrar menos' : 'Ver equipe toda'} <ChevronRight size={15} className={equipeToda ? 'sd-sobe' : 'sd-desce'} />
+                      </button>
+                    </>
+                  )}
+                >
+                  {funcionarios.length === 0 ? (
+                    <Vazio icone={Users} titulo="Nenhum funcionário ativo" texto="O Master cadastra a equipe em Funcionários." />
+                  ) : (
+                    <ul className="sd-lista">
+                      {[...funcionarios]
+                        .sort((a, b) => b.abertas - a.abertas || a.nome.localeCompare(b.nome))
+                        .slice(0, equipeToda ? undefined : LIMITE_LISTA)
+                        .map(emp => {
+                          const esp = emp.especialidades.length ? emp.especialidades.map(c => CATEGORIA_LABEL[c] || c).join(' · ') : 'Sem especialidade';
+                          return (
+                            <li key={emp.id} className="sd-linha">
+                              <span className="sd-avatar" aria-hidden="true">{iniciais(emp.nome)}</span>
+                              <span className="sd-texto">
+                                <span className="sd-nome" title={emp.nome}>{emp.nome}</span>
+                                <span className="sd-detalhe" title={esp}>{esp}</span>
+                              </span>
+                              <span className={`sd-carga${emp.abertas === 0 ? ' sd-carga-zero' : ''}`}>
+                                <strong>{emp.abertas}</strong>
+                                <small>{emp.abertas === 1 ? 'tarefa' : 'tarefas'}</small>
+                              </span>
+                            </li>
+                          );
+                        })}
+                    </ul>
+                  )}
+                </Cartao>
+              </div>
+            </section>
+
+            {/* 3. Registros recentes em largura inteira */}
+            <section className="sd-secao">
+              <h3 className="sd-secao-titulo">Registros recentes</h3>
+              <RegistrosRecentes
+                ocorrencias={ocorrenciasLista}
+                reclamacoes={todasReclamacoes}
                 onGerenciar={setGerenciando}
                 onAbrirReclamacao={setReclamacaoAberta}
                 respondidas={respondidas}
+                onVerMural={() => navigate('/feed')}
               />
-            </div>
+            </section>
+
+            {/* 4. Indicadores (a distribuição por status já está nas placas do topo) */}
+            <section className="sd-secao">
+              <h3 className="sd-secao-titulo">Indicadores</h3>
+              <div className="sd-duas">
+                <Cartao
+                  titulo="Evolução por semana"
+                  sub="Ocorrências abertas e concluídas nas últimas 8 semanas"
+                >
+                  <span className="sd-legenda">
+                    <span><i style={{ background: STATUS_COR['Aberta'] }} />Abertas</span>
+                    <span><i style={{ background: STATUS_COR['Resolvida'] }} />Concluídas</span>
+                  </span>
+                  <div className="sd-grafico">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart data={evolucao} margin={{ top: 8, right: 8, left: -24, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
+                        <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#6b7079' }} tickLine={false} axisLine={false} dy={8} />
+                        <YAxis allowDecimals={false} tick={{ fontSize: 11, fill: '#6b7079' }} tickLine={false} axisLine={false} />
+                        <RechartsTooltip content={<CustomTooltip />} />
+                        <Area type="monotone" dataKey="abertas" name="Abertas" stroke={STATUS_COR['Aberta']} strokeWidth={2} fillOpacity={0.06} fill={STATUS_COR['Aberta']} activeDot={{ r: 4, strokeWidth: 0 }} />
+                        <Area type="monotone" dataKey="resolvidas" name="Concluídas" stroke={STATUS_COR['Resolvida']} strokeWidth={2} fillOpacity={0.06} fill={STATUS_COR['Resolvida']} activeDot={{ r: 4, strokeWidth: 0 }} />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
+                </Cartao>
+
+                <Cartao titulo="Por categoria" sub="Total de ocorrências por tipo">
+                  {categoriasReais.length === 0 ? <Vazio icone={BarChart3} titulo="Sem ocorrências ainda" /> : (
+                    <ul className="sd-barras">
+                      {categoriasReais.map(c => (
+                        <li key={c.name}>
+                          <span className="sd-barra-nome" title={c.name}>{c.name}</span>
+                          <span className="sd-barra-trilho"><span className="sd-barra" style={{ width: `${(c.value / categoriasReais[0].value) * 100}%` }} /></span>
+                          <span className="sd-barra-valor">{c.value}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </Cartao>
+              </div>
+
+              <Cartao className="sd-calor" titulo="Mapa de calor da semana" sub="Dias e horários em que as ocorrências costumam ser abertas"
+                extra={(
+                  <span className="sd-escala" aria-hidden="true">
+                    Menos {[0, 1, 2, 3, 4].map(n => <i key={n} className={`hm-lvl-${n}`} />)} Mais
+                  </span>
+                )}
+              >
+                <div className="sd-calor-rolagem">
+                  <div className="sd-calor-grade">
+                    <span />
+                    {heatmapTimes.map(t => <span key={t} className="sd-calor-hora">{t}</span>)}
+                    {heatmapDays.map((day, dIdx) => (
+                      <React.Fragment key={day}>
+                        <span className="sd-calor-dia">{day}</span>
+                        {mapaCalor.nivel[dIdx].map((val, tIdx) => (
+                          <span key={tIdx} className={`sd-calor-celula hm-lvl-${val}`} title={`${day}, ${heatmapTimes[tIdx]}: ${mapaCalor.contagem[dIdx][tIdx]} ocorrência(s)`} />
+                        ))}
+                      </React.Fragment>
+                    ))}
+                  </div>
+                </div>
+              </Cartao>
+            </section>
           </div>
           )}
         </div>

@@ -677,3 +677,94 @@ button.placa { font: inherit; text-align: left; padding: 0; color: inherit; widt
 .ps-carga { margin-top: 1.5rem; }
 .ps-carga .widget-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 0.6rem; }
 .ps-carga .widget-item { margin: 0; }
+
+/* ════════════════ Mural: cartão de tamanho fixo (pedido do dono, 26/10) ════════════════
+   Todo cartão tem a medida do caso máximo (foto + descrição de 2 linhas + "Em andamento"
+   + pronunciamento). Cada parte tem um espaço fixo, que fica vazio quando não há conteúdo,
+   então as partes ficam na mesma altura em todos os cartões. Texto que não cabe termina
+   em "…"; o botão "Detalhes" abre tudo numa janela. */
+:root .feed-placa .placa-valor-longo { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; -webkit-line-clamp: unset; }
+:root .feed-placa .placa-titulo { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; -webkit-line-clamp: unset; }
+:root .feed-placa .feed-descricao {
+  height: calc(2 * 1.5em); min-height: 0; margin: 0;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  white-space: normal;
+}
+:root .feed-placa .placa-corpo .feed-descricao + .placa-meta { margin-top: 0.5rem; }
+:root .feed-placa .placa-meta { flex-wrap: nowrap; overflow: hidden; white-space: nowrap; }
+:root .feed-placa .placa-meta > span { flex-shrink: 0; }
+:root .feed-placa .placa-meta > span:last-child { flex-shrink: 1; min-width: 0; display: block; overflow: hidden; text-overflow: ellipsis; }
+:root .feed-placa .feed-atribuicao { height: 1.35rem; margin: 0.2rem 0 0; white-space: nowrap; overflow: hidden; }
+:root .feed-placa .feed-atribuicao > span { overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+:root .feed-placa .feed-atribuicao svg { flex-shrink: 0; }
+:root .feed-placa .feed-anexos { height: 72px; margin-top: 0.4rem; display: flex; flex-wrap: nowrap; gap: 0.45rem; overflow: hidden; }
+:root .feed-placa .feed-anexo-botao { position: relative; flex-shrink: 0; }
+:root .feed-placa .feed-anexo-thumb { width: 72px; height: 72px; }
+.feed-anexo-mais {
+  position: absolute; inset: 0; display: grid; place-items: center; border-radius: var(--hab-raio-p);
+  background: rgba(18, 20, 23, 0.6); color: #fff; font: 700 0.95rem var(--hab-fonte-titulo); pointer-events: none;
+}
+
+/* Andamento/conclusão: espaço fixo (vazio quando não há) */
+.feed-placa .feed-slot-atu { height: 5.75rem; margin: 0 0.95rem 0.6rem; }
+.feed-placa .feed-slot-atu > .atu { height: 100%; box-sizing: border-box; overflow: hidden; margin: 0; }
+.atu-compacto .atu-rotulo { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
+.atu-compacto .atu-rotulo svg { display: inline-block; vertical-align: -2px; margin-right: 0.3rem; }
+.atu-compacto .atu-texto { white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.atu-compacto.atu-concluida { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: auto 1fr; column-gap: 0.7rem; row-gap: 0.35rem; }
+.atu-compacto.atu-concluida .atu-rotulo { grid-column: 1; }
+.atu-compacto.atu-concluida .atu-texto { grid-column: 1; }
+.atu-compacto .atu-fotos { grid-column: 2; grid-row: 1 / span 2; align-self: center; flex-wrap: nowrap; margin: 0; }
+.atu-compacto .atu-fotos .img-zoom { position: relative; }
+.atu-compacto .atu-fotos img, .atu-compacto .atu-foto-carregando { width: 56px; height: 56px; }
+.atu-fotos-mais {
+  position: absolute; inset: 0; display: grid; place-items: center; border-radius: 0.55rem;
+  background: rgba(18, 20, 23, 0.6); color: #fff; font: 700 0.85rem var(--hab-fonte-titulo); pointer-events: none;
+}
+
+/* Pronunciamento: espaço fixo; vazio mostra só o rótulo (e o botão do síndico) */
+:root .feed-placa > .feed-pronunciamento {
+  height: 7.6rem; box-sizing: border-box; overflow: hidden; min-height: 0;
+  margin: 0 0.95rem 0.85rem; padding: 0.6rem 0.75rem; gap: 0.3rem;
+  border: 1px solid transparent;
+}
+:root .feed-placa > .feed-pronunciamento:not(.tem-texto) { border: 1px dashed var(--hab-linha); background: none; padding: 0.6rem 0.75rem; }
+:root .feed-placa > .feed-pronunciamento.editando { height: auto; overflow: visible; }
+:root .feed-placa .feed-pron-header { min-height: 32px; }
+:root .feed-placa .feed-pron-texto { white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+:root .feed-placa .feed-pron-data { margin-top: auto; }
+
+/* Ações: comentários à esquerda; Detalhes + Gerenciar à direita */
+.feed-acoes-direita { display: inline-flex; align-items: center; gap: 0.5rem; }
+.feed-detalhes {
+  display: inline-flex; align-items: center; gap: 0.35rem; min-height: 40px; padding: 0 0.8rem;
+  border: 1px solid var(--hab-linha); border-radius: var(--hab-raio-p); background: var(--hab-placa);
+  font: 600 0.85rem var(--hab-fonte-titulo); color: var(--hab-tinta); cursor: pointer; white-space: nowrap;
+  transition: border-color 0.14s var(--hab-ease), transform 0.12s var(--hab-ease);
+}
+.feed-detalhes:hover { border-color: var(--hab-tinta); }
+.feed-detalhes:active { transform: scale(0.97); }
+
+/* Janela de detalhes */
+.feed-anexos-janela { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0.25rem 0 0.75rem; }
+.feed-anexos-janela .feed-anexo-thumb { width: 84px; height: 84px; }
+.feed-pron-janela { margin-top: 0.75rem; }
+.feed-pron-texto-inteiro { white-space: pre-wrap; }
+/* Celular: ações do cartão numa linha só */
+:root .feed-placa .feed-placa-acoes { flex-wrap: nowrap; gap: 0.5rem; }
+@media (max-width: 480px) {
+  .feed-detalhes { padding: 0 0.7rem; }
+  .feed-detalhes-texto { display: none; }
+  :root .feed-placa .feed-pronunciamento:not(.tem-texto) .feed-pron-label::after { display: none; }
+}
+/* Lugares reservados (vazios): moldura tracejada, como o pronunciamento — nunca um buraco em branco */
+.feed-anexos-vazio {
+  flex: 1; display: flex; align-items: center; justify-content: center; gap: 0.45rem;
+  border: 1px dashed var(--hab-linha); border-radius: var(--hab-raio-p);
+  color: var(--hab-texto-3); font-size: 0.8rem;
+}
+.atu.atu-vazio { background: none; border: 1px dashed var(--hab-linha); }
+.atu-vazio .atu-rotulo { color: var(--hab-texto-3); font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
+.atu-vazio .atu-texto { color: var(--hab-texto-3); font-size: 0.8rem; }
+.feed-atribuicao-vazia { display: inline-flex; align-items: center; gap: 0.35rem; color: var(--hab-texto-3); }
+.feed-descricao-vazia { color: var(--hab-texto-3); font-style: italic; }

@@ -195,3 +195,11 @@
 .rc-card-rodape .rc-para { flex: 1; min-width: 0; align-items: flex-start; }
 .rc-card-rodape .rc-para svg { flex-shrink: 0; margin-top: 2px; }
 .rc-card-rodape .rc-para > span { display: inline; line-height: 1.45; }
+
+/* Selo de recado encerrado (quem enviou deixou de ser síndico) */
+.rc-encerrado {
+  display: inline-flex; align-items: center; gap: 0.25rem; vertical-align: middle;
+  margin-left: 0.4rem; padding: 0.1rem 0.45rem; border-radius: 999px;
+  background: #edeef0; color: #464c56; font: 700 0.66rem var(--hab-fonte, inherit);
+  letter-spacing: 0.04em; text-transform: uppercase; white-space: nowrap;
+}

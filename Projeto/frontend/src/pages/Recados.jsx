@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import ErroCarregamento from '../components/ErroCarregamento';
-import { Menu, Mail, Plus, Users, UserCheck, Trash2, Loader2, MessageSquareReply, Send, Inbox } from 'lucide-react';
+import { Menu, Mail, Plus, Users, UserCheck, Trash2, Loader2, MessageSquareReply, Send, Inbox, Lock } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import NotificationMenu from '../components/NotificationMenu';
@@ -57,7 +57,7 @@ const Recados = () => {
     const [{ data, error }, funcs] = await Promise.all([
       supabase
         .from('recados')
-        .select('id, titulo, texto, para_todos, autor_nome, created_at, recado_destinatarios(funcionario_id), recado_respostas(count)')
+        .select('id, titulo, texto, para_todos, autor_nome, created_at, encerrado_em, encerrado_motivo, recado_destinatarios(funcionario_id), recado_respostas(count)')
         .order('created_at', { ascending: false }),
       supabase.from('Funcionarios').select('id, nome, foto, status').eq('condominio_id', condominioId).order('nome'),
     ]);
@@ -208,6 +208,7 @@ const Recados = () => {
                       <div className="rc-card-titulos">
                         <h3>
                           {r.titulo}
+                          {r.encerrado_em && <span className="rc-encerrado" title={r.encerrado_motivo || ''}><Lock size={11} /> Encerrado</span>}
                           {naoLidos[r.id] > 0 && (
                             <span className="rc-novas">{naoLidos[r.id]} {naoLidos[r.id] === 1 ? 'nova' : 'novas'}</span>
                           )}
@@ -251,6 +252,7 @@ const Recados = () => {
             recadoId={abertoAtual.id}
             onRespondido={() => contarResposta(abertoAtual.id)}
             onCarregado={() => marcarRecadoLido(abertoAtual.id)}
+            encerrado={abertoAtual.encerrado_em ? (abertoAtual.encerrado_motivo || 'quem enviou deixou de ser síndico') : null}
           />
         </Janela>
       )}
