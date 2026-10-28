@@ -41,6 +41,7 @@ import ConversaOcorrencia from '../components/ConversaOcorrencia';
 import Janela from '../components/Janela';
 import { carregarNomes, assinarEvidencias } from '../services/ocorrenciaService';
 import { protocoloOcorrencia, protocoloReclamacao } from '../utils/protocolo';
+import { lerReclamacao } from '../utils/reclamacao';
 import './Dashboard.css';
 import './MinhasSolicitacoes.css';
 
@@ -89,6 +90,8 @@ const MinhasSolicitacoes = () => {
       case 'Em Análise': return 'ms-status-yellow st-analise';
       case 'Em Andamento': return 'ms-status-yellow st-andamento';
       case 'Resolvida': return 'ms-status-green st-resolvida';
+      case 'Respondida': return 'ms-status-green st-resolvida';
+      case 'Aguardando resposta': return 'ms-status-red st-aberta';
       default: return '';
     }
   };
@@ -147,10 +150,14 @@ const MinhasSolicitacoes = () => {
           rawId: r.id,
           tipo: 'reclamacao',
           protocol: protocoloReclamacao(r.id, r.created_at),
-          title: 'Reclamação Particular',
-          description: r.descricao,
+          title: lerReclamacao(r.descricao).tipo,
+          description: lerReclamacao(r.descricao).texto,
           category: 'reclamacao',
-          status: r.status || 'Aberta',
+          // Reclamação não tem as etapas da ocorrência: só espera resposta ou foi respondida
+          status: r.respondida_em ? 'Respondida' : 'Aguardando resposta',
+          resposta: r.resposta,
+          respondidaEm: r.respondida_em,
+          respondidaPor: r.respondida_por_nome,
           date: new Date(r.created_at).toLocaleDateString(),
           time: new Date(r.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
           author: currentUser.name,
@@ -426,7 +433,14 @@ const MinhasSolicitacoes = () => {
                           <span className="ms-acompanhar">Acompanhar <ArrowRight size={14} /></span>
                         </div>
                       </div>
-                      <FaixaStatus status={req.status} protocolo={req.protocol} />
+                      {ehReclamacao ? (
+                        <div className={`placa-faixa ${req.respondidaEm ? 'st-resolvida' : 'st-aberta'}`}>
+                          <span className="placa-faixa-status">{req.status}</span>
+                          <span className="placa-faixa-protocolo">{req.protocol}</span>
+                        </div>
+                      ) : (
+                        <FaixaStatus status={req.status} protocolo={req.protocol} />
+                      )}
                     </button>
                   );
                 })}
@@ -459,6 +473,20 @@ const MinhasSolicitacoes = () => {
             </span>
 
             {selectedRequest.tipo === 'ocorrencia' && renderModalTimeline(selectedRequest)}
+
+            {selectedRequest.tipo === 'reclamacao' && (
+              <p style={{ fontSize: '0.82rem', color: '#6b7079', margin: '0.75rem 0 0' }}>
+                Só o síndico vê esta reclamação, e ele sabe que foi você quem a registrou. A unidade reclamada não é avisada pelo app.
+              </p>
+            )}
+            {selectedRequest.tipo === 'reclamacao' && selectedRequest.resposta && (
+              <div style={{ marginTop: '1rem', padding: '0.85rem 1rem', borderRadius: 10, background: '#ecfdf5', border: '1px solid #a7f3d0' }}>
+                <strong style={{ display: 'block', fontSize: '0.78rem', color: '#047857', marginBottom: 4 }}>
+                  Resposta do síndico{selectedRequest.respondidaPor ? ` (${selectedRequest.respondidaPor})` : ''} · {new Date(selectedRequest.respondidaEm).toLocaleDateString('pt-BR')}
+                </strong>
+                <p style={{ margin: 0, fontSize: '0.9rem', color: '#121417', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{selectedRequest.resposta}</p>
+              </div>
+            )}
 
             {selectedRequest.description && (
               <p style={{ fontSize: '0.9rem', color: '#475569', lineHeight: 1.6, marginTop: '1rem' }}>

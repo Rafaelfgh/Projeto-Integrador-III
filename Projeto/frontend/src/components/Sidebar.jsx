@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-  LayoutDashboard, FileEdit, FileWarning, Activity, ClipboardList, Building, BarChart, LogOut, Settings, Users, PenTool, Shield, UserPlus, Package, Clock, ShieldCheck, Map, MessageSquare, Calendar, Star, Vote, CheckSquare, FileText, CheckCircle2, ChevronRight, Home, Hourglass, AlarmClock, Megaphone, ScanSearch, Mail, Layers, Menu, Plus
+  LayoutDashboard, FileEdit, FileWarning, Activity, ClipboardList, Building, BarChart, LogOut, Settings, Users, PenTool, Shield, UserPlus, Package, Clock, ShieldCheck, Map, MessageSquare, Calendar, Star, Vote, CheckSquare, FileText, CheckCircle2, ChevronRight, Home, Hourglass, AlarmClock, Gavel, Megaphone, ScanSearch, Mail, Layers, Menu, Plus
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -100,6 +100,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
                 {navItem('/feed', Activity, 'Mural de Ocorrências', '')}
                 {navItem('/avisos', Megaphone, 'Mural de Avisos')}
                 {navItem('/solicitacoes', ClipboardList, 'Minhas Solicitações')}
+                {visualContext === 'SINDICO' && navItem('/recados', Mail, 'Recados', null, recados.total)}
               </nav>
             </div>
           )}
@@ -137,11 +138,11 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
                 </a>
                 {navItem('/ocorrencias-analise', ScanSearch, 'Ocorrências em análise', null, contadores.analise)}
                 {navItem('/ocorrencias-pessoais', Home, 'Ocorrências Pessoais', null, contadores.pessoais)}
+                {navItem('/reclamacoes', Gavel, 'Reclamações', null, contadores.reclamacoes_abertas)}
                 {navItem('/abertas-prolongadas', AlarmClock, 'Abertas +2 dias', null, contadores.abertas_paradas)}
                 {navItem('/andamento-prolongado', Hourglass, 'Em andamento +2 dias')}
                 {navItem('/ocorrencias-concluidas', CheckCircle2, 'Ocorrências Concluídas')}
                 {navItem('/funcionarios', ShieldCheck, 'Gestão de Funcionários')}
-                {navItem('/recados', Mail, 'Recados', null, recados.total)}
               </nav>
             </div>
           )}

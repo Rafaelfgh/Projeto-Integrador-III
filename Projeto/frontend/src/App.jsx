@@ -16,6 +16,7 @@ import CadastroMorador from './pages/CadastroMorador';
 import Perfil from './pages/Perfil';
 import OcorrenciasConcluidas from './pages/OcorrenciasConcluidas';
 import OcorrenciasGestao from './pages/OcorrenciasGestao';
+import ReclamacoesSindico from './pages/ReclamacoesSindico';
 import MuralAvisos from './pages/MuralAvisos';
 import PainelDev from './pages/PainelDev';
 import GestaoFuncionarios from './pages/GestaoFuncionarios';
@@ -61,6 +62,11 @@ function App() {
             <Route path="/abertas-prolongadas" element={<OcorrenciasGestao key="abertas" modo="abertas" />} />
             <Route path="/andamento-prolongado" element={<OcorrenciasGestao key="prolongadas" modo="prolongadas" />} />
             <Route path="/funcionarios" element={<GestaoFuncionarios />} />
+          </Route>
+
+          {/* Reclamações: só o síndico vê e responde */}
+          <Route element={<ProtectedRoute allowedRoles={['SINDICO']} />}>
+            <Route path="/reclamacoes" element={<ReclamacoesSindico />} />
           </Route>
 
           {/* Recados: a gestão envia, os funcionários respondem */}

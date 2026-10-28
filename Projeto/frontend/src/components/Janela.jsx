@@ -1,4 +1,5 @@
 import React, { useEffect, useId } from 'react';
+import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import './Janela.css';
 
@@ -38,7 +39,9 @@ export default function Janela({
     if (fecharAoClicarFora && !bloqueada && e.target === e.currentTarget) onFechar?.();
   };
 
-  return (
+  // Renderiza direto no <body>: se algum elemento da página tiver transform/animação,
+  // a janela "fixa" ficaria presa (e cortada) dentro dele.
+  return createPortal(
     <div className="janela-fundo" onMouseDown={clicarFora}>
       <Tag
         className={`janela janela-${largura}`}
@@ -62,6 +65,7 @@ export default function Janela({
         <div className="janela-corpo">{children}</div>
         {rodape && <footer className="janela-rodape">{rodape}</footer>}
       </Tag>
-    </div>
+    </div>,
+    document.body,
   );
 }

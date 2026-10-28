@@ -1,16 +1,41 @@
-# React + Vite
+# Habitare — Portal do Morador (web)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Sistema de gestão de condomínio: ocorrências com protocolo e status, reclamações (só o síndico vê),
+mural de avisos e eventos, recados da gestão para a equipe e painéis para síndico, Master e funcionários.
 
-Currently, two official plugins are available:
+Feito com **React 19 + Vite** no frontend e **Supabase** (Postgres, Auth, Storage, Realtime) no backend.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Como rodar
 
-## React Compiler
+Pré-requisito: [Node.js](https://nodejs.org) 20 ou mais novo.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+```bash
+cd Projeto/frontend
+npm install
+cp .env.example .env.local   # depois preencha a URL e a chave pública do Supabase
+npm run dev
+```
 
-## Expanding the ESLint configuration
+Abra o endereço que aparecer no terminal (normalmente http://localhost:5173).
+Se a porta 5173 estiver ocupada, o Vite usa a próxima livre (5174, 5175...).
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Comandos
+
+| Comando | O que faz |
+|---|---|
+| `npm run dev` | Sobe o site em modo de desenvolvimento |
+| `npm run build` | Gera a versão final em `dist/` |
+| `npm run lint` | Verifica o código com o ESLint |
+
+## Estrutura
+
+- `Projeto/frontend/src/pages` — uma tela por arquivo (com o CSS dela ao lado)
+- `Projeto/frontend/src/components` — peças reutilizadas (janelas, placas, menu…)
+- `Projeto/frontend/src/styles/habitare.css` — identidade visual (cores, botões, cartões)
+- `Projeto/supabase/migrations` — mudanças do banco, em ordem de data
+- `Projeto/supabase/functions` — Edge Function de gestão de funcionários
+
+## Perfis
+
+Dev (equipe Habitare) · Master (responsável pelo condomínio) · Síndico · Morador · Funcionário.
+Cada perfil vê um menu próprio; as permissões são garantidas no banco (RLS), não só na tela.

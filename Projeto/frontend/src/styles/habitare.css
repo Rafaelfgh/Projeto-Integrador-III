@@ -240,20 +240,21 @@ body, .dashboard-layout {
 :root :is(.btn-primary, .nc-btn-primary, .btn-saas-primary, .btn-primary-saas, .gf-btn-pri,
   .rc-btn-pri, .av-btn-pri, .dev-btn-pri, .eb-btn-pri, .janela-btn-pri, .btn-qa-primary,
   .btn-ms-new, .oc-btn-gerenciar, .pa-btn-submit, .btn-hab):not(.login-page *) {
-  background: var(--hab-laranja);
+  /* Botão principal: placa branca com filete; vira laranja só ao passar o mouse (pedido do dono, 27/10) */
+  background: var(--hab-placa);
   color: var(--hab-tinta);
-  border: 1px solid #e06a12;
+  border: 1px solid var(--hab-linha);
   border-radius: var(--hab-raio-p);
   box-shadow: none;
   font-family: var(--hab-fonte-titulo);
   font-weight: 600;
   filter: none;
-  transition: background-color 0.16s var(--hab-ease), transform 0.12s var(--hab-ease);
+  transition: background-color 0.16s var(--hab-ease), border-color 0.16s var(--hab-ease), transform 0.12s var(--hab-ease);
 }
 :root :is(.btn-primary, .nc-btn-primary, .btn-saas-primary, .btn-primary-saas, .gf-btn-pri,
   .rc-btn-pri, .av-btn-pri, .dev-btn-pri, .eb-btn-pri, .janela-btn-pri, .btn-qa-primary,
   .btn-ms-new, .oc-btn-gerenciar, .pa-btn-submit, .btn-hab):not(.login-page *):hover:not(:disabled) {
-  background: #ff8a33; transform: none; filter: none; box-shadow: none;
+  background: var(--hab-laranja); border-color: #e06a12; color: var(--hab-tinta); transform: none; filter: none; box-shadow: none;
 }
 :root :is(.btn-primary, .nc-btn-primary, .btn-saas-primary, .btn-primary-saas, .gf-btn-pri,
   .rc-btn-pri, .av-btn-pri, .dev-btn-pri, .eb-btn-pri, .janela-btn-pri, .btn-qa-primary,
@@ -274,12 +275,12 @@ body, .dashboard-layout {
   font-family: var(--hab-fonte-titulo);
   font-weight: 600;
   box-shadow: none;
-  transition: border-color 0.16s var(--hab-ease), transform 0.12s var(--hab-ease);
+  transition: background-color 0.16s var(--hab-ease), border-color 0.16s var(--hab-ease), transform 0.12s var(--hab-ease);
 }
 :root :is(.btn-secondary, .btn-outline-primary, .btn-qa-outline, .btn-qa-secondary,
   .btn-cancel-saas, .nc-btn-outline, .janela-btn-sec, .av-btn-sec, .dev-btn-sec, .eb-btn-sec,
   .go-btn-secundario):not(.login-page *):hover:not(:disabled) {
-  border-color: var(--hab-tinta); background: var(--hab-placa); transform: none;
+  border-color: #e06a12; background: var(--hab-laranja); color: var(--hab-tinta); transform: none;
 }
 :root :is(.btn-secondary, .btn-outline-primary, .janela-btn-sec, .av-btn-sec, .go-btn-secundario):active:not(:disabled) { transform: scale(0.97); }
 
@@ -385,7 +386,6 @@ body, .dashboard-layout {
 /* pronunciamento ainda vazio: uma linha discreta em vez de uma caixa */
 .feed-placa .feed-pronunciamento:not(.tem-texto) { border: 0; background: none; padding: 0; }
 .feed-placa .feed-pronunciamento:not(.tem-texto) .feed-pron-vazio { display: none; }
-.feed-placa .feed-pronunciamento:not(.tem-texto) .feed-pron-label::after { content: '· nenhum ainda'; text-transform: none; letter-spacing: 0; font-weight: 500; color: var(--hab-texto-3); margin-left: 0.2rem; }
 .feed-placa .feed-pron-header { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; }
 
 /* ════════════════ Minhas Solicitações ════════════════ */
@@ -755,7 +755,6 @@ button.placa { font: inherit; text-align: left; padding: 0; color: inherit; widt
 @media (max-width: 480px) {
   .feed-detalhes { padding: 0 0.7rem; }
   .feed-detalhes-texto { display: none; }
-  :root .feed-placa .feed-pronunciamento:not(.tem-texto) .feed-pron-label::after { display: none; }
 }
 /* Lugares reservados (vazios): moldura tracejada, como o pronunciamento — nunca um buraco em branco */
 .feed-anexos-vazio {
@@ -768,3 +767,98 @@ button.placa { font: inherit; text-align: left; padding: 0; color: inherit; widt
 .atu-vazio .atu-texto { color: var(--hab-texto-3); font-size: 0.8rem; }
 .feed-atribuicao-vazia { display: inline-flex; align-items: center; gap: 0.35rem; color: var(--hab-texto-3); }
 .feed-descricao-vazia { color: var(--hab-texto-3); font-style: italic; }
+
+/* ════════════════ Reclamações (síndico) ════════════════ */
+.rs-placa .placa-titulo { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rs-placa .rs-texto { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: calc(2 * 1.5em); white-space: normal; }
+.rs-placa .placa-meta { margin-top: 0.4rem; }
+.rs-placa .placa-meta > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rs-resposta {
+  display: flex; gap: 0.45rem; align-items: flex-start; margin: 0.6rem 0 0; padding: 0.6rem 0.75rem;
+  border-radius: var(--hab-raio-p); background: #ecfdf5; border: 1px solid #a7f3d0; color: var(--hab-tinta); font-size: 0.82rem; line-height: 1.45;
+}
+.rs-resposta svg { flex-shrink: 0; margin-top: 2px; color: #047857; }
+.rs-resposta span { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.rs-acoes { justify-content: flex-end; border-top: 1px solid var(--hab-linha); padding-top: 0.6rem; margin-top: auto; }
+.rs-responder { min-height: 40px; padding: 0 1rem; font-size: 0.85rem; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* .sd-btn vem do Dashboard do Síndico; aqui também é usado */
+.rs-acoes .sd-btn {
+  min-height: 40px; padding: 0 0.95rem; white-space: nowrap; cursor: pointer;
+  border: 1px solid var(--hab-linha); border-radius: var(--hab-raio-p); background: var(--hab-placa);
+  font: 600 0.85rem var(--hab-fonte-titulo); color: var(--hab-tinta);
+}
+.rs-acoes .sd-btn:hover { border-color: var(--hab-tinta); }
+
+/* Topo das telas de cadastro: o título acompanha o meio da palavra "Habitare" do logo
+   (o desenho do logo tem a palavra mais baixa que o prédio; sem isso o título parece subido) */
+.nc-topbar-esquerda .nc-title { position: relative; top: 3px; }
+
+/* Mural: caixinhas de andamento e pronunciamento com a mesma tipografia e os mesmos cinzas */
+:root .feed-placa .feed-pronunciamento:not(.tem-texto) .feed-pron-label,
+:root .feed-placa .atu-vazio .atu-rotulo { color: var(--hab-texto-3); }
+:root .feed-placa .feed-pron-label,
+:root .feed-placa .atu-rotulo { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em; }
+:root .feed-placa .feed-pron-texto,
+:root .feed-placa .atu-texto { font-size: 0.86rem; line-height: 1.5; color: var(--hab-tinta); }
+:root .feed-placa .atu-vazio .atu-texto { font-size: 0.8rem; color: var(--hab-texto-3); }
+
+/* Menu lateral: cada item em uma linha só (mesma altura para todos, com ou sem bolinha) */
+:root .sidebar .nav-item, :root .nav-list .nav-item { gap: 0.75rem; }
+:root .nav-list .nav-item > span:not(.nav-badge) { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+:root .nav-list .nav-item .nav-badge { height: 20px; min-width: 20px; line-height: 20px; flex-shrink: 0; }
+
+/* Mural: "Pronunciar-se"/"Editar" com o mesmo desenho do botão "Detalhes" */
+:root .feed-placa .feed-pron-edit {
+  display: inline-flex; align-items: center; gap: 0.35rem; min-height: 40px; padding: 0 0.8rem;
+  border: 1px solid var(--hab-linha); border-radius: var(--hab-raio-p); background: var(--hab-placa); box-shadow: none;
+  font: 600 0.85rem var(--hab-fonte-titulo); color: var(--hab-tinta); cursor: pointer; white-space: nowrap;
+  transition: border-color 0.14s var(--hab-ease), transform 0.12s var(--hab-ease);
+}
+:root .feed-placa .feed-pron-edit:hover { border-color: var(--hab-tinta); }
+:root .feed-placa .feed-pron-edit:active { transform: scale(0.97); }
+:root .feed-placa .feed-pron-edit svg { width: 14px; height: 14px; }
+:root .feed-placa > .feed-pronunciamento { height: 8rem; }
+/* Mesmo comportamento dos botões principais: brancos, laranja ao passar o mouse */
+:root :is(.feed-detalhes, .feed-placa .feed-pron-edit, .sd-btn, .rs-acoes .sd-btn) { transition: background-color 0.16s var(--hab-ease), border-color 0.16s var(--hab-ease), transform 0.12s var(--hab-ease); }
+:root :is(.feed-detalhes, .feed-placa .feed-pron-edit, .sd-btn, .rs-acoes .sd-btn):hover:not(:disabled) { background: var(--hab-laranja); border-color: #e06a12; color: var(--hab-tinta); }
+/* Gestão de Funcionários: Ficha/Especialidades seguem o padrão (o "Remover" continua vermelho) */
+:root .gf-acao:not(.gf-acao-perigo) { transition: background-color 0.16s var(--hab-ease), border-color 0.16s var(--hab-ease); }
+:root .gf-acao:not(.gf-acao-perigo):hover { background: var(--hab-laranja); border-color: #e06a12; color: var(--hab-tinta); }
+
+/* Mural: botões do cartão menores (pedido do dono — o cartão estava poluído) */
+:root .feed-placa :is(.feed-detalhes, .feed-gerenciar, .feed-pron-edit) {
+  min-height: 32px; height: 32px; padding: 0 0.65rem !important; font-size: 0.78rem !important; gap: 0.3rem; border-radius: 7px;
+}
+:root .feed-placa :is(.feed-detalhes, .feed-pron-edit) svg { width: 13px; height: 13px; }
+:root .feed-placa .feed-comments-toggle { min-height: 32px; font-size: 0.78rem; padding: 0 0.1rem; }
+:root .feed-placa .feed-placa-acoes { padding-top: 0.5rem; padding-bottom: 0.65rem; }
+:root .feed-placa .feed-pron-header { min-height: 32px; }
+:root .feed-placa > .feed-pronunciamento { height: 7.4rem; }
+
+/* ════════════════ Filtros compactos (todas as telas com busca/filtro) — 27/10 ════════════════
+   Busca, status e data com a mesma altura (36px) e letra menor no computador.
+   No celular: 40px e letra de 16px (abaixo disso o iPhone dá zoom ao tocar no campo). */
+:root :is(.feed-search-input, .ms-search-input) {
+  height: 36px !important; padding: 0 0.85rem 0 2.25rem !important; font-size: 0.85rem !important; border-radius: var(--hab-raio-p) !important;
+}
+:root :is(.feed-search-icon, .ms-search-icon) { left: 0.75rem !important; width: 16px; height: 16px; }
+:root :is(.feed-select, .oc-filtros select, .filtro-data .saas-select, .pm-filtro-select, .pf-select) {
+  height: 36px !important; min-height: 0 !important; padding: 0 1.9rem 0 0.7rem !important; font-size: 0.85rem !important;
+  border-radius: var(--hab-raio-p) !important; background-position: right 0.55rem center !important;
+}
+:root :is(.oc-busca, .gf-busca, .dev-busca) { height: 36px; border-radius: var(--hab-raio-p); }
+:root :is(.oc-busca, .gf-busca, .dev-busca) input { height: 34px !important; font-size: 0.85rem !important; }
+:root .filtro-data-limpar { min-height: 36px !important; height: 36px; padding: 0 0.75rem !important; font-size: 0.8rem !important; }
+:root .filtro-data-rotulo { font-size: 0.8rem; }
+:root :is(.feed-filter-box, .ms-filter-box) { padding: 0.65rem 0.75rem !important; gap: 0.55rem !important; }
+:root .feed-filter-top { gap: 0.55rem !important; }
+:root :is(.ms-filter-pill, .pf-filter-btn) { min-height: 34px !important; padding: 0.3rem 0.8rem !important; font-size: 0.8rem !important; }
+@media (max-width: 640px) {
+  :root :is(.feed-search-input, .ms-search-input, .feed-select, .oc-filtros select, .filtro-data .saas-select, .pm-filtro-select, .pf-select) {
+    height: 40px !important; font-size: 16px !important;
+  }
+  :root :is(.oc-busca, .gf-busca, .dev-busca) { height: 40px; }
+  :root :is(.oc-busca, .gf-busca, .dev-busca) input { height: 38px !important; font-size: 16px !important; }
+}
+:root :is(.feed-select, .oc-filtros select, .filtro-data .saas-select, .pm-filtro-select, .pf-select, .feed-search-input, .ms-search-input) { font-family: var(--hab-fonte) !important; font-weight: 500 !important; color: var(--hab-tinta); }
+:root .btn-ms-new:not(.login-page *) { height: 36px !important; min-height: 0 !important; padding: 0 0.9rem !important; font-size: 0.85rem !important; white-space: nowrap; }

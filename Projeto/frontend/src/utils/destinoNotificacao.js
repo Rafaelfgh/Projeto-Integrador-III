@@ -40,7 +40,7 @@ export const destinoDaNotificacao = async (notificacao, papel) => {
     }
     case 'reclamacao':
       if (!id) return null;
-      return gestao && tipo === 'NOVA_RECLAMACAO' ? `/painel?reclamacao=${id}` : `/solicitacoes?reclamacaoId=${id}`;
+      return papel === 'SINDICO' && tipo === 'NOVA_RECLAMACAO' ? `/reclamacoes?reclamacao=${id}` : `/solicitacoes?reclamacaoId=${id}`;
     case 'aviso':
       return id ? `/avisos?aviso=${id}` : '/avisos';
     case 'recado':

@@ -171,8 +171,8 @@ const Reclamacao = () => {
               <div className="form-alert-info" style={{ backgroundColor:'#fffbeb', borderColor:'#fde68a' }}>
                 <AlertTriangle size={18} className="info-icon" style={{ color:'#d97706' }} />
                 <div>
-                  <h4 style={{ color:'#92400e' }}>Aviso de Sigilo</h4>
-                  <p style={{ color:'#b45309' }}>Toda reclamação sobre vizinhos é tratada com <strong>total sigilo</strong>. Não exponha incidentes no Mural. O síndico analisará as evidências formadas antes de aplicar multas ou advertências.</p>
+                  <h4 style={{ color:'#92400e' }}>Só o síndico vê sua reclamação</h4>
+                  <p style={{ color:'#b45309' }}>Ela não aparece no Mural nem para os outros moradores. O síndico vê <strong>seu nome e sua unidade</strong>, a unidade reclamada e o que você relatou, e pode te responder por notificação. Não exponha o caso no Mural.</p>
                 </div>
               </div>
 
@@ -304,7 +304,7 @@ const Reclamacao = () => {
                 <div className="form-section">
                   <div className="section-header-block">
                     <span className="section-step-badge" style={{ backgroundColor:'#fef3c7', color:'#d97706', borderColor:'#fde68a' }}>3</span>
-                    <h3 className="section-heading">Privacidade Restrita</h3>
+                    <h3 className="section-heading">Quem vê</h3>
                   </div>
                   <div className="visibility-cards-container" style={{ gridTemplateColumns:'1fr' }}>
                     <label className="visibility-card selected">
@@ -313,8 +313,8 @@ const Reclamacao = () => {
                           <span style={{ width:'0.5rem', height:'0.5rem', backgroundColor:'#f97316', borderRadius:'50%' }}></span>
                         </span>
                         <div className="visibility-text">
-                          <h5>Canal de Confiança — Apenas ao Síndico</h5>
-                          <p>Sua identidade e suas provas anexadas são mantidas sob estrito sigilo. O síndico vai processar a notificação diretamente com a outra parte sem expor você publicamente.</p>
+                          <h5>Apenas o síndico</h5>
+                          <p>O síndico recebe a reclamação com seu nome e sua unidade, além das provas anexadas. A unidade reclamada não é avisada pelo app; é o síndico quem decide como tratar o caso.</p>
                         </div>
                       </div>
                     </label>

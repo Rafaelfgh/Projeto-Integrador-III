@@ -2,11 +2,12 @@ import React, { useState } from 'react';
 import { STATUS_COR, classeStatus } from '../utils/statusOcorrencia';
 import { FaixaStatus, Pictograma } from '../components/Placa';
 import { placaDaOcorrencia } from '../utils/placa';
+import { lerReclamacao, unidadeTexto } from '../utils/reclamacao';
+import DrawerReclamacao from '../components/DrawerReclamacao';
 import ErroCarregamento from '../components/ErroCarregamento';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
-  Menu, CheckCircle2, BarChart3, X, Send, ShieldAlert,
-  MapPin, FileText, User, ChevronRight, Inbox, Users,
+  Menu, CheckCircle2, BarChart3, ShieldAlert, ChevronRight, Inbox, Users,
 } from 'lucide-react';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip,
@@ -18,7 +19,6 @@ import ContextBanner from '../components/ContextBanner';
 import NotificationMenu from '../components/NotificationMenu';
 import { supabase } from '../backend/supabaseClient';
 import GerenciarOcorrencia from '../components/GerenciarOcorrencia';
-import { contemPalavrao, MSG_PALAVRAO } from '../utils/palavroes';
 import './Dashboard.css';
 import './PainelSindico.css';
 
@@ -32,28 +32,6 @@ const CATEGORIA_LABEL = {
   'estrutural':   'Estrutural',
   'barulho':      'Barulho/Perturbação',
   'garagem':      'Garagem/Estacionamento',
-};
-
-// Tipos de reclamação (mesmos valores da tela Nova Reclamação)
-const TIPO_RECLAMACAO = {
-  barulho: 'Barulho fora do horário',
-  lixo: 'Descarte irregular de lixo',
-  estacionamento: 'Uso indevido de vaga',
-  pets: 'Problemas com pets',
-  outro: 'Outro tipo',
-};
-
-// A reclamação é gravada como texto: "Tipo de Violação: x\nData: aaaa-mm-dd\nHora: hh:mm\n\nDescrição do Morador: ..."
-const lerReclamacao = (txt = '') => {
-  const pega = (rotulo) => (String(txt).match(new RegExp(`${rotulo}:[ \\t]*(.*)`))?.[1] || '').trim();
-  const tipo = pega('Tipo de Violação');
-  const [a, m, d] = pega('Data').split('-');
-  const hora = pega('Hora');
-  return {
-    tipo: TIPO_RECLAMACAO[tipo] || (tipo ? tipo.charAt(0).toUpperCase() + tipo.slice(1) : 'Reclamação'),
-    quando: d ? `${d}/${m}/${a}${hora ? ` · ${hora}` : ''}` : '',
-    texto: (String(txt).split('Descrição do Morador:')[1] ?? txt).trim(),
-  };
 };
 
 const iniciais = (nome = '') => nome.trim().split(/\s+/).slice(0, 2).map(p => p.charAt(0).toUpperCase()).join('') || '?';
@@ -168,7 +146,7 @@ const PASSO_REGISTROS = 8;
 // ---------------------------------------------------------------------------
 // Registros recentes — ocorrências e reclamações em abas, linhas em colunas fixas
 // ---------------------------------------------------------------------------
-const RegistrosRecentes = ({ ocorrencias, reclamacoes, onGerenciar, onAbrirReclamacao, respondidas, onVerMural }) => {
+const RegistrosRecentes = ({ ocorrencias, reclamacoes, onGerenciar, onAbrirReclamacao, respondidas, onVerMural, ehMaster = false }) => {
   const [aba, setAba] = useState('ocorrencias');
   const [mostrar, setMostrar] = useState(PASSO_REGISTROS);
   const lista = aba === 'ocorrencias' ? ocorrencias : reclamacoes;
@@ -199,7 +177,7 @@ const RegistrosRecentes = ({ ocorrencias, reclamacoes, onGerenciar, onAbrirRecla
     <Cartao
       className="sd-registros"
       titulo={aba === 'ocorrencias' ? 'Ocorrências mais recentes' : 'Reclamações recebidas'}
-      sub={aba === 'ocorrencias' ? 'Do mural e pessoais, das mais novas para as mais antigas' : 'Só você vê. Abra para ler e responder ao morador.'}
+      sub={aba === 'ocorrencias' ? 'Do mural e pessoais, das mais novas para as mais antigas' : ehMaster ? 'Visíveis apenas para o síndico' : 'Só você vê. Abra para ler e responder a quem reclamou.'}
       extra={abas}
       pe={pe}
     >
@@ -244,7 +222,11 @@ const RegistrosRecentes = ({ ocorrencias, reclamacoes, onGerenciar, onAbrirRecla
           </div>
         )
       ) : (
-        reclamacoes.length === 0 ? <Vazio icone={ShieldAlert} titulo="Nenhuma reclamação recebida" /> : (
+        reclamacoes.length === 0 ? (
+          ehMaster
+            ? <Vazio icone={ShieldAlert} titulo="Reclamações são só do síndico" texto="Por decisão do condomínio, apenas o síndico vê e responde as reclamações dos moradores." />
+            : <Vazio icone={ShieldAlert} titulo="Nenhuma reclamação recebida" />
+        ) : (
           <div className="sd-tabela sd-tabela-rec" role="table">
             <div className="sd-tr sd-th" role="row">
               <span role="columnheader">Reclamação</span>
@@ -254,9 +236,7 @@ const RegistrosRecentes = ({ ocorrencias, reclamacoes, onGerenciar, onAbrirRecla
             </div>
             {visiveis.map(r => {
               const info = lerReclamacao(r.descricao);
-              const blocoValido = r.bloco_denunciado && r.bloco_denunciado !== 'Ver unidade';
-              const apto = String(r.apartamento_denunciado || '—').replace(/^ap(to|t)?\.?\s*/i, ''); // registros antigos: "AP 802"
-              const unidade = `${blocoValido ? `Bloco ${String(r.bloco_denunciado).toUpperCase()} · ` : ''}Apto ${apto}`;
+              const unidade = unidadeTexto(r.bloco_denunciado, r.apartamento_denunciado);
               return (
                 <div key={r.id} className="sd-tr" role="row">
                   <div className="sd-td sd-td-oc" role="cell">
@@ -264,7 +244,7 @@ const RegistrosRecentes = ({ ocorrencias, reclamacoes, onGerenciar, onAbrirRecla
                     <div className="sd-texto">
                       <span className="sd-nome-linha">
                         <span className="sd-nome" title={info.tipo}>{info.tipo}</span>
-                        {respondidas.has(r.rawId) && <span className="sd-tag sd-tag-ok">Respondida</span>}
+                        {(r.respondida_em || respondidas.has(r.rawId)) && <span className="sd-tag sd-tag-ok">Respondida</span>}
                       </span>
                       <span className="sd-detalhe" title={info.texto}>{info.texto || 'Sem descrição'}</span>
                     </div>
@@ -281,207 +261,6 @@ const RegistrosRecentes = ({ ocorrencias, reclamacoes, onGerenciar, onAbrirRecla
         )
       )}
     </Cartao>
-  );
-};
-
-// ---------------------------------------------------------------------------
-// DrawerReclamacao — só a gestão vê reclamações: mostra quem registrou e o local denunciado
-// (o denunciado e os demais moradores nunca veem).
-// ---------------------------------------------------------------------------
-const DrawerReclamacao = ({ reclamacao, onFechar, currentUser, onRespondida }) => {
-  const [resposta,  setResposta]  = useState('');
-  const [enviando,  setEnviando]  = useState(false);
-  const [enviado,   setEnviado]   = useState(false);
-  const [erro,      setErro]      = useState(null);
-
-  const enviarResposta = async () => {
-    if (!resposta.trim() || enviando) return;
-    setErro(null);
-    if (await contemPalavrao(resposta)) {
-      setErro(MSG_PALAVRAO);
-      return;
-    }
-    setEnviando(true);
-
-    const { error } = await supabase
-      .from('notificacoes')
-      .insert({
-        destinatario_id: reclamacao.morador_id,
-        condominio_id:   currentUser.condominio_id,
-        tipo:            'RESPOSTA_RECLAMACAO',
-        titulo:          'O síndico respondeu sua reclamação',
-        descricao:       resposta.trim(),
-        lida:            false,
-        referencia_tipo: 'reclamacao',
-        referencia_id:   String(reclamacao.rawId),
-        remetente_nome:  currentUser?.name || 'Síndico',
-      });
-
-    setEnviando(false);
-    if (error) {
-      console.error('Erro ao enviar resposta:', error);
-      setErro(error.message);
-      return;
-    }
-    setEnviado(true);
-    setResposta('');
-    onRespondida(reclamacao.rawId);
-  };
-
-  return (
-    <>
-      {/* Overlay */}
-      <div
-        onClick={onFechar}
-        style={{ position:'fixed', inset:0, background:'rgba(15,23,42,.55)', zIndex:200 }}
-      />
-
-      {/* Drawer */}
-      <div style={{
-        position:'fixed', top:0, right:0, width:480, height:'100%',
-        background:'#fff', zIndex:201, overflowY:'auto',
-        borderLeft:'1px solid #e2e8f0', display:'flex', flexDirection:'column',
-      }}>
-        {/* Header */}
-        <div style={{ padding:24, borderBottom:'1px solid #f1f5f9', background:'#fdf4ff' }}>
-          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start' }}>
-            <div style={{ display:'flex', gap:12, alignItems:'center' }}>
-              <div style={{ width:44, height:44, borderRadius:12, background:'#f3e8ff', display:'flex', alignItems:'center', justifyContent:'center' }}>
-                <ShieldAlert size={22} color="#7e22ce" />
-              </div>
-              <div>
-                <h2 style={{ margin:0, fontSize:18, color:'#0f172a', fontWeight:700 }}>Reclamação Particular</h2>
-                <p style={{ margin:'4px 0 0', fontSize:12, color:'#7e22ce', fontWeight:600 }}>
-                  Confidencial — visível só para a gestão
-                </p>
-              </div>
-            </div>
-            <button onClick={onFechar} style={{ width:36, height:36, borderRadius:12, border:'none', cursor:'pointer', background:'white' }}>
-              <X size={18} />
-            </button>
-          </div>
-        </div>
-
-        <div style={{ padding:24, flex:1, display:'flex', flexDirection:'column', gap:20 }}>
-
-          {/* Quem registrou (decisão do dono, 20/10: o síndico vê o nome) */}
-          <div style={{ background:'#fff', border:'1px solid #e2e8f0', borderRadius:14, padding:16 }}>
-            <div style={{ display:'flex', alignItems:'center', gap:8, color:'#64748b', marginBottom:10 }}>
-              <User size={15} />
-              <span style={{ fontSize:12, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.05em' }}>Registrada por</span>
-            </div>
-            <p style={{ margin:0, fontSize:15, fontWeight:700, color:'#0f172a' }}>{reclamacao.Moradores?.nome || 'Morador'}</p>
-            {reclamacao.Moradores?.bloco && (
-              <p style={{ margin:'2px 0 0', fontSize:13, color:'#64748b' }}>
-                Bloco {reclamacao.Moradores.bloco}, Apt {reclamacao.Moradores.apartamento}
-              </p>
-            )}
-          </div>
-
-          {/* Local denunciado — síndico precisa saber onde agir */}
-          <div style={{ background:'#fff', border:'1px solid #e2e8f0', borderRadius:14, padding:16 }}>
-            <div style={{ display:'flex', alignItems:'center', gap:8, color:'#64748b', marginBottom:10 }}>
-              <MapPin size={15} />
-              <span style={{ fontSize:12, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.05em' }}>Local denunciado</span>
-            </div>
-            <div style={{ display:'flex', gap:16 }}>
-              {reclamacao.bloco_denunciado && reclamacao.bloco_denunciado !== 'Ver unidade' && (
-                <div>
-                  <p style={{ margin:0, fontSize:12, color:'#94a3b8' }}>Bloco</p>
-                  <p style={{ margin:'2px 0 0', fontSize:15, fontWeight:700, color:'#0f172a' }}>
-                    {reclamacao.bloco_denunciado}
-                  </p>
-                </div>
-              )}
-              <div>
-                <p style={{ margin:0, fontSize:12, color:'#94a3b8' }}>Apartamento</p>
-                <p style={{ margin:'2px 0 0', fontSize:15, fontWeight:700, color:'#0f172a' }}>
-                  {reclamacao.apartamento_denunciado || '—'}
-                </p>
-              </div>
-              <div>
-                <p style={{ margin:0, fontSize:12, color:'#94a3b8' }}>Data</p>
-                <p style={{ margin:'2px 0 0', fontSize:13, fontWeight:600, color:'#475569' }}>
-                  {new Date(reclamacao.criado_em).toLocaleDateString('pt-BR')}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Descrição */}
-          <div>
-            <div style={{ display:'flex', alignItems:'center', gap:8, color:'#64748b', marginBottom:10 }}>
-              <FileText size={15} />
-              <span style={{ fontSize:12, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.05em' }}>Descrição</span>
-            </div>
-            <div style={{ background:'#f8fafc', borderRadius:12, padding:16, color:'#334155', fontSize:14, lineHeight:1.7 }}>
-              {reclamacao.descricao || 'Sem descrição.'}
-            </div>
-          </div>
-
-          {/* Denunciante — anônimo */}
-          <div style={{ background:'#fafafa', border:'1.5px dashed #e2e8f0', borderRadius:12, padding:14, display:'flex', alignItems:'center', gap:10 }}>
-            <div style={{ width:36, height:36, borderRadius:'50%', background:'#e2e8f0', display:'flex', alignItems:'center', justifyContent:'center' }}>
-              <User size={16} />
-            </div>
-            <div>
-              <p style={{ margin:0, fontSize:13, fontWeight:600, color:'#475569' }}>Morador anônimo</p>
-              <p style={{ margin:'2px 0 0', fontSize:12, color:'#94a3b8' }}>Identidade protegida por privacidade</p>
-            </div>
-          </div>
-
-          {/* Campo de resposta */}
-          <div style={{ flex:1, display:'flex', flexDirection:'column', gap:10 }}>
-            <div style={{ display:'flex', alignItems:'center', gap:8, color:'#64748b' }}>
-              <Send size={15} />
-              <span style={{ fontSize:12, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.05em' }}>Responder ao morador</span>
-            </div>
-            <p style={{ margin:0, fontSize:12, color:'#94a3b8' }}>
-              A resposta chegará como notificação para quem fez a reclamação, sem revelar que você sabe a identidade dele.
-            </p>
-            <textarea
-              value={resposta}
-              onChange={(e) => setResposta(e.target.value)}
-              placeholder="Escreva aqui o retorno para o morador. Ex: 'Recebemos sua reclamação e vamos tomar as medidas cabíveis...'"
-              disabled={enviado}
-              style={{
-                flex:1, minHeight:130, borderRadius:14, border:'1.5px solid #e2e8f0',
-                padding:16, resize:'none', fontFamily:'inherit', fontSize:14,
-                outline:'none', lineHeight:1.6,
-                background: enviado ? '#f0fdf4' : 'white',
-                color: enviado ? '#15803d' : '#334155',
-              }}
-            />
-
-            {erro && (
-              <p style={{ margin:0, fontSize:13, color:'#b91c1c', background:'#fef2f2', border:'1px solid #fecaca', borderRadius:10, padding:'8px 12px' }}>{erro}</p>
-            )}
-            {enviado ? (
-              <div style={{ display:'flex', alignItems:'center', gap:8, padding:'12px 16px', background:'#f0fdf4', borderRadius:12, border:'1px solid #bbf7d0' }}>
-                <CheckCircle2 size={18} color="#16a34a" />
-                <span style={{ fontSize:13, fontWeight:600, color:'#16a34a' }}>Resposta enviada com sucesso!</span>
-              </div>
-            ) : (
-              <button
-                onClick={enviarResposta}
-                disabled={!resposta.trim() || enviando}
-                style={{
-                  height:46, border:'none', borderRadius:14,
-                  background: resposta.trim() ? '#7e22ce' : '#e2e8f0',
-                  color: resposta.trim() ? 'white' : '#94a3b8',
-                  fontWeight:700, fontSize:14, cursor: resposta.trim() ? 'pointer' : 'not-allowed',
-                  display:'flex', alignItems:'center', justifyContent:'center', gap:8,
-                  transition:'all 0.2s',
-                }}
-              >
-                <Send size={16} />
-                {enviando ? 'Enviando...' : 'Enviar resposta ao morador'}
-              </button>
-            )}
-          </div>
-        </div>
-      </div>
-    </>
   );
 };
 
@@ -571,6 +350,10 @@ const PainelSindico = () => {
       timeOpen:               dataBR(r.created_at),
       morador_id:             r.morador_id,
       Moradores:              r.Moradores, // quem registrou (só o síndico vê)
+      created_at:             r.created_at,
+      resposta:               r.resposta,
+      respondida_em:          r.respondida_em,
+      respondida_por_nome:    r.respondida_por_nome,
       descricao:              r.descricao,
       bloco_denunciado:       r.bloco_denunciado,
       apartamento_denunciado: r.apartamento_denunciada || r.apartamento_denunciado,
@@ -737,6 +520,7 @@ const PainelSindico = () => {
                 onAbrirReclamacao={setReclamacaoAberta}
                 respondidas={respondidas}
                 onVerMural={() => navigate('/feed')}
+                ehMaster={currentUser?.role === 'MASTER'}
               />
             </section>
 
@@ -824,8 +608,7 @@ const PainelSindico = () => {
           key={reclamacaoMostrada.id}
           reclamacao={reclamacaoMostrada}
           onFechar={fecharReclamacao}
-          currentUser={currentUser}
-          onRespondida={(id) => setRespondidas(prev => new Set([...prev, id]))}
+          onRespondida={(id) => { setRespondidas(prev => new Set([...prev, id])); fetchDados(); }}
         />
       )}
     </div>
