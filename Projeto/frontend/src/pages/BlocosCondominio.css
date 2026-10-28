@@ -1,0 +1,66 @@
+/* Blocos do condomínio (master) */
+
+.bc-container {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 1.5rem 2rem 3rem;
+}
+
+.bc-card {
+  padding: 1.5rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.bc-card-topo {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+  margin-bottom: 1.25rem;
+}
+
+.bc-icone {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--role-primary-color) 14%, #fff);
+  color: var(--role-primary-color);
+}
+
+.bc-card-topo h3 { margin: 0; font-size: 1.05rem; color: #0f172a; }
+.bc-card-topo p { margin: 0.25rem 0 0; font-size: 0.85rem; color: #64748b; line-height: 1.45; }
+
+.bc-vazio {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 2rem 1rem;
+  color: #94a3b8;
+}
+
+.bc-aviso {
+  margin: 0 0 1rem;
+  padding: 0.75rem 0.9rem;
+  border: 1px solid #fde68a;
+  border-radius: 10px;
+  background: #fffbeb;
+  color: #92400e;
+  font-size: 0.85rem;
+}
+
+.bc-ajuda {
+  margin: 1rem 0 0;
+  font-size: 0.8rem;
+  color: #94a3b8;
+}
+
+@media (max-width: 520px) {
+  .bc-container { padding: 1rem; }
+  .bc-card { padding: 1rem; }
+}

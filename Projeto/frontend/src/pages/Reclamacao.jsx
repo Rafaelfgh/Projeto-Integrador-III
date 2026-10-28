@@ -1,0 +1,352 @@
+import React, { useState, useRef, useEffect } from 'react';
+import { 
+  FileText,
+  Settings,
+  Bell,
+  LogOut,
+  User,
+  Menu,
+  X,
+  LayoutDashboard,
+  FileEdit,
+  FileWarning,
+  ClipboardList,
+  Building,
+  UploadCloud,
+  Image as ImageIcon,
+  Film,
+  CheckCircle2,
+  Trash2,
+  AlertTriangle,
+  Home
+} from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import NotificationMenu from '../components/NotificationMenu';
+import Sidebar from '../components/Sidebar';
+import { useAuth } from '../contexts/AuthContext';
+import { supabase } from '../backend/supabaseClient';
+import { mascaraBloco, somenteNumeros, TAMANHO } from '../utils/mascaras';
+import { garantirSemPalavrao } from '../utils/palavroes';
+import { reduzirImagem } from '../utils/imagem';
+import SeletorUnidade from '../components/SeletorUnidade';
+import { VAZIO_UNIDADE, apartamentoEscolhido, descreverUnidade } from '../utils/unidades';
+import './Dashboard.css';
+import './Ocorrencia.css';
+
+const Reclamacao = () => {
+  const [sidebarOpen,  setSidebarOpen]  = useState(false);
+  const [files,        setFiles]        = useState([]);
+  const [dragActive,   setDragActive]   = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSuccess,    setIsSuccess]    = useState(false);
+  const [erroEnvio,    setErroEnvio]    = useState(null);
+  const inputRef = useRef(null);
+  const navigate = useNavigate();
+  const { currentUser } = useAuth();
+  const [blocos,       setBlocos]       = useState(null);          // blocos do condomínio (null = carregando)
+  const [unidade,      setUnidade]      = useState(VAZIO_UNIDADE); // apartamento denunciado
+
+  useEffect(() => {
+    if (!currentUser?.condominio_id) return undefined;
+    let ativo = true;
+    supabase.rpc('blocos_do_condominio', { p_condominio_id: currentUser.condominio_id })
+      .then(({ data, error }) => {
+        if (error) console.error('Erro ao carregar blocos:', error);
+        if (ativo) setBlocos(data || []);
+      });
+    return () => { ativo = false; };
+  }, [currentUser?.condominio_id]);
+
+  const handleDrag = (e) => {
+    e.preventDefault(); e.stopPropagation();
+    setDragActive(e.type === 'dragenter' || e.type === 'dragover');
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault(); e.stopPropagation();
+    setDragActive(false);
+    if (e.dataTransfer.files?.[0]) handleFiles(e.dataTransfer.files);
+  };
+
+  const handleChange = (e) => {
+    e.preventDefault();
+    if (e.target.files?.[0]) handleFiles(e.target.files);
+  };
+
+  const handleFiles = (newFiles) => {
+    const arr = Array.from(newFiles).map(file => ({
+      file, id: Math.random().toString(36).substring(7),
+      name: file.name, size: (file.size / (1024 * 1024)).toFixed(2) + ' MB', type: file.type,
+    }));
+    setFiles(prev => [...prev, ...arr]);
+  };
+
+  const removeFile = (id) => setFiles(prev => prev.filter(f => f.id !== id));
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (blocos === null) {
+      setErroEnvio('Aguarde: os blocos do condomínio ainda estão carregando.');
+      return;
+    }
+    setIsSubmitting(true);
+
+    try {
+      const formData = new FormData(e.target);
+      const tipo               = formData.get('tipo');
+      const bloco_denunciado   = formData.get('bloco_denunciado');
+      const apartamento_denunciado = formData.get('apartamento_denunciado');
+      const data_violacao      = formData.get('data_violacao');
+      const hora               = formData.get('hora_violacao');
+      const descText           = formData.get('descricao');
+      await garantirSemPalavrao(descText);
+
+      const descricaoCompleta = `Tipo de Violação: ${tipo}\nData: ${data_violacao}\nHora: ${hora}\n\nDescrição do Morador: ${descText}`;
+
+      // Upload dos anexos
+      const uploadedUrls = [];
+      for (const fileObj of files) {
+        // Fotos são reduzidas antes do envio (vídeo, áudio e PDF vão como estão)
+        const arquivo = fileObj.file.type?.startsWith('image/') ? await reduzirImagem(fileObj.file) : fileObj.file;
+        const fileExt = arquivo.name.split('.').pop();
+        const fileName = `reclamacao-${currentUser.id}-${Math.random().toString(36).substr(2, 9)}.${fileExt}`;
+        const { error: uploadError } = await supabase.storage.from('anexos').upload(fileName, arquivo);
+        if (uploadError) { console.error('Erro no upload', uploadError); continue; }
+        const { data: { publicUrl } } = supabase.storage.from('anexos').getPublicUrl(fileName);
+        uploadedUrls.push(publicUrl);
+      }
+
+      // Insert com bloco e apartamento separados
+      const { error } = await supabase.from('Reclamacoes').insert({
+        descricao:               descricaoCompleta,
+        bloco_denunciado:        bloco_denunciado,
+        apartamento_denunciado:  apartamento_denunciado,
+        morador_id:              currentUser.id,
+        condominio_id:           currentUser.condominio_id,
+        anexos:                  uploadedUrls,
+      });
+
+      if (error) throw error;
+
+      // O síndico é notificado por trigger no banco, sem identificar o autor.
+
+      // Mesmo retorno visual da ocorrência: botão verde "Registrado!" e volta ao painel
+      setIsSuccess(true);
+      setTimeout(() => navigate('/dashboard'), 1400);
+    } catch (err) {
+      console.error(err);
+      setErroEnvio('Não foi possível registrar a reclamação: ' + err.message);
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="dashboard-layout">
+      {sidebarOpen && <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)} />}
+      <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
+
+      <main className="main-content">
+        <header className="main-header">
+          <div className="header-left">
+            <button className="mobile-menu-btn" onClick={() => setSidebarOpen(true)}><Menu size={20} /></button>
+            <div className="header-breadcrumbs">
+              <h2 className="header-title">Nova Reclamação</h2>
+              <p className="header-date">Reportar problemas e violações de regras</p>
+            </div>
+          </div>
+          <div className="header-right">
+            <NotificationMenu />
+            <div onClick={() => navigate('/perfil')} style={{ display:'flex', alignItems:'center', gap:'0.75rem', borderLeft:'1px solid #e2e8f0', paddingLeft:'1rem', cursor:'pointer' }}>
+              <div style={{ width:36, height:36, borderRadius:'50%', background:'var(--hab-laranja)', color:'var(--hab-tinta)', display:'flex', alignItems:'center', justifyContent:'center', fontWeight:700 }}>
+                {currentUser?.name?.charAt(0) || 'M'}
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <div className="dashboard-content-scroll form-page-bg">
+          <div className="dashboard-content-inner centered-form-layout">
+            <div className="saas-card-container">
+
+              <div className="form-alert-info" style={{ backgroundColor:'#fffbeb', borderColor:'#fde68a' }}>
+                <AlertTriangle size={18} className="info-icon" style={{ color:'#d97706' }} />
+                <div>
+                  <h4 style={{ color:'#92400e' }}>Só o síndico vê sua reclamação</h4>
+                  <p style={{ color:'#b45309' }}>Ela não aparece no Mural nem para os outros moradores. O síndico vê <strong>seu nome e sua unidade</strong>, a unidade reclamada e o que você relatou, e pode te responder por notificação. Não exponha o caso no Mural.</p>
+                </div>
+              </div>
+
+              <form className="saas-occurrence-form" onSubmit={handleSubmit}>
+
+                {/* 1. Identificação */}
+                <div className="form-section">
+                  <div className="section-header-block">
+                    <span className="section-step-badge" style={{ backgroundColor:'#fef3c7', color:'#d97706', borderColor:'#fde68a' }}>1</span>
+                    <h3 className="section-heading">Identificação do Problema</h3>
+                  </div>
+
+                  <div className="saas-grid">
+                    <div className="saas-input-group">
+                      <label>Tipo de Violação <span className="req">*</span></label>
+                      <select name="tipo" required className="saas-select" defaultValue="">
+                        <option value="" disabled>Selecione o tipo de reclamação</option>
+                        <option value="barulho">Barulho Fora do Horário Permitido</option>
+                        <option value="lixo">Descarte Irregular de Lixo</option>
+                        <option value="estacionamento">Uso Indevido de Vaga de Garagem</option>
+                        <option value="pets">Problemas com Pets</option>
+                        <option value="outro">Outro (especifique na descrição)</option>
+                      </select>
+                    </div>
+
+                    {/* Apartamento denunciado: Bloco → Andar → Apartamento (condomínios com blocos cadastrados) */}
+                    {blocos === null || blocos.length > 0 ? (
+                      <>
+                        <SeletorUnidade
+                          blocos={blocos || []}
+                          valor={unidade}
+                          onChange={setUnidade}
+                          idBase="denunciado"
+                          desativado={isSubmitting}
+                          carregando={blocos === null}
+                          classes={{ grupo: 'saas-input-group', select: 'saas-select' }}
+                          rotulos={{
+                            bloco: <>Bloco do Denunciado <span className="req">*</span></>,
+                            andar: <>Andar <span className="req">*</span></>,
+                            apto: <>Apartamento do Denunciado <span className="req">*</span></>,
+                          }}
+                        />
+                        <input type="hidden" name="bloco_denunciado" value={unidade.bloco} />
+                        <input type="hidden" name="apartamento_denunciado" value={apartamentoEscolhido(unidade)} />
+                        {apartamentoEscolhido(unidade) && (
+                          <p className="unidade-escolhida" aria-live="polite">
+                            <Home size={16} /> {descreverUnidade(unidade.bloco, apartamentoEscolhido(unidade))}
+                          </p>
+                        )}
+                      </>
+                    ) : (
+                      <>
+                      {/* Bloco e Apartamento separados — gravam nas colunas corretas do banco */}
+                      <div className="saas-input-group">
+                        <label>Bloco do Denunciado <span className="req">*</span></label>
+                        <input type="text" name="bloco_denunciado" placeholder="Ex: A" maxLength={TAMANHO.bloco} required onInput={(e) => { e.currentTarget.value = mascaraBloco(e.currentTarget.value); }} />
+                      </div>
+
+                      <div className="saas-input-group">
+                        <label>Apartamento do Denunciado <span className="req">*</span></label>
+                        <input type="text" name="apartamento_denunciado" placeholder="Ex: 204" inputMode="numeric" maxLength={TAMANHO.apartamento} required onInput={(e) => { e.currentTarget.value = somenteNumeros(e.currentTarget.value, TAMANHO.apartamento); }} />
+                      </div>
+                      </>
+                    )}
+
+                    <div className="saas-input-group">
+                      <label>Data da Violação <span className="req">*</span></label>
+                      <input type="date" name="data_violacao" required style={{ color:'#475569' }} />
+                    </div>
+
+                    <div className="saas-input-group">
+                      <label>Horário do Incidente <span className="req">*</span></label>
+                      <input type="time" name="hora_violacao" required style={{ color:'#475569' }} />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="section-divider"></div>
+
+                {/* 2. Descrição e Evidências */}
+                <div className="form-section">
+                  <div className="section-header-block">
+                    <span className="section-step-badge" style={{ backgroundColor:'#fef3c7', color:'#d97706', borderColor:'#fde68a' }}>2</span>
+                    <h3 className="section-heading">Descrição e Evidências Confidenciais</h3>
+                  </div>
+
+                  <div className="saas-input-group full-width">
+                    <label>Descrição Detalhada <span className="req">*</span></label>
+                    <textarea name="descricao" rows="5" placeholder="Relate com precisão o que aconteceu, tempo de duração, se houve tentativa prévia de diálogo, etc..." required></textarea>
+                  </div>
+
+                  <div className="saas-input-group full-width" style={{ marginTop:'0.5rem' }}>
+                    <label>Anexos (Provas: Áudio, Vídeo, Fotos)</label>
+                    <div
+                      className={`upload-drop-zone ${dragActive ? 'drag-active' : ''}`}
+                      onDragEnter={handleDrag} onDragOver={handleDrag} onDragLeave={handleDrag} onDrop={handleDrop}
+                      onClick={() => inputRef.current.click()}
+                    >
+                      <input ref={inputRef} type="file" multiple accept="image/*,video/*,audio/*" onChange={handleChange} style={{ display:'none' }} />
+                      <div className="upload-icon-circle"><UploadCloud size={28} /></div>
+                      <h4 className="upload-title">Clique para anexar ou arraste arquivos</h4>
+                      <p className="upload-subtitle">Grave vídeos curtos ou tire fotos. (Máx. 50MB)</p>
+                    </div>
+
+                    {files.length > 0 && (
+                      <div className="attached-files-list">
+                        {files.map(file => (
+                          <div key={file.id} className="file-preview-card">
+                            <div className="file-icon-box">
+                              {file.type.includes('image') ? <ImageIcon size={20} className="file-image-icon"/> : <Film size={20} className="file-video-icon"/>}
+                            </div>
+                            <div className="file-details">
+                              <span className="file-name">{file.name}</span>
+                              <span className="file-size">{file.size}</span>
+                            </div>
+                            <button type="button" className="file-remove-btn" onClick={() => removeFile(file.id)} title="Remover anexo">
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="section-divider"></div>
+
+                {/* 3. Privacidade */}
+                <div className="form-section">
+                  <div className="section-header-block">
+                    <span className="section-step-badge" style={{ backgroundColor:'#fef3c7', color:'#d97706', borderColor:'#fde68a' }}>3</span>
+                    <h3 className="section-heading">Quem vê</h3>
+                  </div>
+                  <div className="visibility-cards-container" style={{ gridTemplateColumns:'1fr' }}>
+                    <label className="visibility-card selected">
+                      <div className="visibility-card-content" style={{ borderColor:'#f97316', backgroundColor:'#fff7ed' }}>
+                        <span className="visibility-radio-custom" style={{ borderColor:'#f97316' }}>
+                          <span style={{ width:'0.5rem', height:'0.5rem', backgroundColor:'#f97316', borderRadius:'50%' }}></span>
+                        </span>
+                        <div className="visibility-text">
+                          <h5>Apenas o síndico</h5>
+                          <p>O síndico recebe a reclamação com seu nome e sua unidade, além das provas anexadas. A unidade reclamada não é avisada pelo app; é o síndico quem decide como tratar o caso.</p>
+                        </div>
+                      </div>
+                    </label>
+                  </div>
+                </div>
+
+                {erroEnvio && (
+                  <p role="alert" style={{ margin: '0 0 1rem', padding: '0.75rem 1rem', borderRadius: 8, background: '#fee2e2', color: '#b91c1c', fontSize: '0.875rem' }}>
+                    {erroEnvio}
+                  </p>
+                )}
+
+                <div className="saas-form-footer">
+                  <button type="button" className="btn-cancel-saas" onClick={() => navigate('/dashboard')} disabled={isSubmitting || isSuccess}>
+                    Cancelar
+                  </button>
+                  <button type="submit" className={`btn-primary-saas${isSuccess ? ' btn-success-state' : ''}`} disabled={isSubmitting || isSuccess}>
+                    {isSuccess
+                      ? <><CheckCircle2 size={18} style={{ marginRight: '6px' }}/> Registrado!</>
+                      : isSubmitting
+                        ? <><span className="btn-spinner"/>&nbsp;Enviando...</>
+                        : <><CheckCircle2 size={18} style={{ marginRight: '6px' }}/> Registrar Reclamação</>}
+                  </button>
+                </div>
+
+              </form>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  );
+};
+
+export default Reclamacao;

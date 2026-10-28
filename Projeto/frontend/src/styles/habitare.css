@@ -1,0 +1,864 @@
+/* ════════════════════════════════════════════════════════════════════════════
+   HABITARE — Sinalização Predial
+   O app fala a língua das placas do prédio: placa com o local em numerais grandes,
+   pictograma da categoria em quadro preto e faixa de status no pé, como uma placa.
+   Carregado depois do CSS das páginas (main.jsx), então vale por cima delas.
+   Regra de desempenho: animar só opacity/transform; nada de blur/backdrop-filter.
+   ════════════════════════════════════════════════════════════════════════════ */
+
+:root {
+  --hab-laranja: #f47920;        /* cor da marca: preenchimentos (com texto tinta) */
+  --hab-laranja-texto: #c2410c;  /* laranja para texto/ícone sobre branco (5,2:1) */
+  --hab-laranja-claro: #fff1e6;
+  --hab-tinta: #121417;          /* preto de placa: menu, pictogramas, numerais */
+  --hab-tinta-2: #23272e;
+  --hab-aluminio: #edeef0;       /* fundo das telas */
+  --hab-placa: #ffffff;
+  --hab-linha: #d6d8dc;          /* filete de 1px que separa tudo */
+  --hab-linha-forte: #b9bdc4;
+  --hab-texto: #121417;
+  --hab-texto-2: #464c56;
+  --hab-texto-3: #6b7079;
+  --hab-raio: 12px;
+  --hab-raio-p: 8px;
+  --hab-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --hab-fonte-titulo: 'Poppins', 'Plus Jakarta Sans', system-ui, sans-serif;
+  --hab-fonte: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
+  /* uma cor só para todos os perfis: o laranja Habitare (texto-seguro) */
+  --role-primary-color: #c2410c;
+  accent-color: var(--hab-laranja);
+}
+
+/* ── Partes do navegador, tematizadas ── */
+::selection { background: rgba(244, 121, 32, 0.28); color: var(--hab-tinta); }
+html { caret-color: var(--hab-laranja-texto); }
+:focus-visible { outline: 2px solid var(--hab-laranja); outline-offset: 2px; }
+* { scrollbar-width: thin; scrollbar-color: var(--hab-linha-forte) transparent; }
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { background: var(--hab-linha-forte); border-radius: 10px; border: 3px solid transparent; background-clip: content-box; }
+::-webkit-scrollbar-track { background: transparent; }
+a { text-underline-offset: 3px; }
+button, a, [role="button"] { -webkit-tap-highlight-color: transparent; }
+
+body, .dashboard-layout {
+  font-family: var(--hab-fonte);
+  color: var(--hab-texto);
+}
+.stat-value, .placa-valor, .nav-badge, .kpi-numero, .notification-badge, .header-date { font-variant-numeric: tabular-nums; }
+
+/* ════════════════ Estrutura: menu lateral, topo e área de conteúdo ════════════════ */
+.dashboard-layout { background-color: var(--hab-aluminio); height: 100dvh; }
+.main-content { height: 100dvh; min-width: 0; }
+
+.dashboard-sidebar {
+  background-color: var(--hab-tinta);
+  color: #a3a9b3;
+  box-shadow: none;
+  border-right: 1px solid #000;
+  transition: transform 0.32s var(--hab-ease);
+}
+.sidebar-header { padding: 1.25rem 1.25rem 1.1rem 1.5rem; border-bottom: 1px solid rgba(255, 255, 255, 0.07); }
+.sidebar-nav-container { padding: 1.1rem 0.85rem 1.25rem; gap: 1.4rem; scrollbar-color: #3a3f47 transparent; }
+.nav-section-title {
+  color: #7d838d; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.12em;
+  padding: 0 0.7rem; margin-bottom: 0.15rem;
+}
+.nav-list { gap: 2px; }
+.nav-item {
+  border-radius: var(--hab-raio-p);
+  padding: 0.6rem 0.7rem;
+  font-size: 0.86rem;
+  font-weight: 500;
+  letter-spacing: 0;
+  transition: background-color 0.18s var(--hab-ease), color 0.18s var(--hab-ease), transform 0.12s var(--hab-ease);
+}
+.nav-item:active { transform: scale(0.98); }
+.nav-item-inactive { color: #d3d6dc; }
+.nav-item-inactive .nav-icon { color: #8a9099; }
+.nav-item-inactive:hover { background-color: rgba(255, 255, 255, 0.06); color: #fff; }
+.nav-item-inactive:hover .nav-icon { color: #fff; }
+/* item ativo = placa laranja com letras pretas */
+.nav-item-active { background-color: var(--hab-laranja); color: var(--hab-tinta); box-shadow: none; font-weight: 600; }
+.nav-item-active .nav-icon { color: var(--hab-tinta); }
+.nav-item-active .nav-badge { background: var(--hab-tinta); color: #fff; }
+.sidebar-footer { background: transparent; border-top: 1px solid rgba(255, 255, 255, 0.07); padding: 1rem 1.1rem; }
+.sidebar-avatar-mini { background-color: var(--hab-laranja); color: var(--hab-tinta); }
+.sidebar-user-name { color: #fff; }
+.sidebar-user-role { color: #a3a9b3; font-weight: 600; letter-spacing: 0.02em; }
+.sidebar-icon-btn { color: #8a9099; border-radius: var(--hab-raio-p); }
+.sidebar-icon-btn:hover { color: #fff; background: rgba(255, 255, 255, 0.08); }
+.sidebar-overlay { background-color: rgba(18, 20, 23, 0.55); }
+
+/* Topo da tela */
+.main-header {
+  background-color: var(--hab-aluminio);
+  border-bottom: 1px solid var(--hab-linha);
+  height: 4.25rem;
+  padding: 0 2rem;
+}
+.header-title { font-family: var(--hab-fonte-titulo); font-weight: 700; font-size: 1.3rem; letter-spacing: -0.015em; color: var(--hab-tinta); }
+.header-date { color: var(--hab-texto-3); font-weight: 500; }
+.notification-btn, .mobile-menu-btn {
+  border: 1px solid var(--hab-linha); background: var(--hab-placa); box-shadow: none;
+  border-radius: var(--hab-raio-p); color: var(--hab-tinta);
+}
+.notification-badge { background: #dc2626; color: #fff; }
+.user-avatar { background-color: var(--hab-tinta) !important; color: #fff !important; }
+
+/* No celular o topo vira a faixa preta da placa (como no esboço aprovado) */
+@media (max-width: 1023px) {
+  .main-header {
+    background-color: var(--hab-tinta);
+    border-bottom: 0;
+    height: 3.75rem;
+    padding: 0 1rem;
+    padding-top: env(safe-area-inset-top);
+  }
+  .main-header .header-title { color: #fff; font-size: 1.08rem; }
+  .main-header .header-date { color: #a3a9b3; font-size: 0.74rem; max-width: 52vw; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .main-header .mobile-menu-btn, .main-header .notification-btn {
+    background: transparent; border-color: rgba(255, 255, 255, 0.16); color: #fff;
+  }
+  .main-header .header-right { gap: 0.6rem; }
+  .main-header .user-profile-dropdown { display: none !important; }
+}
+
+/* Área de conteúdo: alumínio com pontinhos discretos */
+.dashboard-content-scroll {
+  background-color: var(--hab-aluminio);
+  background-image: radial-gradient(rgba(18, 20, 23, 0.09) 1px, transparent 1.3px);
+  background-size: 20px 20px;
+}
+@media (max-width: 1023px) {
+  .dashboard-content-scroll { padding: 1rem !important; padding-bottom: calc(5.5rem + env(safe-area-inset-bottom)) !important; }
+  .dashboard-content-inner { padding: 0 !important; }
+}
+
+/* ════════════════ Barra de navegação inferior (celular) ════════════════ */
+.nav-inferior { display: none; }
+@media (max-width: 1023px) {
+  .nav-inferior {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 1fr;
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 45;
+    background: var(--hab-placa);
+    border-top: 1px solid var(--hab-linha);
+    padding: 0.35rem 0.25rem calc(0.35rem + env(safe-area-inset-bottom));
+  }
+  .nav-inferior button {
+    position: relative;
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+    border: 0; background: none; cursor: pointer;
+    padding: 0.4rem 0.2rem; border-radius: var(--hab-raio-p);
+    font: 600 0.66rem var(--hab-fonte); color: var(--hab-texto-3);
+    transition: color 0.18s var(--hab-ease), transform 0.12s var(--hab-ease);
+    touch-action: manipulation;
+  }
+  .nav-inferior button:active { transform: scale(0.94); }
+  .nav-inferior button svg { width: 22px; height: 22px; }
+  .nav-inferior .ativo { color: var(--hab-tinta); }
+  .nav-inferior .ativo::before {
+    content: ''; position: absolute; top: -0.36rem; left: 28%; right: 28%; height: 3px;
+    border-radius: 0 0 3px 3px; background: var(--hab-laranja);
+  }
+  .nav-inferior .nav-inferior-bolinha {
+    position: absolute; top: 2px; left: calc(50% + 6px);
+    min-width: 16px; height: 16px; padding: 0 4px; border-radius: 999px;
+    background: #dc2626; color: #fff; font-size: 0.6rem; line-height: 16px; text-align: center;
+  }
+}
+
+/* ════════════════ Placa da ocorrência (assinatura visual) ════════════════ */
+.placa {
+  background: var(--hab-placa);
+  border: 1px solid var(--hab-linha);
+  border-radius: var(--hab-raio);
+  overflow: hidden;
+  display: flex; flex-direction: column;
+  transition: transform 0.16s var(--hab-ease), border-color 0.16s var(--hab-ease);
+}
+.placa-clicavel { cursor: pointer; }
+.placa-clicavel:hover { border-color: var(--hab-linha-forte); }
+.placa-clicavel:active { transform: scale(0.985); }
+.placa-cabeca {
+  display: flex; align-items: center; gap: 0.75rem;
+  padding: 0.85rem 0.95rem 0.6rem;
+}
+.placa-local { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+.placa-rotulo {
+  font: 700 0.64rem var(--hab-fonte); letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--hab-texto-3);
+}
+.placa-valor {
+  font: 800 2rem/1.02 var(--hab-fonte-titulo); letter-spacing: -0.03em; color: var(--hab-tinta);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.placa-valor-longo { font-size: 1.3rem; line-height: 1.2; letter-spacing: -0.01em; }
+.placa-picto {
+  flex-shrink: 0;
+  width: 44px; height: 44px; border-radius: 10px;
+  background: var(--hab-tinta); color: #fff;
+  display: grid; place-items: center;
+}
+.placa-corpo { padding: 0 0.95rem 0.85rem; display: flex; flex-direction: column; gap: 0.3rem; flex: 1; }
+.placa-titulo { font: 600 1.02rem/1.3 var(--hab-fonte-titulo); color: var(--hab-tinta); margin: 0; text-wrap: balance; }
+.placa-texto { font-size: 0.875rem; line-height: 1.5; color: var(--hab-texto-2); margin: 0; }
+.placa-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 0.35rem 0.85rem; font-size: 0.78rem; color: var(--hab-texto-3); }
+.placa-meta > span { display: inline-flex; align-items: center; gap: 0.3rem; }
+.placa-acoes { display: flex; gap: 0.5rem; align-items: center; padding: 0 0.95rem 0.85rem; flex-wrap: wrap; }
+
+/* faixa de status, como a faixa de uma placa */
+.placa-faixa {
+  display: flex; align-items: center; justify-content: space-between; gap: 0.75rem;
+  padding: 0.55rem 0.95rem;
+  font: 700 0.74rem var(--hab-fonte); letter-spacing: 0.06em; text-transform: uppercase;
+  border-top: 0 !important;
+  overflow: hidden;
+}
+.placa-faixa-status { display: inline-block; animation: faixa-troca 0.32s var(--hab-ease) both; }
+.placa-faixa-protocolo { font-variant-numeric: tabular-nums; letter-spacing: 0.04em; opacity: 0.9; }
+:root .placa-faixa.st-aberta    { background: #dc2626; color: #fff; }
+:root .placa-faixa.st-analise   { background: #1d4ed8; color: #fff; }
+:root .placa-faixa.st-andamento { background: #f59e0b; color: var(--hab-tinta); }
+:root .placa-faixa.st-resolvida { background: #047857; color: #fff; }
+@keyframes faixa-troca { from { opacity: 0; transform: translateY(70%); } to { opacity: 1; transform: none; } }
+
+.placas-grade { display: grid; gap: 0.85rem; grid-template-columns: 1fr; }
+@media (min-width: 760px) { .placas-grade { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 1360px) { .placas-grade.tres { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+
+/* entrada das placas em cascata (uma vez, ao abrir a tela) */
+.placa-entra { animation: placa-entra 0.3s var(--hab-ease) both; }
+.placas-grade > .placa-entra:nth-child(2), .lista-placas > .placa-entra:nth-child(2) { animation-delay: 40ms; }
+.placas-grade > .placa-entra:nth-child(3), .lista-placas > .placa-entra:nth-child(3) { animation-delay: 80ms; }
+.placas-grade > .placa-entra:nth-child(4), .lista-placas > .placa-entra:nth-child(4) { animation-delay: 120ms; }
+.placas-grade > .placa-entra:nth-child(n+5), .lista-placas > .placa-entra:nth-child(n+5) { animation-delay: 160ms; }
+@keyframes placa-entra { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+/* ════════════════ Botões ════════════════ */
+:root :is(.btn-primary, .nc-btn-primary, .btn-saas-primary, .btn-primary-saas, .gf-btn-pri,
+  .rc-btn-pri, .av-btn-pri, .dev-btn-pri, .eb-btn-pri, .janela-btn-pri, .btn-qa-primary,
+  .btn-ms-new, .oc-btn-gerenciar, .pa-btn-submit, .btn-hab):not(.login-page *) {
+  /* Botão principal: placa branca com filete; vira laranja só ao passar o mouse (pedido do dono, 27/10) */
+  background: var(--hab-placa);
+  color: var(--hab-tinta);
+  border: 1px solid var(--hab-linha);
+  border-radius: var(--hab-raio-p);
+  box-shadow: none;
+  font-family: var(--hab-fonte-titulo);
+  font-weight: 600;
+  filter: none;
+  transition: background-color 0.16s var(--hab-ease), border-color 0.16s var(--hab-ease), transform 0.12s var(--hab-ease);
+}
+:root :is(.btn-primary, .nc-btn-primary, .btn-saas-primary, .btn-primary-saas, .gf-btn-pri,
+  .rc-btn-pri, .av-btn-pri, .dev-btn-pri, .eb-btn-pri, .janela-btn-pri, .btn-qa-primary,
+  .btn-ms-new, .oc-btn-gerenciar, .pa-btn-submit, .btn-hab):not(.login-page *):hover:not(:disabled) {
+  background: var(--hab-laranja); border-color: #e06a12; color: var(--hab-tinta); transform: none; filter: none; box-shadow: none;
+}
+:root :is(.btn-primary, .nc-btn-primary, .btn-saas-primary, .btn-primary-saas, .gf-btn-pri,
+  .rc-btn-pri, .av-btn-pri, .dev-btn-pri, .eb-btn-pri, .janela-btn-pri, .btn-qa-primary,
+  .btn-ms-new, .oc-btn-gerenciar, .pa-btn-submit, .btn-hab):not(.login-page *):active:not(:disabled) {
+  transform: scale(0.97);
+}
+:root :is(.btn-primary, .btn-saas-primary, .btn-primary-saas, .gf-btn-pri, .rc-btn-pri, .av-btn-pri,
+  .dev-btn-pri, .eb-btn-pri, .janela-btn-pri, .btn-ms-new, .oc-btn-gerenciar, .pa-btn-submit, .btn-hab):disabled {
+  opacity: 0.55; cursor: not-allowed;
+}
+:root :is(.btn-secondary, .btn-outline-primary, .btn-qa-outline, .btn-qa-secondary,
+  .btn-cancel-saas, .nc-btn-outline, .janela-btn-sec, .av-btn-sec, .dev-btn-sec, .eb-btn-sec,
+  .go-btn-secundario):not(.login-page *) {
+  background: var(--hab-placa);
+  color: var(--hab-tinta);
+  border: 1px solid var(--hab-linha);
+  border-radius: var(--hab-raio-p);
+  font-family: var(--hab-fonte-titulo);
+  font-weight: 600;
+  box-shadow: none;
+  transition: background-color 0.16s var(--hab-ease), border-color 0.16s var(--hab-ease), transform 0.12s var(--hab-ease);
+}
+:root :is(.btn-secondary, .btn-outline-primary, .btn-qa-outline, .btn-qa-secondary,
+  .btn-cancel-saas, .nc-btn-outline, .janela-btn-sec, .av-btn-sec, .dev-btn-sec, .eb-btn-sec,
+  .go-btn-secundario):not(.login-page *):hover:not(:disabled) {
+  border-color: #e06a12; background: var(--hab-laranja); color: var(--hab-tinta); transform: none;
+}
+:root :is(.btn-secondary, .btn-outline-primary, .janela-btn-sec, .av-btn-sec, .go-btn-secundario):active:not(:disabled) { transform: scale(0.97); }
+
+/* ════════════════ Campos ════════════════ */
+:root :is(.saas-input, .pa-input, .gu-input, .nc-input, .janela-input, .search-input,
+  .ms-search-input, .feed-search-input, .feed-comment-input, .pm-filtro-select, .gu-role-select,
+  .feed-select, .pf-select, .fd-select, .saas-select, .nc-select, .pf-textarea,
+  .saas-input-group input:not([type=checkbox]):not([type=radio]):not([type=file]), .saas-input-group textarea):not(.login-page *) {
+  font-family: var(--hab-fonte);
+  font-size: max(16px, 0.95rem); /* 16px: o iPhone não dá zoom ao tocar no campo */
+  border-radius: var(--hab-raio-p);
+  border: 1px solid var(--hab-linha);
+  background-color: var(--hab-placa);
+  color: var(--hab-tinta);
+  transition: border-color 0.16s var(--hab-ease), box-shadow 0.16s var(--hab-ease);
+}
+:root :is(.saas-input, .pa-input, .gu-input, .nc-input, .janela-input, .search-input,
+  .ms-search-input, .feed-search-input, .feed-comment-input, .pm-filtro-select, .gu-role-select,
+  .feed-select, .pf-select, .fd-select, .saas-select, .nc-select, .pf-textarea,
+  .saas-input-group input:not([type=checkbox]):not([type=radio]):not([type=file]), .saas-input-group textarea):not(.login-page *):focus {
+  outline: none;
+  border-color: var(--hab-tinta);
+  box-shadow: 0 0 0 3px rgba(244, 121, 32, 0.35);
+}
+::placeholder { color: #8a9099; opacity: 1; }
+
+/* ════════════════ Selos de status (pílulas) ════════════════ */
+:root .st-aberta     { color: #b91c1c; background-color: #fee2e2; border-color: #fecaca; }
+:root .st-analise    { color: #1d4ed8; background-color: #dbeafe; border-color: #bfdbfe; }
+:root .st-andamento  { color: #92400e; background-color: #fef3c7; border-color: #fde68a; }
+:root .st-resolvida  { color: #047857; background-color: #d1fae5; border-color: #a7f3d0; }
+
+/* ════════════════ Cartões genéricos das telas: placa branca com filete ════════════════ */
+:root :is(.stat-card, .quick-action-card, .pf-task-card, .ms-premium-card, .employee-card,
+  .rc-card, .gu-stat-card, .gu-alert-card, .gu-financial-card, .ps-card, .dev-card, .av-card,
+  .pf-metric-card, .perfil-hero-card, .oc-card, .nc-card, .saas-card-container,
+  .recent-activities-section, .feed-filter-box, .ms-filter-box, .bc-card) {
+  border-radius: var(--hab-raio);
+  border: 1px solid var(--hab-linha);
+  box-shadow: none;
+}
+
+/* Abas em forma de segmento */
+:root :is(.ms-abas, .av-abas, .dev-abas, .feed-abas) button.ativa,
+:root :is(.ms-abas, .av-abas, .dev-abas, .feed-abas) button[aria-selected="true"] {
+  background: var(--hab-tinta); color: #fff;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .placa-entra, .placa-faixa-status { animation: none; }
+  .placa, .nav-item, .nav-inferior button { transition: none; }
+}
+
+/* ════════════════ Mural de Ocorrências ════════════════ */
+.feed-container { max-width: 1180px; gap: 1rem; }
+.feed-ticket-list.lista-placas { display: grid; grid-template-columns: 1fr; gap: 0.85rem; align-items: start; }
+@media (min-width: 1100px) { .feed-ticket-list.lista-placas { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.feed-placa > .atu,
+.feed-placa > .feed-pronunciamento,
+.feed-placa > .feed-comments { margin: 0 0.95rem 0.85rem; }
+.feed-placa .feed-anexos { margin-top: 0.35rem; }
+.feed-placa .feed-anexo-thumb { width: 72px; height: 72px; border-radius: var(--hab-raio-p); border: 1px solid var(--hab-linha); object-fit: cover; }
+.feed-placa .feed-atribuicao { display: flex; align-items: center; gap: 0.35rem; font-size: 0.8rem; color: var(--hab-texto-2); margin: 0.15rem 0 0; }
+.feed-placa .feed-pronunciamento { border-radius: var(--hab-raio-p); border: 1px dashed var(--hab-linha-forte); background: #f7f7f8; padding: 0.6rem 0.75rem; }
+.feed-placa .feed-pronunciamento.tem-texto { border-style: solid; border-color: #f5c9a5; background: var(--hab-laranja-claro); }
+.feed-placa .feed-pron-label { color: var(--hab-texto-2); font-weight: 700; font-size: 0.72rem; letter-spacing: 0.06em; text-transform: uppercase; display: inline-flex; gap: 0.3rem; align-items: center; }
+.feed-placa .feed-pron-vazio { font-size: 0.8rem; color: var(--hab-texto-3); margin: 0.25rem 0 0; }
+.feed-placa .feed-pron-edit { color: var(--hab-laranja-texto); font-weight: 600; }
+.feed-placa-acoes { justify-content: space-between; border-top: 1px solid var(--hab-linha); padding-top: 0.6rem; margin-top: auto; }
+.feed-placa .feed-comments-toggle { color: var(--hab-texto-2); padding: 0.45rem 0.2rem; min-height: 40px; }
+.feed-placa .feed-comments-toggle:hover { color: var(--hab-tinta); }
+.feed-placa .feed-gerenciar { padding: 0.5rem 1rem; font-size: 0.85rem; min-height: 40px; }
+.feed-placa-resolvida .placa-titulo { color: var(--hab-texto-2); }
+.feed-abas { background: var(--hab-placa); border: 1px solid var(--hab-linha); border-radius: 10px; padding: 3px; display: inline-flex; width: fit-content; max-width: 100%; }
+.feed-aba { border: 0; background: none; border-radius: 8px; padding: 0.5rem 0.9rem; font: 600 0.85rem var(--hab-fonte); color: var(--hab-texto-2); cursor: pointer; transition: background-color 0.16s var(--hab-ease), color 0.16s var(--hab-ease); }
+.feed-aba.ativa { background: var(--hab-tinta); color: #fff; }
+.feed-aba-count { font-variant-numeric: tabular-nums; margin-left: 0.25rem; opacity: 0.75; }
+.feed-filter-box { background: var(--hab-placa); padding: 0.85rem; }
+@media (max-width: 640px) {
+  .feed-aba { padding: 0.5rem 0.65rem; font-size: 0.8rem; }
+  .feed-filter-top { flex-direction: column; align-items: stretch; }
+  .feed-filter-dropdowns, .feed-select { width: 100%; }
+}
+
+/* ════════════════ Celular: topo enxuto e filtros compactos ════════════════ */
+@media (max-width: 1023px) {
+  /* a barra inferior já tem "Menu" e o perfil fica no menu: o topo mostra só título e sino */
+  .main-header .mobile-menu-btn { display: none !important; }
+  .main-header .header-right > :not(.notification-wrapper) { display: none !important; }
+  .main-header .header-left { gap: 0; min-width: 0; }
+  .main-header .header-breadcrumbs { min-width: 0; }
+}
+@media (max-width: 640px) {
+  .feed-filter-box { padding: 0.7rem; }
+  .feed-filter-top { gap: 0.6rem; }
+  .feed-search-wrapper { max-width: none; }
+  /* filtro por data numa linha só: Dia · Mês · Ano */
+  .filtro-data { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.45rem; margin: 0.6rem 0 0; }
+  .filtro-data-rotulo { grid-column: 1 / -1; font-size: 0.78rem; color: var(--hab-texto-3); }
+  .filtro-data .saas-select { min-width: 0; width: 100%; padding: 0.55rem 0.6rem; }
+  .filtro-data-limpar { grid-column: 1 / -1; }
+}
+/* pronunciamento ainda vazio: uma linha discreta em vez de uma caixa */
+.feed-placa .feed-pronunciamento:not(.tem-texto) { border: 0; background: none; padding: 0; }
+.feed-placa .feed-pronunciamento:not(.tem-texto) .feed-pron-vazio { display: none; }
+.feed-placa .feed-pron-header { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; }
+
+/* ════════════════ Minhas Solicitações ════════════════ */
+button.placa { font: inherit; text-align: left; padding: 0; color: inherit; width: 100%; }
+.placa-texto-curto { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.ms-placa .placa-meta { margin-top: 0.35rem; }
+.ms-tipo { font-size: 0.7rem; font-weight: 700; padding: 2px 8px; border-radius: 999px; }
+.ms-tipo.publica { background: #eef0f2; color: var(--hab-texto-2); }
+.ms-tipo.pessoal { background: var(--hab-tinta); color: #fff; }
+.ms-acompanhar { margin-left: auto; color: var(--hab-laranja-texto); font-weight: 700; }
+.ms-placa:hover .ms-acompanhar svg { transform: translateX(2px); }
+.ms-acompanhar svg { transition: transform 0.16s var(--hab-ease); }
+
+/* ════════════════ Telas de gestão (análise, pessoais, +2 dias) ════════════════ */
+.oc-placa > .atu, .oc-placa > .oc-analise { margin: 0 0.95rem 0.85rem; }
+.oc-placa .oc-analise { border-radius: var(--hab-raio-p); background: #eef3ff; border: 1px solid #c9d8fb; padding: 0.6rem 0.75rem; font-size: 0.82rem; color: #1e3a8a; }
+.oc-placa .oc-analise strong { display: flex; gap: 0.35rem; align-items: center; }
+.oc-placa .oc-duracao { display: flex; align-items: center; gap: 0.35rem; font-size: 0.82rem; color: #92400e; background: #fef3c7; border-radius: var(--hab-raio-p); padding: 0.45rem 0.6rem; margin: 0.35rem 0 0; }
+.oc-placa-acoes { justify-content: flex-end; border-top: 1px solid var(--hab-linha); padding-top: 0.6rem; margin-top: auto; }
+.oc-placa .oc-gerenciar { padding: 0.5rem 1.1rem; min-height: 40px; font-size: 0.86rem; }
+.pf-origem { font-size: 0.7rem; font-weight: 700; padding: 2px 8px; border-radius: 999px; }
+.pf-origem.atribuida { background: var(--hab-laranja); color: var(--hab-tinta); }
+.pf-origem.livre { background: #eef0f2; color: var(--hab-texto-2); }
+.pf-origem.pessoal { background: var(--hab-tinta); color: #fff; }
+
+/* ════════════════ Ocorrências Concluídas ════════════════ */
+.oc-concluida-placa > .oc-meta, .oc-concluida-placa > .oc-colunas, .oc-concluida-placa > .oc-pronunciamento,
+.oc-concluida-placa > .oc-toggle, .oc-concluida-placa > .oc-historico { margin-left: 0.95rem; margin-right: 0.95rem; }
+.oc-concluida-placa > .oc-meta { margin-bottom: 0.75rem; font-size: 0.8rem; color: var(--hab-texto-3); }
+.oc-concluida-placa > .oc-colunas { margin-bottom: 0.85rem; }
+.oc-concluida-placa .oc-bloco { border: 1px solid var(--hab-linha); border-radius: var(--hab-raio-p); background: #fafafa; }
+.oc-concluida-placa .oc-bloco-resolucao { background: #effaf5; border-color: #b7e4cf; }
+.oc-concluida-placa .oc-toggle { margin-bottom: 0.85rem; }
+
+/* ════════════════ Visão Geral: placas de status, atalhos e atividades ════════════════ */
+.painel-placas { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.75rem; margin-bottom: 1.5rem; }
+@media (min-width: 900px) { .painel-placas { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.placa-status { align-items: stretch; }
+.placa-status-numero { font: 800 2.6rem/1 var(--hab-fonte-titulo); letter-spacing: -0.03em; color: var(--hab-tinta); padding: 0.9rem 0.95rem 0.1rem; font-variant-numeric: tabular-nums; }
+.placa-status-sub { font-size: 0.74rem; color: var(--hab-texto-3); padding: 0 0.95rem 0.75rem; }
+.placa-status .placa-faixa { margin-top: auto; }
+
+.quick-action-card { background: var(--hab-placa); transition: border-color 0.16s var(--hab-ease), transform 0.12s var(--hab-ease); }
+.quick-action-card:hover { border-color: var(--hab-tinta); box-shadow: none; transform: none; }
+.quick-action-card:active { transform: scale(0.985); }
+.quick-action-card::after { display: none !important; }
+:root :is(.qa-orange-box, .qa-amber-box, .qa-blue-box, .qa-green-box) { background: var(--hab-tinta); color: #fff; border-radius: 10px; }
+.quick-action-title { color: var(--hab-tinta); }
+.quick-action-subtitle { color: var(--hab-texto-2); }
+.quick-action-card:hover .quick-action-arrow { color: var(--hab-laranja-texto) !important; }
+
+.recent-activities-section { background: var(--hab-placa); }
+.activity-status-badge { font-weight: 700; border-radius: 999px; }
+.section-title { font-family: var(--hab-fonte-titulo); color: var(--hab-tinta); letter-spacing: -0.01em; }
+
+/* ════════════════ Pílulas de filtro (todas as telas) ════════════════ */
+:root :is(.ms-filter-pill, .pf-filter-btn, .portaria-tab-btn, .status-option-btn) {
+  border: 1px solid var(--hab-linha); background: var(--hab-placa); color: var(--hab-texto-2);
+  border-radius: 999px; font: 600 0.82rem var(--hab-fonte); box-shadow: none;
+  min-height: 36px; padding: 0.4rem 0.9rem;
+  transition: background-color 0.16s var(--hab-ease), color 0.16s var(--hab-ease), border-color 0.16s var(--hab-ease);
+}
+:root :is(.ms-filter-pill, .pf-filter-btn, .portaria-tab-btn):hover { border-color: var(--hab-tinta); color: var(--hab-tinta); }
+:root :is(.ms-filter-pill, .pf-filter-btn, .portaria-tab-btn).active { background: var(--hab-tinta); border-color: var(--hab-tinta); color: #fff; }
+.ms-filters { gap: 0.4rem; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
+.ms-filters::-webkit-scrollbar { display: none; }
+:root :is(.ms-abas, .av-abas, .dev-abas) { background: var(--hab-placa); border: 1px solid var(--hab-linha); border-radius: 10px; padding: 3px; display: inline-flex; gap: 2px; }
+:root :is(.ms-abas, .av-abas, .dev-abas) button { border: 0; background: none; border-radius: 8px; padding: 0.5rem 0.9rem; font: 600 0.85rem var(--hab-fonte); color: var(--hab-texto-2); cursor: pointer; box-shadow: none; }
+:root :is(.ms-abas, .av-abas, .dev-abas) button span { background: rgba(18,20,23,0.08); color: inherit; }
+:root :is(.ms-abas, .av-abas, .dev-abas) button.ativa span { background: rgba(255,255,255,0.18); color: #fff; }
+.placa-faixa.placa-faixa-neutra { background: var(--hab-tinta); color: #fff; }
+/* Dashboard do Síndico: cartões e gráficos em placas brancas */
+.ps-card { background: var(--hab-placa); }
+.ps-section-title { font-family: var(--hab-fonte-titulo); color: var(--hab-tinta); }
+
+/* ════════════════ Visão Geral do Condomínio (Master) ════════════════ */
+.mo-visao { display: flex; flex-direction: column; }
+.mo-colunas { display: grid; gap: 0.85rem; grid-template-columns: 1fr; }
+@media (min-width: 900px) { .mo-colunas { grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); } }
+.mo-lista { list-style: none; margin: 0; padding: 0.25rem 0 0.4rem; }
+.mo-lista li { display: flex; align-items: center; gap: 0.7rem; padding: 0.6rem 0.95rem; border-top: 1px solid var(--hab-linha); }
+.mo-lista li:first-child { border-top: 0; }
+.mo-lista .placa-picto { width: 34px; height: 34px; border-radius: 8px; }
+.mo-lista-texto { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+.mo-lista-texto strong { font: 600 0.9rem var(--hab-fonte-titulo); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mo-lista-texto span { font-size: 0.75rem; color: var(--hab-texto-3); }
+.mo-pilula { font-size: 0.7rem; font-weight: 700; padding: 3px 9px; border-radius: 999px; white-space: nowrap; border: 1px solid; }
+.mo-vazio { color: var(--hab-texto-3); font-size: 0.85rem; }
+
+/* ════════════════ Janelas (modais): no computador centralizadas; no celular, folha que sobe ════════════════ */
+.janela-fundo { background: rgba(18, 20, 23, 0.5); }
+.janela { border-radius: 14px; box-shadow: 0 24px 48px -16px rgba(18, 20, 23, 0.35); animation: janela-entra 0.26s var(--hab-ease) both; }
+.janela-topo { border-bottom: 1px solid var(--hab-linha); }
+.janela-selo-padrao { background: var(--hab-tinta); color: #fff; border-radius: 10px; }
+.janela-titulos h2 { font-family: var(--hab-fonte-titulo); color: var(--hab-tinta); }
+.janela-titulos p { color: var(--hab-texto-2); }
+.janela-rodape { border-top: 1px solid var(--hab-linha); background: #f7f7f8; }
+@keyframes janela-entra { from { opacity: 0; transform: translateY(10px) scale(0.985); } to { opacity: 1; transform: none; } }
+@media (max-width: 640px) {
+  .janela-fundo { align-items: flex-end; padding: 0; }
+  .janela {
+    max-width: none !important; width: 100%;
+    max-height: calc(100dvh - 2.5rem);
+    border-radius: 18px 18px 0 0;
+    padding-bottom: env(safe-area-inset-bottom);
+    animation: folha-sobe 0.32s var(--hab-ease) both;
+  }
+  .janela::before { content: ''; display: block; width: 40px; height: 4px; border-radius: 4px; background: var(--hab-linha-forte); margin: 8px auto 0; flex-shrink: 0; }
+  .janela-rodape { flex-wrap: wrap; }
+  .janela-rodape > * { flex: 1 1 auto; min-height: 44px; }
+}
+@keyframes folha-sobe { from { transform: translateY(100%); } to { transform: none; } }
+
+/* Menu de notificações */
+.notifications-dropdown { border: 1px solid var(--hab-linha); border-radius: var(--hab-raio); box-shadow: 0 18px 40px -18px rgba(18, 20, 23, 0.35); }
+.notif-unread { background-color: var(--hab-laranja-claro); }
+.notif-indicator { background: var(--hab-laranja); }
+.mark-read-btn, .view-all-notifs { color: var(--hab-laranja-texto); }
+@media (max-width: 640px) {
+  .notifications-dropdown { position: fixed !important; left: 0.5rem !important; right: 0.5rem !important; top: 4rem !important; width: auto !important; max-height: 70dvh; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .janela { animation: none; }
+}
+
+/* ════════════════ Login e cadastros (vitrine, mesmo mundo) ════════════════ */
+.login-page { font-family: var(--hab-fonte); }
+.login-left-panel {
+  background:
+    radial-gradient(rgba(255, 255, 255, 0.08) 1.2px, transparent 1.5px) 0 0 / 22px 22px fixed,
+    var(--hab-tinta);
+}
+.login-slogan { color: #c9cdd4; }
+.login-right-panel { background: radial-gradient(rgba(18, 20, 23, 0.12) 1.2px, transparent 1.5px) 0 0 / 22px 22px fixed, var(--hab-aluminio); }
+.login-form-wrapper { background: var(--hab-placa); border: 1px solid var(--hab-linha); border-radius: 16px; padding: clamp(1.25rem, 3vw, 2.25rem); }
+.login-title { color: var(--hab-tinta); }
+.login-page .btn-primary,
+.login-page .btn-primary:hover:not(:disabled) {
+  background: var(--hab-laranja);
+  color: var(--hab-tinta);
+  border: 1px solid #e06a12;
+  border-radius: 10px;
+}
+.login-page .btn-primary:hover:not(:disabled) { background: #ff8a33; transform: none; }
+.login-page .btn-primary:active:not(:disabled) { transform: scale(0.98); }
+.login-page .custom-input { background: var(--hab-placa); border-color: var(--hab-linha); font-size: max(16px, 0.9rem); }
+.login-page .custom-input:focus { border-color: var(--hab-tinta); box-shadow: 0 0 0 3px rgba(244, 121, 32, 0.35); }
+.login-btn-secundario { border-color: var(--hab-linha); border-radius: 10px; }
+.login-divisor { background: transparent; }
+.login-link-admin { background: transparent; color: var(--hab-texto-2); }
+@media (max-width: 767px) {
+  .login-left-panel { padding-top: calc(1.5rem + env(safe-area-inset-top)); }
+  .login-form-wrapper { border: 0; background: transparent; padding: 0; }
+  .login-right-panel { background: var(--hab-placa); }
+}
+
+/* Cadastros (morador e condomínio): topo preto de placa, botões no padrão */
+.nc-page { background: var(--hab-aluminio); font-family: var(--hab-fonte); }
+.nc-topbar { background: var(--hab-tinta); border-bottom: 0; }
+.nc-topbar .nc-title, .nc-topbar .nc-title * { color: #fff; }
+.nc-topbar-divisor { background: rgba(255, 255, 255, 0.2); }
+.nc-card { background: var(--hab-placa); }
+@media (max-width: 767px) {
+  .login-page { min-height: 100dvh; height: auto; overflow-y: auto; }
+  .login-left-panel { flex: 0 0 auto; min-height: 30vh; padding: calc(2.25rem + env(safe-area-inset-top)) 1.5rem 1.75rem; }
+  .login-logo-img { width: min(230px, 64vw) !important; }
+  .login-slogan { margin-top: 1rem; font-size: 0.72rem; letter-spacing: 0.28em; }
+  .login-right-panel { flex: 1 0 auto; padding: 1.75rem 1.25rem calc(1.5rem + env(safe-area-inset-bottom)); }
+}
+.login-page .btn-primary { box-shadow: none !important; }
+@media (max-width: 420px) { .nc-topbar-divisor, .nc-topbar .nc-title { display: none; } }
+
+/* ════════════════ Perfil ════════════════ */
+:root :is(.banner-master, .banner-sindico, .banner-funcionario, .banner-morador) { background: var(--hab-tinta); }
+.perfil-banner { height: 104px; }
+:root :is(.perfil-avatar-inner.avatar-master, .perfil-avatar-inner.avatar-sindico, .perfil-avatar-inner.avatar-funcionario, .perfil-avatar-inner.avatar-morador) { color: var(--hab-tinta); background: var(--hab-laranja-claro); font-family: var(--hab-fonte-titulo); }
+.settings-tab.active { background: var(--hab-tinta) !important; color: #fff !important; border-color: var(--hab-tinta) !important; }
+.settings-tab.active svg { color: #fff !important; }
+
+/* Cartões do mural com tamanho padronizado: mesma altura na linha, texto limitado */
+.feed-ticket-list.lista-placas { align-items: stretch; }
+.placa-titulo-limitado { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.placa-texto-limitado { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.feed-placa .placa-texto { min-height: 4.5em; }
+.placa-ver-mais { align-self: flex-start; border: 0; background: none; padding: 0.15rem 0; cursor: pointer; font: 700 0.8rem var(--hab-fonte); color: var(--hab-laranja-texto); }
+.placa-ver-mais:hover { text-decoration: underline; }
+.feed-placa .atu-texto { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.feed-placa .placa-corpo { flex: 0 0 auto; }
+.feed-placa .feed-placa-acoes { margin-top: auto; }
+.feed-placa .feed-pron-label { white-space: nowrap; }
+.feed-placa .feed-pron-edit { white-space: nowrap; flex-shrink: 0; border: 1px solid var(--hab-linha); border-radius: var(--hab-raio-p); background: var(--hab-placa); padding: 0.35rem 0.65rem; font-size: 0.78rem; display: inline-flex; align-items: center; gap: 0.3rem; cursor: pointer; }
+.feed-placa .feed-pron-edit:hover { border-color: var(--hab-tinta); }
+.feed-placa .feed-pronunciamento:not(.tem-texto) { min-height: 0; }
+.feed-placa .feed-pronunciamento.tem-texto { min-height: 0; }
+
+/* Resumo das Concluídas: placas com ícone em quadro preto */
+.oc-kpi { background: var(--hab-placa); border: 1px solid var(--hab-linha); border-radius: var(--hab-raio); }
+:root .oc-kpi-icon { background: var(--hab-tinta) !important; color: #fff !important; border-radius: 10px; }
+.oc-kpi strong { font-family: var(--hab-fonte-titulo); color: var(--hab-tinta); font-variant-numeric: tabular-nums; }
+.go-local { margin: 0.35rem 0 0; font-size: 0.85rem; color: var(--hab-texto-2); }
+:root .rc-icone { background: var(--hab-tinta); color: #fff; }
+
+/* Abas nunca quebram em duas linhas: no celular rolam de lado */
+[role="tablist"] { max-width: 100%; overflow-x: auto; scrollbar-width: none; flex-wrap: nowrap !important; }
+[role="tablist"]::-webkit-scrollbar { display: none; }
+[role="tablist"] > button { white-space: nowrap; flex-shrink: 0; }
+:root .bc-icone { background: var(--hab-tinta); color: #fff; }
+
+/* Gestão de Moradores no celular: números em 2x2 e tabela que rola de lado */
+@media (max-width: 760px) {
+  .gm-numeros { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 0.6rem !important; }
+  .gm-tabela { overflow-x: auto !important; -webkit-overflow-scrolling: touch; }
+  .gm-tabela table { min-width: 680px; }
+}
+@media (max-width: 640px) {
+  .ms-header-actions { padding: 0.7rem !important; border-radius: var(--hab-raio) !important; }
+  .ms-search-wrapper { max-width: none !important; width: 100%; }
+}
+
+/* ════════════════ Ajustes da revisão final ════════════════ */
+/* Barra inferior: "Nova" ocorrência é a ação principal do morador (placa laranja) */
+@media (max-width: 1023px) {
+  .nav-inferior .nav-inferior-acao { color: var(--hab-tinta); font-weight: 700; }
+  .nav-inferior .nav-inferior-acao svg {
+    width: 44px; height: 30px; padding: 4px 11px; box-sizing: border-box;
+    background: var(--hab-laranja); color: var(--hab-tinta); border-radius: 9px; stroke-width: 2.6;
+  }
+  /* topo preto: o nome do condomínio no lugar da descrição da tela */
+  .main-header .header-date { display: none; }
+  .main-header .header-breadcrumbs::after {
+    content: var(--hab-condominio, "");
+    font-size: 0.74rem; color: #a3a9b3; font-weight: 500;
+    max-width: 62vw; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+}
+
+/* Listas (tarefas, minhas solicitações): menos espaço entre controles, placas sobem na tela */
+.ms-container { gap: 0.75rem !important; }
+.filtro-data { margin: 0; }
+.ms-header-actions { padding: 0.6rem !important; display: flex; flex-wrap: wrap; gap: 0.6rem; align-items: center; }
+.ms-header-actions .filtro-data { flex: 1 1 auto; }
+.ms-search-input { text-overflow: ellipsis; }
+
+/* Filtro por data no celular: um botão "Data" abre Dia · Mês · Ano */
+.filtro-data-alternar { display: none; }
+@media (max-width: 640px) {
+  .filtro-data { display: flex !important; flex-wrap: wrap; gap: 0.45rem; }
+  .filtro-data-rotulo { display: none; }
+  .filtro-data-alternar {
+    display: inline-flex; align-items: center; gap: 0.35rem; min-height: 40px;
+    border: 1px solid var(--hab-linha); background: var(--hab-placa); border-radius: var(--hab-raio-p);
+    padding: 0 0.8rem; font: 600 0.82rem var(--hab-fonte); color: var(--hab-tinta); cursor: pointer;
+  }
+  .filtro-data-alternar.ativo { background: var(--hab-tinta); color: #fff; border-color: var(--hab-tinta); }
+  .filtro-data-campos { display: none; width: 100%; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.45rem; }
+  .filtro-data.aberto .filtro-data-campos { display: grid; }
+  .filtro-data-limpar { width: auto; }
+}
+@media (min-width: 641px) { .filtro-data-campos { display: contents; } }
+.ms-header-actions .ms-search-wrapper { flex: 1 1 320px; min-width: 0; max-width: none; }
+.ms-header-actions .filtro-data { flex: 0 1 auto; }
+@media (max-width: 640px) {
+  .ms-header-actions { flex-wrap: wrap; }
+  .ms-header-actions .ms-search-wrapper { flex: 1 1 0; }
+  .ms-header-actions .filtro-data { flex: 0 0 auto; }
+  .ms-header-actions .filtro-data.aberto { flex: 1 1 100%; }
+  .ms-header-actions .btn-ms-new, .ms-header-actions > div[style] { flex: 1 1 100%; }
+}
+/* Descrição curta sempre ocupa 2 linhas: a linha de data/ação fica na mesma altura em todos os cartões */
+.placa-texto-curto { min-height: calc(2 * 1.5em); }
+.pf-placa .placa-titulo, .ms-placa .placa-titulo { display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+/* Local escrito por extenso: até 2 linhas, letra menor quando longo */
+.placa-valor-longo { font-size: 1.15rem; line-height: 1.25; white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+/* Mais respiro entre a descrição e a linha de data/ação (pedido do dono) */
+.placa-corpo .placa-texto + .placa-meta,
+.placa-corpo .placa-texto-curto + .placa-meta { margin-top: 0.65rem; }
+.ms-placa .placa-meta, .pf-placa .placa-meta { margin-top: 0.65rem; }
+.placa-corpo { padding-bottom: 1rem; }
+:root :is(.ms-filter-pill, .pf-filter-btn, .portaria-tab-btn, .status-option-btn) { min-height: 40px; }
+
+/* Dashboard do Síndico: registros recentes em largura inteira */
+.ps-registros { margin-top: 1.5rem; }
+.ps-registros .ps-table-modern td { vertical-align: middle; }
+.ps-btn-gerenciar { padding: 0.45rem 0.9rem !important; font-size: 0.8rem !important; min-height: 36px; white-space: nowrap; flex-shrink: 0; }
+.ps-registros .ps-table-wrapper { overflow-x: auto; }
+@media (max-width: 900px) { .ps-registros .ps-table-modern { min-width: 760px; } }
+:root .badge-pill.st-aberta, :root .badge-pill.st-analise, :root .badge-pill.st-andamento, :root .badge-pill.st-resolvida { border: 1px solid; }
+.ps-carga { margin-top: 1.5rem; }
+.ps-carga .widget-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 0.6rem; }
+.ps-carga .widget-item { margin: 0; }
+
+/* ════════════════ Mural: cartão de tamanho fixo (pedido do dono, 26/10) ════════════════
+   Todo cartão tem a medida do caso máximo (foto + descrição de 2 linhas + "Em andamento"
+   + pronunciamento). Cada parte tem um espaço fixo, que fica vazio quando não há conteúdo,
+   então as partes ficam na mesma altura em todos os cartões. Texto que não cabe termina
+   em "…"; o botão "Detalhes" abre tudo numa janela. */
+:root .feed-placa .placa-valor-longo { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; -webkit-line-clamp: unset; }
+:root .feed-placa .placa-titulo { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; -webkit-line-clamp: unset; }
+:root .feed-placa .feed-descricao {
+  height: calc(2 * 1.5em); min-height: 0; margin: 0;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  white-space: normal;
+}
+:root .feed-placa .placa-corpo .feed-descricao + .placa-meta { margin-top: 0.5rem; }
+:root .feed-placa .placa-meta { flex-wrap: nowrap; overflow: hidden; white-space: nowrap; }
+:root .feed-placa .placa-meta > span { flex-shrink: 0; }
+:root .feed-placa .placa-meta > span:last-child { flex-shrink: 1; min-width: 0; display: block; overflow: hidden; text-overflow: ellipsis; }
+:root .feed-placa .feed-atribuicao { height: 1.35rem; margin: 0.2rem 0 0; white-space: nowrap; overflow: hidden; }
+:root .feed-placa .feed-atribuicao > span { overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+:root .feed-placa .feed-atribuicao svg { flex-shrink: 0; }
+:root .feed-placa .feed-anexos { height: 72px; margin-top: 0.4rem; display: flex; flex-wrap: nowrap; gap: 0.45rem; overflow: hidden; }
+:root .feed-placa .feed-anexo-botao { position: relative; flex-shrink: 0; }
+:root .feed-placa .feed-anexo-thumb { width: 72px; height: 72px; }
+.feed-anexo-mais {
+  position: absolute; inset: 0; display: grid; place-items: center; border-radius: var(--hab-raio-p);
+  background: rgba(18, 20, 23, 0.6); color: #fff; font: 700 0.95rem var(--hab-fonte-titulo); pointer-events: none;
+}
+
+/* Andamento/conclusão: espaço fixo (vazio quando não há) */
+.feed-placa .feed-slot-atu { height: 5.75rem; margin: 0 0.95rem 0.6rem; }
+.feed-placa .feed-slot-atu > .atu { height: 100%; box-sizing: border-box; overflow: hidden; margin: 0; }
+.atu-compacto .atu-rotulo { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
+.atu-compacto .atu-rotulo svg { display: inline-block; vertical-align: -2px; margin-right: 0.3rem; }
+.atu-compacto .atu-texto { white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.atu-compacto.atu-concluida { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: auto 1fr; column-gap: 0.7rem; row-gap: 0.35rem; }
+.atu-compacto.atu-concluida .atu-rotulo { grid-column: 1; }
+.atu-compacto.atu-concluida .atu-texto { grid-column: 1; }
+.atu-compacto .atu-fotos { grid-column: 2; grid-row: 1 / span 2; align-self: center; flex-wrap: nowrap; margin: 0; }
+.atu-compacto .atu-fotos .img-zoom { position: relative; }
+.atu-compacto .atu-fotos img, .atu-compacto .atu-foto-carregando { width: 56px; height: 56px; }
+.atu-fotos-mais {
+  position: absolute; inset: 0; display: grid; place-items: center; border-radius: 0.55rem;
+  background: rgba(18, 20, 23, 0.6); color: #fff; font: 700 0.85rem var(--hab-fonte-titulo); pointer-events: none;
+}
+
+/* Pronunciamento: espaço fixo; vazio mostra só o rótulo (e o botão do síndico) */
+:root .feed-placa > .feed-pronunciamento {
+  height: 7.6rem; box-sizing: border-box; overflow: hidden; min-height: 0;
+  margin: 0 0.95rem 0.85rem; padding: 0.6rem 0.75rem; gap: 0.3rem;
+  border: 1px solid transparent;
+}
+:root .feed-placa > .feed-pronunciamento:not(.tem-texto) { border: 1px dashed var(--hab-linha); background: none; padding: 0.6rem 0.75rem; }
+:root .feed-placa > .feed-pronunciamento.editando { height: auto; overflow: visible; }
+:root .feed-placa .feed-pron-header { min-height: 32px; }
+:root .feed-placa .feed-pron-texto { white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+:root .feed-placa .feed-pron-data { margin-top: auto; }
+
+/* Ações: comentários à esquerda; Detalhes + Gerenciar à direita */
+.feed-acoes-direita { display: inline-flex; align-items: center; gap: 0.5rem; }
+.feed-detalhes {
+  display: inline-flex; align-items: center; gap: 0.35rem; min-height: 40px; padding: 0 0.8rem;
+  border: 1px solid var(--hab-linha); border-radius: var(--hab-raio-p); background: var(--hab-placa);
+  font: 600 0.85rem var(--hab-fonte-titulo); color: var(--hab-tinta); cursor: pointer; white-space: nowrap;
+  transition: border-color 0.14s var(--hab-ease), transform 0.12s var(--hab-ease);
+}
+.feed-detalhes:hover { border-color: var(--hab-tinta); }
+.feed-detalhes:active { transform: scale(0.97); }
+
+/* Janela de detalhes */
+.feed-anexos-janela { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0.25rem 0 0.75rem; }
+.feed-anexos-janela .feed-anexo-thumb { width: 84px; height: 84px; }
+.feed-pron-janela { margin-top: 0.75rem; }
+.feed-pron-texto-inteiro { white-space: pre-wrap; }
+/* Celular: ações do cartão numa linha só */
+:root .feed-placa .feed-placa-acoes { flex-wrap: nowrap; gap: 0.5rem; }
+@media (max-width: 480px) {
+  .feed-detalhes { padding: 0 0.7rem; }
+  .feed-detalhes-texto { display: none; }
+}
+/* Lugares reservados (vazios): moldura tracejada, como o pronunciamento — nunca um buraco em branco */
+.feed-anexos-vazio {
+  flex: 1; display: flex; align-items: center; justify-content: center; gap: 0.45rem;
+  border: 1px dashed var(--hab-linha); border-radius: var(--hab-raio-p);
+  color: var(--hab-texto-3); font-size: 0.8rem;
+}
+.atu.atu-vazio { background: none; border: 1px dashed var(--hab-linha); }
+.atu-vazio .atu-rotulo { color: var(--hab-texto-3); font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
+.atu-vazio .atu-texto { color: var(--hab-texto-3); font-size: 0.8rem; }
+.feed-atribuicao-vazia { display: inline-flex; align-items: center; gap: 0.35rem; color: var(--hab-texto-3); }
+.feed-descricao-vazia { color: var(--hab-texto-3); font-style: italic; }
+
+/* ════════════════ Reclamações (síndico) ════════════════ */
+.rs-placa .placa-titulo { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rs-placa .rs-texto { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: calc(2 * 1.5em); white-space: normal; }
+.rs-placa .placa-meta { margin-top: 0.4rem; }
+.rs-placa .placa-meta > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rs-resposta {
+  display: flex; gap: 0.45rem; align-items: flex-start; margin: 0.6rem 0 0; padding: 0.6rem 0.75rem;
+  border-radius: var(--hab-raio-p); background: #ecfdf5; border: 1px solid #a7f3d0; color: var(--hab-tinta); font-size: 0.82rem; line-height: 1.45;
+}
+.rs-resposta svg { flex-shrink: 0; margin-top: 2px; color: #047857; }
+.rs-resposta span { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.rs-acoes { justify-content: flex-end; border-top: 1px solid var(--hab-linha); padding-top: 0.6rem; margin-top: auto; }
+.rs-responder { min-height: 40px; padding: 0 1rem; font-size: 0.85rem; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* .sd-btn vem do Dashboard do Síndico; aqui também é usado */
+.rs-acoes .sd-btn {
+  min-height: 40px; padding: 0 0.95rem; white-space: nowrap; cursor: pointer;
+  border: 1px solid var(--hab-linha); border-radius: var(--hab-raio-p); background: var(--hab-placa);
+  font: 600 0.85rem var(--hab-fonte-titulo); color: var(--hab-tinta);
+}
+.rs-acoes .sd-btn:hover { border-color: var(--hab-tinta); }
+
+/* Topo das telas de cadastro: o título acompanha o meio da palavra "Habitare" do logo
+   (o desenho do logo tem a palavra mais baixa que o prédio; sem isso o título parece subido) */
+.nc-topbar-esquerda .nc-title { position: relative; top: 3px; }
+
+/* Mural: caixinhas de andamento e pronunciamento com a mesma tipografia e os mesmos cinzas */
+:root .feed-placa .feed-pronunciamento:not(.tem-texto) .feed-pron-label,
+:root .feed-placa .atu-vazio .atu-rotulo { color: var(--hab-texto-3); }
+:root .feed-placa .feed-pron-label,
+:root .feed-placa .atu-rotulo { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em; }
+:root .feed-placa .feed-pron-texto,
+:root .feed-placa .atu-texto { font-size: 0.86rem; line-height: 1.5; color: var(--hab-tinta); }
+:root .feed-placa .atu-vazio .atu-texto { font-size: 0.8rem; color: var(--hab-texto-3); }
+
+/* Menu lateral: cada item em uma linha só (mesma altura para todos, com ou sem bolinha) */
+:root .sidebar .nav-item, :root .nav-list .nav-item { gap: 0.75rem; }
+:root .nav-list .nav-item > span:not(.nav-badge) { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+:root .nav-list .nav-item .nav-badge { height: 20px; min-width: 20px; line-height: 20px; flex-shrink: 0; }
+
+/* Mural: "Pronunciar-se"/"Editar" com o mesmo desenho do botão "Detalhes" */
+:root .feed-placa .feed-pron-edit {
+  display: inline-flex; align-items: center; gap: 0.35rem; min-height: 40px; padding: 0 0.8rem;
+  border: 1px solid var(--hab-linha); border-radius: var(--hab-raio-p); background: var(--hab-placa); box-shadow: none;
+  font: 600 0.85rem var(--hab-fonte-titulo); color: var(--hab-tinta); cursor: pointer; white-space: nowrap;
+  transition: border-color 0.14s var(--hab-ease), transform 0.12s var(--hab-ease);
+}
+:root .feed-placa .feed-pron-edit:hover { border-color: var(--hab-tinta); }
+:root .feed-placa .feed-pron-edit:active { transform: scale(0.97); }
+:root .feed-placa .feed-pron-edit svg { width: 14px; height: 14px; }
+:root .feed-placa > .feed-pronunciamento { height: 8rem; }
+/* Mesmo comportamento dos botões principais: brancos, laranja ao passar o mouse */
+:root :is(.feed-detalhes, .feed-placa .feed-pron-edit, .sd-btn, .rs-acoes .sd-btn) { transition: background-color 0.16s var(--hab-ease), border-color 0.16s var(--hab-ease), transform 0.12s var(--hab-ease); }
+:root :is(.feed-detalhes, .feed-placa .feed-pron-edit, .sd-btn, .rs-acoes .sd-btn):hover:not(:disabled) { background: var(--hab-laranja); border-color: #e06a12; color: var(--hab-tinta); }
+/* Gestão de Funcionários: Ficha/Especialidades seguem o padrão (o "Remover" continua vermelho) */
+:root .gf-acao:not(.gf-acao-perigo) { transition: background-color 0.16s var(--hab-ease), border-color 0.16s var(--hab-ease); }
+:root .gf-acao:not(.gf-acao-perigo):hover { background: var(--hab-laranja); border-color: #e06a12; color: var(--hab-tinta); }
+
+/* Mural: botões do cartão menores (pedido do dono — o cartão estava poluído) */
+:root .feed-placa :is(.feed-detalhes, .feed-gerenciar, .feed-pron-edit) {
+  min-height: 32px; height: 32px; padding: 0 0.65rem !important; font-size: 0.78rem !important; gap: 0.3rem; border-radius: 7px;
+}
+:root .feed-placa :is(.feed-detalhes, .feed-pron-edit) svg { width: 13px; height: 13px; }
+:root .feed-placa .feed-comments-toggle { min-height: 32px; font-size: 0.78rem; padding: 0 0.1rem; }
+:root .feed-placa .feed-placa-acoes { padding-top: 0.5rem; padding-bottom: 0.65rem; }
+:root .feed-placa .feed-pron-header { min-height: 32px; }
+:root .feed-placa > .feed-pronunciamento { height: 7.4rem; }
+
+/* ════════════════ Filtros compactos (todas as telas com busca/filtro) — 27/10 ════════════════
+   Busca, status e data com a mesma altura (36px) e letra menor no computador.
+   No celular: 40px e letra de 16px (abaixo disso o iPhone dá zoom ao tocar no campo). */
+:root :is(.feed-search-input, .ms-search-input) {
+  height: 36px !important; padding: 0 0.85rem 0 2.25rem !important; font-size: 0.85rem !important; border-radius: var(--hab-raio-p) !important;
+}
+:root :is(.feed-search-icon, .ms-search-icon) { left: 0.75rem !important; width: 16px; height: 16px; }
+:root :is(.feed-select, .oc-filtros select, .filtro-data .saas-select, .pm-filtro-select, .pf-select) {
+  height: 36px !important; min-height: 0 !important; padding: 0 1.9rem 0 0.7rem !important; font-size: 0.85rem !important;
+  border-radius: var(--hab-raio-p) !important; background-position: right 0.55rem center !important;
+}
+:root :is(.oc-busca, .gf-busca, .dev-busca) { height: 36px; border-radius: var(--hab-raio-p); }
+:root :is(.oc-busca, .gf-busca, .dev-busca) input { height: 34px !important; font-size: 0.85rem !important; }
+:root .filtro-data-limpar { min-height: 36px !important; height: 36px; padding: 0 0.75rem !important; font-size: 0.8rem !important; }
+:root .filtro-data-rotulo { font-size: 0.8rem; }
+:root :is(.feed-filter-box, .ms-filter-box) { padding: 0.65rem 0.75rem !important; gap: 0.55rem !important; }
+:root .feed-filter-top { gap: 0.55rem !important; }
+:root :is(.ms-filter-pill, .pf-filter-btn) { min-height: 34px !important; padding: 0.3rem 0.8rem !important; font-size: 0.8rem !important; }
+@media (max-width: 640px) {
+  :root :is(.feed-search-input, .ms-search-input, .feed-select, .oc-filtros select, .filtro-data .saas-select, .pm-filtro-select, .pf-select) {
+    height: 40px !important; font-size: 16px !important;
+  }
+  :root :is(.oc-busca, .gf-busca, .dev-busca) { height: 40px; }
+  :root :is(.oc-busca, .gf-busca, .dev-busca) input { height: 38px !important; font-size: 16px !important; }
+}
+:root :is(.feed-select, .oc-filtros select, .filtro-data .saas-select, .pm-filtro-select, .pf-select, .feed-search-input, .ms-search-input) { font-family: var(--hab-fonte) !important; font-weight: 500 !important; color: var(--hab-tinta); }
+:root .btn-ms-new:not(.login-page *) { height: 36px !important; min-height: 0 !important; padding: 0 0.9rem !important; font-size: 0.85rem !important; white-space: nowrap; }

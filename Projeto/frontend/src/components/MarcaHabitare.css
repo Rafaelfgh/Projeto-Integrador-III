@@ -1,0 +1,21 @@
+/* ── Marca Habitare ──
+   Logo sem caixa (só o laranja aparece sobre o fundo) (sem brilho e sem pulso). */
+.marca {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-shrink: 0;
+}
+
+.marca-logo {
+  position: relative;
+  display: flex;
+  flex-shrink: 0;
+}
+
+.marca-logo-img {
+  display: block;
+  height: 30px;
+  width: auto;
+}
+
