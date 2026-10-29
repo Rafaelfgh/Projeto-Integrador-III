@@ -268,7 +268,7 @@ const Recados = () => {
           bloqueada={enviando}
           onFechar={() => setCriando(false)}
           rodape={<>
-            <button type="button" className="janela-btn janela-btn-sec" onClick={() => setCriando(false)} disabled={enviando}>Cancelar</button>
+            <button type="button" className="janela-btn janela-btn-sec btn-cancelar" onClick={() => setCriando(false)} disabled={enviando}>Cancelar</button>
             <button type="submit" className="janela-btn janela-btn-pri" disabled={enviando}>
               {enviando ? <><Loader2 size={16} className="janela-girando" /> Enviando...</> : <><Send size={16} /> Enviar recado</>}
             </button>
@@ -344,7 +344,7 @@ const Recados = () => {
           bloqueada={apagando}
           onFechar={() => setApagar(null)}
           rodape={<>
-            <button type="button" className="janela-btn janela-btn-sec" onClick={() => setApagar(null)} disabled={apagando}>Cancelar</button>
+            <button type="button" className="janela-btn janela-btn-sec btn-cancelar" onClick={() => setApagar(null)} disabled={apagando}>Cancelar</button>
             <button type="button" className="janela-btn janela-btn-perigo" onClick={confirmarApagar} disabled={apagando}>
               {apagando ? <><Loader2 size={16} className="janela-girando" /> Apagando...</> : <><Trash2 size={16} /> Apagar</>}
             </button>

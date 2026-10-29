@@ -138,7 +138,7 @@ export default function EditorBlocos({ blocos, onSalvar, onRemover, removivel = 
           </p>
 
           <div className="eb-botoes">
-            <button type="button" className="eb-btn eb-btn-sec" onClick={() => { setAberto(false); setErro(null); setForm(VAZIO); }} disabled={salvando}>
+            <button type="button" className="eb-btn eb-btn-sec btn-cancelar" onClick={() => { setAberto(false); setErro(null); setForm(VAZIO); }} disabled={salvando}>
               Cancelar
             </button>
             <button type="button" className="eb-btn eb-btn-pri" onClick={salvar} disabled={desativado || salvando}>

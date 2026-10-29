@@ -401,7 +401,7 @@ const OcorrenciaDrawer = ({ ocorrencia, onFechar, onAtualizada, currentUser, nom
                     style={{ width:'100%', minHeight:70, borderRadius:12, border:'1px solid #e2e8f0', padding:12, resize:'none', fontFamily:'inherit', outline:'none', boxSizing:'border-box' }}
                   />
                   <div style={{ display:'flex', gap:8, marginTop:8 }}>
-                    <button onClick={() => setConvocar(false)} style={{ height:38, border:'none', borderRadius:10, padding:'0 14px', background:'#f1f5f9', color:'#475569', fontWeight:600, cursor:'pointer' }}>Cancelar</button>
+                    <button className="btn-cancelar" onClick={() => setConvocar(false)} style={{ height:38, borderRadius:10, padding:'0 14px', fontWeight:600, cursor:'pointer' }}>Cancelar</button>
                     <button onClick={chamarSindico} disabled={enviando} style={{ height:38, border:'none', borderRadius:10, padding:'0 14px', background:'#0369a1', color:'#fff', fontWeight:600, cursor:'pointer' }}>Enviar ao síndico</button>
                   </div>
                 </>

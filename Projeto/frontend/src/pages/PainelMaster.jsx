@@ -691,7 +691,7 @@ const PainelMaster = () => {
             bloqueada={salvandoPapel}
             onFechar={() => setPapelEdit(null)}
             rodape={<>
-              <button type="button" className="janela-btn janela-btn-sec" onClick={() => setPapelEdit(null)} disabled={salvandoPapel}>Cancelar</button>
+              <button type="button" className="janela-btn janela-btn-sec btn-cancelar" onClick={() => setPapelEdit(null)} disabled={salvandoPapel}>Cancelar</button>
               <button type="button" className={`janela-btn ${promover ? 'janela-btn-pri' : 'janela-btn-perigo'}`} onClick={confirmarPapel} disabled={salvandoPapel}>
                 {salvandoPapel ? <><Loader2 size={16} className="janela-girando" /> Salvando...</>
                   : promover ? <><Shield size={16} /> Nomear síndico</> : <><ShieldOff size={16} /> Revogar síndico</>}

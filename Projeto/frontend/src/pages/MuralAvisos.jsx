@@ -125,7 +125,7 @@ const NovoAviso = ({ condominioId, onPublicado, onCancelar }) => {
       bloqueada={enviando}
       onFechar={onCancelar}
       rodape={<>
-        <button type="button" className="janela-btn janela-btn-sec" onClick={onCancelar} disabled={enviando}>Cancelar</button>
+        <button type="button" className="janela-btn janela-btn-sec btn-cancelar" onClick={onCancelar} disabled={enviando}>Cancelar</button>
         <button type="submit" className="janela-btn janela-btn-pri" disabled={enviando}>
           {enviando ? <><Loader2 size={16} className="janela-girando" /> Publicando...</> : <><Megaphone size={16} /> Publicar no mural</>}
         </button>
@@ -409,7 +409,7 @@ const MuralAvisos = () => {
                             )}
                             {confirmar === aviso.id ? (
                               <>
-                                <button className="av-link" onClick={() => setConfirmar(null)}>Cancelar</button>
+                                <button className="av-link link-cancelar" onClick={() => setConfirmar(null)}>Cancelar</button>
                                 <button className="av-link av-link-perigo" onClick={() => excluir(aviso)}>Confirmar exclusão</button>
                               </>
                             ) : (

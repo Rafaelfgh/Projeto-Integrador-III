@@ -140,7 +140,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
                 {navItem('/ocorrencias-pessoais', Home, 'Ocorrências Pessoais', null, contadores.pessoais)}
                 {navItem('/reclamacoes', Gavel, 'Reclamações', null, contadores.reclamacoes_abertas)}
                 {navItem('/abertas-prolongadas', AlarmClock, 'Abertas +2 dias', null, contadores.abertas_paradas)}
-                {navItem('/andamento-prolongado', Hourglass, 'Em andamento +2 dias')}
+                {navItem('/andamento-prolongado', Hourglass, 'Em andamento +2 dias', null, contadores.andamento_parados)}
                 {navItem('/ocorrencias-concluidas', CheckCircle2, 'Ocorrências Concluídas')}
                 {navItem('/funcionarios', ShieldCheck, 'Gestão de Funcionários')}
               </nav>
@@ -181,7 +181,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
                 {navItem('/ocorrencias-analise', ScanSearch, 'Ocorrências em análise', null, contadores.analise)}
                 {navItem('/ocorrencias-pessoais', Home, 'Ocorrências Pessoais', null, contadores.pessoais)}
                 {navItem('/abertas-prolongadas', AlarmClock, 'Abertas +2 dias', null, contadores.abertas_paradas)}
-                {navItem('/andamento-prolongado', Hourglass, 'Em andamento +2 dias')}
+                {navItem('/andamento-prolongado', Hourglass, 'Em andamento +2 dias', null, contadores.andamento_parados)}
                 {navItem('/ocorrencias-concluidas', CheckCircle2, 'Ocorrências Concluídas')}
               </nav>
             </div>

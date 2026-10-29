@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { FaixaStatus } from '../components/Placa';
 import { classeStatus } from '../utils/statusOcorrencia';
-import FiltroData, { FILTRO_DATA_VAZIO, temFiltroData, passaFiltroData, anosDe } from '../components/FiltroData';
 import ErroCarregamento from '../components/ErroCarregamento';
 import {
   FileText,
@@ -59,11 +58,7 @@ const Dashboard = () => {
   });
 
   const [todas, setTodas] = useState([]);
-  // Filtro por data: dia, mês e ano são independentes (dia 25 = dia 25 de qualquer mês/ano)
-  const [filtroData, setFiltroData] = useState(FILTRO_DATA_VAZIO);
-  const temFiltro = temFiltroData(filtroData);
-  const filtradas = todas.filter(x => passaFiltroData(x.criado_em, filtroData));
-  const activities = filtradas.slice(0, temFiltro ? 50 : 5);
+  const activities = todas.slice(0, 5);
   const [carga, setCarga] = useState('carregando'); // 'carregando' | 'ok' | 'erro'
   const [tentativa, setTentativa] = useState(0);
 
@@ -187,14 +182,12 @@ const Dashboard = () => {
           ) : carga === 'carregando' ? (
             <div style={{ padding: '3rem', textAlign: 'center', color: '#94a3b8' }}>Carregando...</div>
           ) : (
-          <div className="dashboard-content-inner">
-            
-            <FiltroData valor={filtroData} onChange={setFiltroData} anos={anosDe(todas.map(x => x.criado_em))} />
+          <div className="dashboard-content-inner vg-pagina">
 
             {/* Placas de status: quantas ocorrências e reclamações há em cada etapa */}
             <div className="painel-placas" role="list">
               {PLACAS_STATUS.map(({ status, rotulo }) => {
-                const n = filtradas.filter(x => x.status === status).length;
+                const n = todas.filter(x => x.status === status).length;
                 return (
                   <button
                     key={status}
@@ -205,7 +198,7 @@ const Dashboard = () => {
                     aria-label={`${n} ${rotulo}`}
                   >
                     <span className="placa-status-numero">{n}</span>
-                    <span className="placa-status-sub">{temFiltro ? 'no período' : 'no condomínio'}</span>
+                    <span className="placa-status-sub">no condomínio</span>
                     <FaixaStatus status={status} />
                   </button>
                 );
@@ -291,13 +284,13 @@ const Dashboard = () => {
               <div className="recent-activities-header">
                 <div>
                    <h3 className="section-title">Atividades Recentes</h3>
-                   <p className="section-subtitle">{temFiltro ? `${filtradas.length} registro(s) no período filtrado` : 'Últimas atualizações no condomínio'}</p>
+                   <p className="section-subtitle">Últimas atualizações no condomínio</p>
                 </div>
               </div>
               <div className="recent-activities-list">
                 {activities.length === 0 && (
                   <p style={{ padding: '1.5rem', textAlign: 'center', color: '#94a3b8' }}>
-                    {temFiltro ? 'Nenhuma ocorrência ou reclamação nessa data.' : 'Nenhuma atividade ainda.'}
+                    Nenhuma atividade ainda.
                   </p>
                 )}
                 {activities.map((activity) => (

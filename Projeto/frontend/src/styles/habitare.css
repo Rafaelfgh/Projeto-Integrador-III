@@ -862,3 +862,23 @@ button.placa { font: inherit; text-align: left; padding: 0; color: inherit; widt
 }
 :root :is(.feed-select, .oc-filtros select, .filtro-data .saas-select, .pm-filtro-select, .pf-select, .feed-search-input, .ms-search-input) { font-family: var(--hab-fonte) !important; font-weight: 500 !important; color: var(--hab-tinta); }
 :root .btn-ms-new:not(.login-page *) { height: 36px !important; min-height: 0 !important; padding: 0 0.9rem !important; font-size: 0.85rem !important; white-space: nowrap; }
+
+/* Minhas Solicitações: abas Ocorrências/Reclamações e "Nova Solicitação" na mesma linha */
+.ms-linha-abas { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap; }
+.ms-linha-abas .ms-nova { margin-left: auto; }
+
+/* "Cancelar" em vermelho em todas as telas (pedido do dono, 29/10): branco com letra e borda
+   vermelhas; vermelho cheio ao passar o mouse, como os outros botões ficam laranja */
+:root .btn-cancelar {
+  background: var(--hab-placa) !important; color: #b91c1c !important; border: 1px solid #fca5a5 !important;
+  box-shadow: none !important;
+  transition: background-color 0.16s var(--hab-ease), border-color 0.16s var(--hab-ease), color 0.16s var(--hab-ease) !important;
+}
+:root .btn-cancelar:hover:not(:disabled) { background: #dc2626 !important; border-color: #b91c1c !important; color: #fff !important; }
+:root .btn-cancelar:disabled { opacity: 0.55; }
+:root .link-cancelar { color: #b91c1c !important; }
+:root .link-cancelar:hover { text-decoration: underline; }
+
+/* Visão Geral: menos espaço entre o topo e as placas (pedido do dono, 29/10) */
+:root .dashboard-content-inner.vg-pagina { padding-top: 0 !important; }
+:root .dashboard-content-scroll:has(> .vg-pagina) { padding-top: 1.5rem !important; }

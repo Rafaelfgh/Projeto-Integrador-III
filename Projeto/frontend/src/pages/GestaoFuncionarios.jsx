@@ -352,7 +352,7 @@ const GestaoFuncionarios = () => {
           bloqueada={bloqueado}
           onFechar={() => setCadastrando(false)}
           rodape={<>
-            <button type="button" className="janela-btn janela-btn-sec" onClick={() => setCadastrando(false)} disabled={bloqueado}>Cancelar</button>
+            <button type="button" className="janela-btn janela-btn-sec btn-cancelar" onClick={() => setCadastrando(false)} disabled={bloqueado}>Cancelar</button>
             <button type="submit" className={`janela-btn ${criado ? 'janela-btn-sucesso' : 'janela-btn-pri'}`} disabled={bloqueado}>
               {criado ? <><Check size={16} /> Cadastrado!</>
                 : enviando ? <><Loader2 size={16} className="janela-girando" /> Cadastrando...</>
@@ -439,7 +439,7 @@ const GestaoFuncionarios = () => {
           bloqueada={ocupado}
           onFechar={() => setEspEdit(null)}
           rodape={<>
-            <button type="button" className="janela-btn janela-btn-sec" onClick={() => setEspEdit(null)} disabled={ocupado}>Cancelar</button>
+            <button type="button" className="janela-btn janela-btn-sec btn-cancelar" onClick={() => setEspEdit(null)} disabled={ocupado}>Cancelar</button>
             <button type="button" className="janela-btn janela-btn-pri" onClick={salvarEspecialidades} disabled={ocupado}>
               {ocupado ? <><Loader2 size={16} className="janela-girando" /> Salvando...</> : 'Salvar'}
             </button>
@@ -522,7 +522,7 @@ const GestaoFuncionarios = () => {
           bloqueada={ocupado}
           onFechar={() => setRemover(null)}
           rodape={<>
-            <button type="button" className="janela-btn janela-btn-sec" onClick={() => setRemover(null)} disabled={ocupado}>Cancelar</button>
+            <button type="button" className="janela-btn janela-btn-sec btn-cancelar" onClick={() => setRemover(null)} disabled={ocupado}>Cancelar</button>
             <button type="button" className="janela-btn janela-btn-perigo" onClick={confirmarRemocao} disabled={ocupado}>
               {ocupado ? <><Loader2 size={16} className="janela-girando" /> Removendo...</> : <><Trash2 size={16} /> Remover</>}
             </button>

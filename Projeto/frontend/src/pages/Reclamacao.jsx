@@ -328,7 +328,7 @@ const Reclamacao = () => {
                 )}
 
                 <div className="saas-form-footer">
-                  <button type="button" className="btn-cancel-saas" onClick={() => navigate('/dashboard')} disabled={isSubmitting || isSuccess}>
+                  <button type="button" className="btn-cancel-saas btn-cancelar" onClick={() => navigate('/dashboard')} disabled={isSubmitting || isSuccess}>
                     Cancelar
                   </button>
                   <button type="submit" className={`btn-primary-saas${isSuccess ? ' btn-success-state' : ''}`} disabled={isSubmitting || isSuccess}>

@@ -380,7 +380,7 @@ const Perfil = () => {
                             </div>
                           </div>
                           <div className="custom-modal-footer">
-                            <button className="btn-outline-primary" style={{border:'none', color:'#64748b'}} onClick={() => setIsEmailModalOpen(false)}>Cancelar</button>
+                            <button className="btn-outline-primary btn-cancelar" onClick={() => setIsEmailModalOpen(false)}>Cancelar</button>
                             <button className="btn-saas-primary" onClick={handleEmailRequest} disabled={!newEmail}>Enviar Solicitação</button>
                           </div>
                         </div>

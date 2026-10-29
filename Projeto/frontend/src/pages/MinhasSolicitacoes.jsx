@@ -328,8 +328,19 @@ const MinhasSolicitacoes = () => {
                 />
               </div>
               <FiltroData valor={filtroData} onChange={setFiltroData} anos={anosDe((aba === 'ocorrencias' ? ocorrencias : reclamacoes).map(r => r.createdAt))} />
-              
-              <div style={{ position: 'relative' }} onClick={(e) => e.stopPropagation()}>
+            </div>
+
+            {/* Subtelas + "Nova Solicitação" na mesma linha */}
+            <div className="ms-linha-abas">
+              <div className="ms-abas" role="tablist">
+                <button role="tab" aria-selected={aba === 'ocorrencias'} className={aba === 'ocorrencias' ? 'ativa' : ''} onClick={() => setAba('ocorrencias')}>
+                  Ocorrências <span>{ocorrencias.length}</span>
+                </button>
+                <button role="tab" aria-selected={aba === 'reclamacoes'} className={aba === 'reclamacoes' ? 'ativa' : ''} onClick={() => setAba('reclamacoes')}>
+                  Reclamações <span>{reclamacoes.length}</span>
+                </button>
+              </div>
+              <div className="ms-nova" style={{ position: 'relative' }} onClick={(e) => e.stopPropagation()}>
                 <button className="btn-ms-new" onClick={() => setShowNewDropdown(!showNewDropdown)}>
                   <Plus size={18} strokeWidth={2.5}/> Nova Solicitação
                 </button>
@@ -344,16 +355,6 @@ const MinhasSolicitacoes = () => {
                   </div>
                 )}
               </div>
-            </div>
-
-            {/* Subtelas */}
-            <div className="ms-abas" role="tablist">
-              <button role="tab" aria-selected={aba === 'ocorrencias'} className={aba === 'ocorrencias' ? 'ativa' : ''} onClick={() => setAba('ocorrencias')}>
-                Ocorrências <span>{ocorrencias.length}</span>
-              </button>
-              <button role="tab" aria-selected={aba === 'reclamacoes'} className={aba === 'reclamacoes' ? 'ativa' : ''} onClick={() => setAba('reclamacoes')}>
-                Reclamações <span>{reclamacoes.length}</span>
-              </button>
             </div>
 
             {aba === 'ocorrencias' && (

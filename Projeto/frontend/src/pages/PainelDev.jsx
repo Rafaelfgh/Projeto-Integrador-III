@@ -147,7 +147,7 @@ const FichaCondominio = ({ condominio, onFechar, onDecidido }) => {
                 <div className="dev-confirmar">
                   <p>O master <strong>{condominio.master_nome}</strong> passa a ter acesso ao painel e moradores poderão se cadastrar neste condomínio.</p>
                   <div className="dev-botoes">
-                    <button className="dev-btn dev-btn-sec" onClick={() => setAcao(null)} disabled={enviando}>Cancelar</button>
+                    <button className="dev-btn dev-btn-sec btn-cancelar" onClick={() => setAcao(null)} disabled={enviando}>Cancelar</button>
                     <button className="dev-btn dev-btn-aprovar" onClick={() => decidir(true)} disabled={enviando}>
                       <Check size={15} /> {enviando ? 'Aprovando...' : 'Confirmar aprovação'}
                     </button>
@@ -166,7 +166,7 @@ const FichaCondominio = ({ condominio, onFechar, onDecidido }) => {
                     placeholder="Ex.: dados do responsável incompletos; endereço não confere."
                   />
                   <div className="dev-botoes">
-                    <button className="dev-btn dev-btn-sec" onClick={() => setAcao(null)} disabled={enviando}>Cancelar</button>
+                    <button className="dev-btn dev-btn-sec btn-cancelar" onClick={() => setAcao(null)} disabled={enviando}>Cancelar</button>
                     <button className="dev-btn dev-btn-recusar" onClick={() => decidir(false)} disabled={enviando || !motivo.trim()}>
                       <Ban size={15} /> {enviando ? 'Recusando...' : 'Confirmar recusa'}
                     </button>
