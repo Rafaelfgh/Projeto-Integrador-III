@@ -882,3 +882,6 @@ button.placa { font: inherit; text-align: left; padding: 0; color: inherit; widt
 /* Visão Geral: menos espaço entre o topo e as placas (pedido do dono, 29/10) */
 :root .dashboard-content-inner.vg-pagina { padding-top: 0 !important; }
 :root .dashboard-content-scroll:has(> .vg-pagina) { padding-top: 1.5rem !important; }
+
+/* Cadastro com Google: link "Usar outra conta" */
+.nc-link-botao { border: 0; background: none; padding: 0; cursor: pointer; font: inherit; font-weight: 700; color: var(--hab-laranja-texto); text-decoration: underline; text-underline-offset: 3px; }

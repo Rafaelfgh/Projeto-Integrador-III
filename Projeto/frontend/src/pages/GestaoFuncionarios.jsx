@@ -23,7 +23,8 @@ import './GestaoFuncionarios.css';
 // o funcionário não consegue trocá-la.
 
 const COR_FUNCIONARIO = '#121417'; // preto de placa (identidade única, sem cor por perfil)
-const FORM_VAZIO = { nome: '', email: '', senha: 'Mudar@123', especialidades: [], foto: null };
+// (29/10) Sem senha provisória: o funcionário entra com o Google do e-mail informado
+const FORM_VAZIO = { nome: '', email: '', especialidades: [], foto: null };
 
 // Mensagem de erro vinda da Edge Function (o corpo traz { error })
 const erroDaFuncao = async (error, data) => {
@@ -152,7 +153,7 @@ const GestaoFuncionarios = () => {
     e.preventDefault();
     if (enviando) return;
     if (!emailValido(form.email)) {
-      setErroForm('Informe um e-mail válido (ex.: nome@gmail.com).');
+      setErroForm('Informe o e-mail Google do funcionário (ex.: nome@gmail.com).');
       return;
     }
     setErroForm(null);
@@ -163,7 +164,6 @@ const GestaoFuncionarios = () => {
           acao: 'criar',
           nome: form.nome,
           email: form.email,
-          senha: form.senha,
           especialidades: form.especialidades,
           foto: form.foto,
         },
@@ -175,14 +175,13 @@ const GestaoFuncionarios = () => {
         id: data.id, nome: data.nome, email: data.email, status: 'ATIVO', foto: data.foto,
         especialidades: data.especialidades || [], created_at: new Date().toISOString(),
       }].sort((a, b) => a.nome.localeCompare(b.nome)));
-      const senha = form.senha;
       setTimeout(() => {
         setCadastrando(false);
         setCriado(false);
         setAviso({
           tipo: data.aviso ? 'erro' : 'sucesso',
           titulo: 'Funcionário cadastrado',
-          mensagem: `${data.nome} entra com a senha provisória ${senha} e será avisado para trocá-la no primeiro acesso.${data.aviso ? ` ${data.aviso}` : ''}`,
+          mensagem: `Avise ${data.nome} para entrar no Habitare pelo botão "Entrar com Google", usando a conta ${data.email}. O acesso já fica liberado.${data.aviso ? ` ${data.aviso}` : ''}`,
         });
       }, 1200);
     } catch (err) {
@@ -295,9 +294,11 @@ const GestaoFuncionarios = () => {
                   onChange={(e) => setBusca(e.target.value)}
                 />
               </div>
-              <button className="gf-btn-pri" onClick={abrirCadastro}>
-                <UserPlus size={16} /> Cadastrar funcionário
-              </button>
+              {ehMaster && (
+                <button className="gf-btn-pri" onClick={abrirCadastro}>
+                  <UserPlus size={16} /> Cadastrar funcionário
+                </button>
+              )}
             </div>
 
             <p className="gf-total"><Users size={14} /> {funcionarios.length} {funcionarios.length === 1 ? 'funcionário' : 'funcionários'}</p>
@@ -347,7 +348,7 @@ const GestaoFuncionarios = () => {
           onSubmit={cadastrar}
           icone={UserPlus}
           titulo="Cadastrar funcionário"
-          subtitulo="Ele entra com a senha provisória e troca no primeiro acesso."
+          subtitulo="Ele entra com o Google do e-mail informado, sem senha."
           largura="grande"
           bloqueada={bloqueado}
           onFechar={() => setCadastrando(false)}
@@ -377,33 +378,20 @@ const GestaoFuncionarios = () => {
             />
           </div>
 
-          <div className="janela-grade">
-            <div className="janela-campo">
-              <label htmlFor="gf-email">E-mail (login)</label>
-              <input
-                id="gf-email"
-                type="email"
-                className="janela-input"
-                value={form.email}
-                maxLength={TAMANHO.email}
-                onChange={e => setForm({ ...form, email: mascaraEmail(e.target.value) })}
-                required
-                disabled={bloqueado}
-              />
-            </div>
-            <div className="janela-campo">
-              <label htmlFor="gf-senha">Senha provisória</label>
-              <input
-                id="gf-senha"
-                type="text"
-                className="janela-input"
-                value={form.senha}
-                onChange={e => setForm({ ...form, senha: e.target.value })}
-                required
-                minLength={6}
-                disabled={bloqueado}
-              />
-            </div>
+          <div className="janela-campo">
+            <label htmlFor="gf-email">E-mail Google do funcionário</label>
+            <input
+              id="gf-email"
+              type="email"
+              className="janela-input"
+              value={form.email}
+              maxLength={TAMANHO.email}
+              onChange={e => setForm({ ...form, email: mascaraEmail(e.target.value) })}
+              placeholder="nome@gmail.com"
+              required
+              disabled={bloqueado}
+            />
+            <span className="janela-ajuda">É a conta Google que ele vai usar no botão "Entrar com Google". Não precisa de senha.</span>
           </div>
 
           <div className="janela-campo">

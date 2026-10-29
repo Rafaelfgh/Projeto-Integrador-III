@@ -1,5 +1,7 @@
 // Cria e remove contas de funcionário com a API admin do Supabase e grava a foto.
-// Cadastrar e trocar foto: Master ou síndico do condomínio. Remover: só o Master.
+// Cadastrar e remover: só o Master. Trocar foto: Master ou síndico do condomínio.
+// (29/10) Sem senha provisória: o Master informa o e-mail Google do funcionário; a conta nasce
+// com o e-mail confirmado e, quando ele entra com esse Google, o Supabase liga as duas.
 // A chave secreta fica no servidor; o funcionário não consegue alterar a própria foto.
 import { createClient } from 'npm:@supabase/supabase-js@2';
 
@@ -94,15 +96,15 @@ Deno.serve(async (req) => {
   };
 
   if (body.acao === 'criar') {
+    if (!ehMaster) return json({ error: 'Apenas o master cadastra funcionários.' }, 403);
     const nome = String(body.nome ?? '').trim();
     const email = String(body.email ?? '').trim().toLowerCase();
-    const senha = String(body.senha ?? '');
     const especialidades = Array.isArray(body.especialidades)
       ? [...new Set(body.especialidades.map(String))]
       : [];
 
-    if (!nome || !email || senha.length < 6) {
-      return json({ error: 'Informe nome, e-mail e uma senha com pelo menos 6 caracteres.' }, 400);
+    if (!nome || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return json({ error: 'Informe o nome e o e-mail Google do funcionário.' }, 400);
     }
 
     let foto: Uint8Array | null = null;
@@ -112,18 +114,17 @@ Deno.serve(async (req) => {
       foto = lida;
     }
 
+    // Sem senha: ele entra com o Google desse e-mail (o Supabase liga a conta Google a esta)
     const { data: criado, error: erroAuth } = await admin.auth.admin.createUser({
       email,
-      password: senha,
       email_confirm: true,
       user_metadata: { nome },
     });
     if (erroAuth || !criado?.user) return json({ error: traduzErro(erroAuth?.message ?? 'Erro ao criar a conta.') }, 400);
     const id = criado.user.id;
 
-    // Senha definida pela gestão é provisória: o funcionário é avisado para trocar
     const { error: erroFunc } = await admin.from('Funcionarios').insert({
-      id, nome, condominio_id: condominioId, status: 'ATIVO', precisa_trocar_senha: true,
+      id, nome, condominio_id: condominioId, status: 'ATIVO', precisa_trocar_senha: false,
     });
     if (erroFunc) {
       await admin.auth.admin.deleteUser(id);

@@ -40,6 +40,28 @@ const CadastroMorador = () => {
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState(null);
   const [enviado, setEnviado] = useState(false);
+  // 1º acesso com Google (/cadastro?google=1): e-mail vem da conta Google, sem senha
+  const [contaGoogle, setContaGoogle] = useState(null); // { email, nome }
+
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get('google') !== '1') return;
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      const u = session?.user;
+      if (!u || !(u.app_metadata?.providers || []).includes('google')) {
+        navigate('/login', { replace: true });
+        return;
+      }
+      const nome = u.user_metadata?.full_name || u.user_metadata?.name || '';
+      setContaGoogle({ email: u.email, nome });
+      setFormData(prev => ({ ...prev, email: u.email, nome: prev.nome || somenteLetras(nome) }));
+    });
+  }, [navigate]);
+
+  // Trocar de conta Google ou desistir: desconecta e volta ao login
+  const sairDoGoogle = async () => {
+    await supabase.auth.signOut();
+    navigate('/login');
+  };
 
   // Condomínios cadastrados (uma busca só): a tela filtra UF → cidade → condomínio
   useEffect(() => {
@@ -100,8 +122,8 @@ const CadastroMorador = () => {
       carregandoBlocos                     ? 'Aguarde: os blocos do condomínio ainda estão carregando.' :
       blocos.length === 0                  ? 'Este condomínio ainda não cadastrou os blocos. Fale com a administração.' :
       !apartamentoEscolhido(unidade)       ? 'Escolha o bloco, o andar e o apartamento.' :
-      !emailValido(formData.email)         ? 'Informe um e-mail válido (ex.: nome@gmail.com).' :
-      formData.senha.length < 6            ? 'A senha precisa ter pelo menos 6 caracteres.' :
+      !contaGoogle && !emailValido(formData.email) ? 'Informe um e-mail válido (ex.: nome@gmail.com).' :
+      !contaGoogle && formData.senha.length < 6    ? 'A senha precisa ter pelo menos 6 caracteres.' :
       null;
     if (problema) {
       setErrorMsg(problema);
@@ -109,23 +131,34 @@ const CadastroMorador = () => {
     }
 
     setLoading(true);
+    const dados = {
+      nome: formData.nome,
+      cpf: formData.cpf,
+      telefone: formData.telefone,
+      bloco: unidade.bloco,
+      apartamento: apartamentoEscolhido(unidade),
+      condominio_id: parseInt(formData.condominio_id, 10),
+    };
     try {
+      if (contaGoogle) {
+        // Conta Google já conectada: o banco cria o perfil de morador (PENDENTE) ligado a ela
+        const { error } = await supabase.rpc('completar_cadastro_morador', { dados });
+        if (error) {
+          if (error.hint === 'ja_cadastrado') throw new Error('Esta conta Google já tem cadastro no Habitare. Volte ao login e entre com ela.');
+          if (/duplicate|unique/i.test(error.message)) throw new Error('Não foi possível concluir o cadastro. Verifique se o CPF ou o telefone já não estão cadastrados.');
+          throw new Error(error.message);
+        }
+        await supabase.auth.signOut();
+        setEnviado(true);
+        return;
+      }
+
       // A conta e o cadastro de morador (PENDENTE) são criados juntos pelo banco:
       // se o CPF ou o telefone já existirem, nada é criado.
       const { error: authError } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.senha,
-        options: {
-          data: {
-            tipo: 'morador',
-            nome: formData.nome,
-            cpf: formData.cpf,
-            telefone: formData.telefone,
-            bloco: unidade.bloco,
-            apartamento: apartamentoEscolhido(unidade),
-            condominio_id: parseInt(formData.condominio_id, 10),
-          },
-        },
+        options: { data: { tipo: 'morador', ...dados } },
       });
 
       if (authError) {
@@ -160,7 +193,7 @@ const CadastroMorador = () => {
           <span className="nc-topbar-divisor" aria-hidden="true" />
           <h1 className="nc-title">Cadastro de morador</h1>
         </div>
-        <button className="nc-btn-outline" onClick={() => navigate('/login')}>
+        <button className="nc-btn-outline" onClick={contaGoogle && !enviado ? sairDoGoogle : () => navigate('/login')}>
           <ArrowLeft size={16} /> Voltar
         </button>
       </div>
@@ -175,7 +208,9 @@ const CadastroMorador = () => {
               <h2>Cadastro enviado!</h2>
               <p>
                 Seu cadastro foi enviado para a administração do condomínio. Assim que for aprovado,
-                você poderá entrar com o e-mail e a senha informados.
+                {contaGoogle
+                  ? <> entre pelo botão <strong>Entrar com Google</strong> usando a conta {contaGoogle.email}.</>
+                  : ' você poderá entrar com o e-mail e a senha informados.'}
               </p>
               <div className="nc-success-actions">
                 <button className="nc-btn-primary" onClick={() => navigate('/login')}>
@@ -280,10 +315,20 @@ const CadastroMorador = () => {
                 <KeyRound size={18} />
                 <h3>Acesso</h3>
               </div>
-              <div className="nc-form-grid">
-                {campo('E-mail (login) *', { id: 'email', type: 'email', maxLength: TAMANHO.email, autoComplete: 'email', placeholder: 'seu@email.com' })}
-                {campo('Senha *', { id: 'senha', type: 'password', autoComplete: 'new-password', placeholder: 'Mínimo 6 caracteres' })}
-              </div>
+              {contaGoogle ? (
+                <div className="nc-form-grid">
+                  {campo('E-mail (conta Google)', { id: 'email', type: 'email', readOnly: true, disabled: true }, 'full-width')}
+                  <p className="nc-aviso full-width">
+                    Você vai entrar sempre pelo botão "Entrar com Google", sem senha.{' '}
+                    <button type="button" className="nc-link-botao" onClick={sairDoGoogle}>Usar outra conta</button>
+                  </p>
+                </div>
+              ) : (
+                <div className="nc-form-grid">
+                  {campo('E-mail (login) *', { id: 'email', type: 'email', maxLength: TAMANHO.email, autoComplete: 'email', placeholder: 'seu@email.com' })}
+                  {campo('Senha *', { id: 'senha', type: 'password', autoComplete: 'new-password', placeholder: 'Mínimo 6 caracteres' })}
+                </div>
+              )}
 
               <div className="nc-info-text">
                 <Info size={16} />
@@ -295,7 +340,9 @@ const CadastroMorador = () => {
               </button>
 
               <p className="nc-rodape">
-                Já tem uma conta? <Link to="/login">Voltar ao login</Link>
+                {contaGoogle
+                  ? <>Não é você? <button type="button" className="nc-link-botao" onClick={sairDoGoogle}>Voltar ao login</button></>
+                  : <>Já tem uma conta? <Link to="/login">Voltar ao login</Link></>}
               </p>
             </form>
           )}

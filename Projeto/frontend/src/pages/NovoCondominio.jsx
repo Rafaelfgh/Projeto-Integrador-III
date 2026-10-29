@@ -33,6 +33,7 @@ const NovoCondominio = () => {
   const navigate = useNavigate();
   const [passo, setPasso] = useState(1);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [confirmarEmail, setConfirmarEmail] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState(null);
   const [blocos, setBlocos] = useState([]);
@@ -107,10 +108,12 @@ const NovoCondominio = () => {
 
     setLoading(true);
     try {
-      const { error: authError } = await supabase.auth.signUp({
+      const { data: cadastro, error: authError } = await supabase.auth.signUp({
         email: formData.masterEmail,
         password: formData.masterSenha,
         options: {
+          // Confirmação de e-mail do Master: o link do e-mail volta para o login
+          emailRedirectTo: `${window.location.origin}/login`,
           data: {
             tipo: "master",
             nome: formData.masterNome,
@@ -131,6 +134,8 @@ const NovoCondominio = () => {
         throw authError;
       }
 
+      // Sem sessão = o Supabase pediu a confirmação do e-mail (link enviado para o Master)
+      setConfirmarEmail(!cadastro?.session);
       // O condomínio fica pendente até ser aprovado: sai da sessão
       await supabase.auth.signOut();
       setIsSuccess(true);
@@ -173,6 +178,9 @@ const NovoCondominio = () => {
               <p>
                 O cadastro do condomínio foi enviado para análise. Assim que for aprovado,
                 você poderá entrar com o e-mail e a senha informados.
+                {confirmarEmail && (
+                  <><br /><br /><strong>Antes, confirme o seu e-mail:</strong> enviamos um link para {formData.masterEmail}. Sem a confirmação, o login não é liberado.</>
+                )}
               </p>
               <div className="nc-success-actions">
                 <button className="nc-btn-primary" onClick={() => navigate("/login")}>
