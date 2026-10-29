@@ -685,3 +685,6 @@
 .sd-ranking-vaga .sd-ranking-pos, .sd-ranking-vaga .sd-ranking-nome { color: var(--hab-linha-forte); font-weight: 600; }
 .sd-ranking-card .sd-card-corpo { min-height: 0; }
 .sd-ranking-vaga .sd-barra-valor { color: var(--hab-linha-forte); }
+
+/* Mesmo espaço do topo que o Mural de Ocorrências (pedido do dono, 29/10) */
+:root .dashboard-content-inner.sd-pagina { padding-top: 0 !important; }
