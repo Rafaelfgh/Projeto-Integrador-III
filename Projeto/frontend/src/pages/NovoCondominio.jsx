@@ -1,8 +1,9 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, ArrowRight, Check, Info, Building2, User, Loader2, Layers } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Info, Building2, User, Loader2, Layers, CalendarDays } from "lucide-react";
 import { supabase } from "../backend/supabaseClient";
 import EditorBlocos from "../components/EditorBlocos";
+import EditorDependencias from "../components/EditorDependencias";
 import MarcaHabitare from "../components/MarcaHabitare";
 import {
   somenteLetras, letrasENumeros, mascaraCPF, mascaraCNPJ, mascaraTelefone, mascaraEmail,
@@ -37,6 +38,7 @@ const NovoCondominio = () => {
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState(null);
   const [blocos, setBlocos] = useState([]);
+  const [dependencias, setDependencias] = useState([]); // opcional: salão, churrasqueira...
 
   const [formData, setFormData] = useState({
     condoNome: "",
@@ -124,6 +126,7 @@ const NovoCondominio = () => {
             cidade: formData.condoCidade,
             estado: formData.condoEstado,
             blocos,
+            dependencias,
           },
         },
       });
@@ -282,6 +285,24 @@ const NovoCondominio = () => {
                     desativado={loading}
                     onSalvar={(bloco) => { setBlocos((prev) => [...prev, bloco]); setErrorMsg(null); return null; }}
                     onRemover={(bloco) => { setBlocos((prev) => prev.filter((b) => b.nome !== bloco.nome)); return null; }}
+                  />
+
+                  <div className="nc-divider"></div>
+
+                  <div className="nc-section-header">
+                    <CalendarDays size={18} />
+                    <h3>Dependências (opcional)</h3>
+                  </div>
+                  <p className="nc-blocos-ajuda">
+                    Espaços que os moradores podem reservar, como salão de festas ou churrasqueira. Não é
+                    obrigatório agora: você pode adicionar, a qualquer momento, na aba <strong>Dependências</strong>.
+                  </p>
+
+                  <EditorDependencias
+                    dependencias={dependencias}
+                    desativado={loading}
+                    onSalvar={(dep) => { setDependencias((prev) => [...prev, dep]); return null; }}
+                    onRemover={(dep) => { setDependencias((prev) => prev.filter((d) => d.nome !== dep.nome)); return null; }}
                   />
 
                   <div className="nc-info-text">

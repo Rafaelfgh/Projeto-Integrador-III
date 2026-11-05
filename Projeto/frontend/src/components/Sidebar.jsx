@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-  LayoutDashboard, FileEdit, FileWarning, Activity, ClipboardList, Building, BarChart, LogOut, Settings, Users, PenTool, Shield, UserPlus, Package, Clock, ShieldCheck, Map, MessageSquare, Calendar, Star, Vote, CheckSquare, FileText, CheckCircle2, ChevronRight, Home, Hourglass, AlarmClock, Gavel, Megaphone, ScanSearch, Mail, Layers, Menu, Plus
+  LayoutDashboard, FileEdit, FileWarning, Activity, ClipboardList, Building, BarChart, LogOut, Settings, Users, PenTool, Shield, UserPlus, Package, Clock, ShieldCheck, Map, MessageSquare, Calendar, CalendarDays, Star, Vote, CheckSquare, FileText, CheckCircle2, ChevronRight, Home, Hourglass, AlarmClock, Gavel, Megaphone, ScanSearch, Mail, Layers, Menu, Plus
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -100,6 +100,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
                 {navItem('/feed', Activity, 'Mural de Ocorrências', '')}
                 {navItem('/avisos', Megaphone, 'Mural de Avisos')}
                 {navItem('/solicitacoes', ClipboardList, 'Minhas Solicitações')}
+                {navItem('/reservas', CalendarDays, 'Reservas')}
                 {visualContext === 'SINDICO' && navItem('/recados', Mail, 'Recados', null, recados.total)}
               </nav>
             </div>
@@ -177,6 +178,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
                 </a>
                 {navItem('/funcionarios', ShieldCheck, 'Gestão de Funcionários')}
                 {navItem('/blocos', Layers, 'Blocos do Condomínio')}
+                {navItem('/dependencias', CalendarDays, 'Dependências')}
                 {navItem('/recados', Mail, 'Recados', null, recados.total)}
                 {navItem('/ocorrencias-analise', ScanSearch, 'Ocorrências em análise', null, contadores.analise)}
                 {navItem('/ocorrencias-pessoais', Home, 'Ocorrências Pessoais', null, contadores.pessoais)}

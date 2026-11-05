@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import ErroCarregamento from '../components/ErroCarregamento';
-import { Menu, Layers, Loader2 } from 'lucide-react';
+import { Menu, Layers, Loader2, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import NotificationMenu from '../components/NotificationMenu';
 import ContextBanner from '../components/ContextBanner';
 import AvatarUsuario from '../components/AvatarUsuario';
 import EditorBlocos from '../components/EditorBlocos';
+import Janela from '../components/Janela';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../backend/supabaseClient';
 import './Dashboard.css';
@@ -24,6 +25,9 @@ const BlocosCondominio = () => {
   const [erroCarga, setErroCarga] = useState(false);
   const [blocos, setBlocos] = useState([]);
   const [moradoresPor, setMoradoresPor] = useState({}); // nome do bloco (minúsculo) -> quantidade
+  const [confirmarRemocao, setConfirmarRemocao] = useState(null); // bloco a remover
+  const [removendo, setRemovendo] = useState(false);
+  const [erroRemocao, setErroRemocao] = useState(null);
 
   const carregar = useCallback(async () => {
     if (!condominioId) return;
@@ -62,14 +66,25 @@ const BlocosCondominio = () => {
     return null;
   };
 
-  const remover = async (bloco) => {
-    const { error } = await supabase.from('blocos').delete().eq('id', bloco.id);
+  // O "x" só pede a confirmação; a remoção acontece no botão da janela
+  const pedirRemocao = (bloco) => {
+    setErroRemocao(null);
+    setConfirmarRemocao(bloco);
+    return null;
+  };
+
+  const remover = async () => {
+    if (!confirmarRemocao || removendo) return;
+    setRemovendo(true);
+    const { error } = await supabase.from('blocos').delete().eq('id', confirmarRemocao.id);
+    setRemovendo(false);
     if (error) {
       console.error('Erro ao remover bloco:', error);
-      return error.hint ? error.message : 'Não foi possível remover o bloco.';
+      setErroRemocao(error.hint ? error.message : 'Não foi possível remover o bloco.');
+      return;
     }
-    await carregar();
-    return null;
+    setConfirmarRemocao(null);
+    carregar();
   };
 
   const totalAptos = blocos.reduce((soma, b) => soma + b.andares * b.aptos_por_andar, 0);
@@ -126,7 +141,7 @@ const BlocosCondominio = () => {
                   <EditorBlocos
                     blocos={blocos}
                     onSalvar={salvar}
-                    onRemover={remover}
+                    onRemover={pedirRemocao}
                     removivel={(b) => moradoresDo(b) === 0 && blocos.length > 1}
                     detalhe={(b) => {
                       const n = moradoresDo(b);
@@ -140,6 +155,27 @@ const BlocosCondominio = () => {
           </div>
         </div>
       </main>
+
+      {confirmarRemocao && (
+        <Janela
+          icone={Trash2}
+          tom="perigo"
+          titulo="Remover bloco?"
+          subtitulo={`Bloco ${confirmarRemocao.nome}`}
+          largura="pequena"
+          bloqueada={removendo}
+          onFechar={() => setConfirmarRemocao(null)}
+          rodape={<>
+            <button type="button" className="janela-btn janela-btn-sec btn-cancelar" onClick={() => setConfirmarRemocao(null)} disabled={removendo}>Cancelar</button>
+            <button type="button" className="janela-btn janela-btn-perigo" onClick={remover} disabled={removendo}>
+              {removendo ? <><Loader2 size={16} className="janela-girando" /> Removendo...</> : <><Trash2 size={16} /> Remover</>}
+            </button>
+          </>}
+        >
+          <p className="janela-texto">Os apartamentos desse bloco deixam de aparecer no cadastro de novos moradores.</p>
+          {erroRemocao && <p className="janela-erro" role="alert">{erroRemocao}</p>}
+        </Janela>
+      )}
     </div>
   );
 };
