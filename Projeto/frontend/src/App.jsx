@@ -19,6 +19,7 @@ import OcorrenciasGestao from './pages/OcorrenciasGestao';
 import ReclamacoesSindico from './pages/ReclamacoesSindico';
 import MuralAvisos from './pages/MuralAvisos';
 import PainelDev from './pages/PainelDev';
+import ExclusoesConta from './pages/ExclusoesConta';
 import GestaoFuncionarios from './pages/GestaoFuncionarios';
 import Recados from './pages/Recados';
 import BlocosCondominio from './pages/BlocosCondominio';
@@ -91,6 +92,7 @@ function App() {
           {/* Equipe Habitare: aprovação de condomínios */}
           <Route element={<ProtectedRoute allowedRoles={['DEV']} />}>
             <Route path="/painel-dev" element={<PainelDev />} />
+            <Route path="/exclusoes-conta" element={<ExclusoesConta />} />
           </Route>
 
           {/* Rota Comum a todos os logados */}

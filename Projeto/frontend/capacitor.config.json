@@ -1,0 +1,15 @@
+{
+  "appId": "br.com.habitare.app",
+  "appName": "Habitare",
+  "webDir": "dist",
+  "android": {
+    "allowMixedContent": false
+  },
+  "plugins": {
+    "StatusBar": {
+      "style": "DARK",
+      "backgroundColor": "#121417",
+      "overlaysWebView": false
+    }
+  }
+}

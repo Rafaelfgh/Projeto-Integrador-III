@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import AvatarUsuario from '../components/AvatarUsuario';
+import ExcluirConta from '../components/ExcluirConta';
 import { useNavigate } from 'react-router-dom';
 import { 
   User, Shield, Bell, Activity, Menu, MapPin, 
@@ -513,6 +514,8 @@ const Perfil = () => {
                         </div>
                       </div>
                     )}
+
+                    <ExcluirConta userId={currentUser?.id} />
                   </div>
                 )}
 

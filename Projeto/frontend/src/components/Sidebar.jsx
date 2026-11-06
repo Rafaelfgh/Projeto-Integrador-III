@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-  LayoutDashboard, FileEdit, FileWarning, Activity, ClipboardList, Building, BarChart, LogOut, Settings, Users, PenTool, Shield, UserPlus, Package, Clock, ShieldCheck, Map, MessageSquare, Calendar, CalendarDays, Star, Vote, CheckSquare, FileText, CheckCircle2, ChevronRight, Home, Hourglass, AlarmClock, Gavel, Megaphone, ScanSearch, Mail, Layers, Menu, Plus
+  LayoutDashboard, FileEdit, FileWarning, Activity, ClipboardList, Building, BarChart, LogOut, Settings, Users, PenTool, Shield, UserPlus, Package, Clock, ShieldCheck, Map, MessageSquare, Calendar, CalendarDays, Star, Vote, CheckSquare, FileText, CheckCircle2, ChevronRight, Home, Hourglass, AlarmClock, Gavel, Megaphone, ScanSearch, Mail, Layers, Menu, Plus, UserX,
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -56,7 +56,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
     SINDICO: [['/painel?tab=overview', LayoutDashboard, 'Painel'], ['/feed', Activity, 'Mural'], ['/ocorrencias-analise', ScanSearch, 'Análise', contadores.analise], ['/ocorrencias-pessoais', Home, 'Pessoais', contadores.pessoais]],
     FUNCIONARIO: [['/painel-funcionario', PenTool, 'Tarefas'], ['/recados', Mail, 'Recados', recados.total], ['/avisos', Megaphone, 'Avisos']],
     MASTER: [['/painel-master?tab=overview', LayoutDashboard, 'Visão'], ['/feed', Activity, 'Mural'], ['/painel-master?tab=usuarios', Users, 'Moradores', contadores.moradores_pendentes], ['/ocorrencias-analise', ScanSearch, 'Análise', contadores.analise]],
-    DEV: [['/painel-dev', Building, 'Condomínios']],
+    DEV: [['/painel-dev', Building, 'Condomínios'], ['/exclusoes-conta', UserX, 'Exclusões']],
   };
   const ativoInferior = (alvo) => {
     const [caminho, busca] = alvo.split('?');
@@ -154,6 +154,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
               <p className="nav-section-title">Equipe Habitare</p>
               <nav className="nav-list">
                 {navItem('/painel-dev', Building, 'Condomínios')}
+                {navItem('/exclusoes-conta', UserX, 'Exclusões de conta')}
               </nav>
             </div>
           )}

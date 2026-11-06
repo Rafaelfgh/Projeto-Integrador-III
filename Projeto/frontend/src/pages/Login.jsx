@@ -5,6 +5,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { carregarPerfil } from '../services/perfilService';
 import { supabase } from '../backend/supabaseClient';
 import LogoHabitareAnimada from '../components/LogoHabitareAnimada';
+import { ehApp, entrarComGoogleNoApp, aoFecharNavegador } from '../services/appNativo';
 import './Login.css';
 
 // A logo "surge" só na primeira vez que o login é aberto neste navegador
@@ -60,7 +61,12 @@ const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [errorMsg, setErrorMsg] = useState(null);
+  // Volta do Google com erro (?error_description=...): a mensagem já aparece ao abrir
+  const [errorMsg, setErrorMsg] = useState(() => (
+    new URLSearchParams(window.location.search).get('error_description')
+      || new URLSearchParams(window.location.hash.slice(1)).get('error_description')
+      ? 'Não foi possível entrar com o Google. Tente novamente.' : null
+  ));
   const [loadingGoogle, setLoadingGoogle] = useState(false);
   // login() muda a cada render do contexto: guardado em ref para a verificação rodar uma vez só
   const loginRef = useRef(login);
@@ -70,9 +76,6 @@ const Login = () => {
   // sem perfil (1º acesso) vai completar o cadastro de morador com o e-mail do Google.
   useEffect(() => {
     let ativo = true;
-    const erroGoogle = new URLSearchParams(window.location.search).get('error_description')
-      || new URLSearchParams(window.location.hash.slice(1)).get('error_description');
-    if (erroGoogle) setErrorMsg('Não foi possível entrar com o Google. Tente novamente.');
 
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (!ativo || !session) return;
@@ -101,9 +104,22 @@ const Login = () => {
     return () => { ativo = false; };
   }, [navigate]);
 
+  // No app: se a pessoa fechar a aba do Chrome sem entrar, o botão volta ao normal
+  useEffect(() => aoFecharNavegador(() => setLoadingGoogle(false)), []);
+
   const entrarComGoogle = async () => {
     setErrorMsg(null);
     setLoadingGoogle(true);
+    if (ehApp) {
+      try {
+        await entrarComGoogleNoApp();
+      } catch (err) {
+        console.error('Erro ao abrir o Google no app:', err);
+        setErrorMsg('Não foi possível abrir o login do Google.');
+        setLoadingGoogle(false);
+      }
+      return;
+    }
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
