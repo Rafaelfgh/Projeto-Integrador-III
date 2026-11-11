@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Mail, Lock, User, Building, Loader2, Eye, EyeOff, ArrowRight } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { carregarPerfil } from '../services/perfilService';
 import { supabase } from '../backend/supabaseClient';
 import LogoHabitareAnimada from '../components/LogoHabitareAnimada';
+import { ehApp, entrarComGoogleNoApp, aoFecharNavegador } from '../services/appNativo';
 import './Login.css';
 
 // A logo "surge" só na primeira vez que o login é aberto neste navegador
@@ -37,6 +38,21 @@ const FAISCAS = Array.from({ length: 6 }, () => {
   };
 });
 
+// Tela inicial de cada perfil depois do login
+const destinoPorPapel = (papel) => ({
+  DEV: '/painel-dev', MASTER: '/painel-master', SINDICO: '/painel', FUNCIONARIO: '/painel-funcionario',
+}[papel] || '/avisos');
+
+// Logo oficial do Google (4 cores), exigida no botão "Entrar com Google"
+const LogoGoogle = () => (
+  <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true">
+    <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
+    <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" />
+    <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z" />
+    <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" />
+  </svg>
+);
+
 const Login = () => {
   const [animarLogo] = useState(deveAnimarLogo);
   const [mostrarSenha, setMostrarSenha] = useState(false);
@@ -45,7 +61,98 @@ const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [errorMsg, setErrorMsg] = useState(null);
+  // Volta do Google com erro (?error_description=...): a mensagem já aparece ao abrir
+  const [errorMsg, setErrorMsg] = useState(() => (
+    new URLSearchParams(window.location.search).get('error_description')
+      || new URLSearchParams(window.location.hash.slice(1)).get('error_description')
+      ? 'Não foi possível entrar com o Google. Tente novamente.' : null
+  ));
+  const [loadingGoogle, setLoadingGoogle] = useState(false);
+  // login() muda a cada render do contexto: guardado em ref para a verificação rodar uma vez só
+  const loginRef = useRef(login);
+  useEffect(() => { loginRef.current = login; }, [login]);
+
+  // Volta do Google: a conta já está conectada. Com perfil no Habitare entra direto;
+  // sem perfil (1º acesso) vai completar o cadastro de morador com o e-mail do Google.
+  useEffect(() => {
+    let ativo = true;
+    // Se a sessão salva não responder em 10 s, destrava a tela (não fica girando para sempre)
+    const limite = (promessa) => Promise.race([
+      promessa,
+      new Promise((_, rejeitar) => setTimeout(() => rejeitar(new Error('tempo esgotado')), 10000)),
+    ]);
+
+    limite(supabase.auth.getSession()).then(async ({ data: { session } }) => {
+      if (!ativo || !session) return;
+      const viaGoogle = (session.user.app_metadata?.providers || []).includes('google');
+      setLoadingGoogle(true);
+      try {
+        const perfil = await limite(carregarPerfil());
+        if (!ativo) return;
+        if (perfil) {
+          loginRef.current(perfil);
+          navigate(destinoPorPapel(perfil.role), { replace: true });
+        } else if (viaGoogle) {
+          navigate('/cadastro?google=1', { replace: true });
+        } else {
+          await supabase.auth.signOut();
+          setLoadingGoogle(false);
+        }
+      } catch (err) {
+        console.error('Erro ao entrar com o Google:', err);
+        if (ativo) {
+          setErrorMsg('Não foi possível entrar. Tente novamente.');
+          setLoadingGoogle(false);
+          supabase.auth.signOut({ scope: 'local' }).catch(() => {});
+        }
+      }
+    }).catch((err) => {
+      console.error('Sessão salva não respondeu:', err);
+      if (ativo) setLoadingGoogle(false);
+    });
+    return () => { ativo = false; };
+  }, [navigate]);
+
+  // No app: se a pessoa fechar a aba do Chrome sem entrar, o botão volta ao normal
+  useEffect(() => aoFecharNavegador(() => setLoadingGoogle(false)), []);
+
+  // Login com Google demorando demais: cancela e deixa tentar de novo (a volta do Google,
+  // se ainda chegar, continua funcionando normalmente)
+  useEffect(() => {
+    if (!loadingGoogle) return undefined;
+    const t = setTimeout(() => {
+      setLoadingGoogle(false);
+      setErrorMsg('O login com Google demorou demais. Toque em "Entrar com Google" de novo.');
+    }, 30000);
+    return () => clearTimeout(t);
+  }, [loadingGoogle]);
+
+  const entrarComGoogle = async () => {
+    setErrorMsg(null);
+    setLoadingGoogle(true);
+    if (ehApp) {
+      try {
+        await entrarComGoogleNoApp();
+      } catch (err) {
+        console.error('Erro ao abrir o Google no app:', err);
+        setErrorMsg('Não foi possível abrir o login do Google.');
+        setLoadingGoogle(false);
+      }
+      return;
+    }
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/login`,
+        queryParams: { prompt: 'select_account' }, // deixa escolher a conta Google
+      },
+    });
+    if (error) {
+      console.error('Erro ao abrir o Google:', error);
+      setErrorMsg('Não foi possível abrir o login do Google.');
+      setLoadingGoogle(false);
+    }
+  };
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -54,11 +161,14 @@ const Login = () => {
 
     try {
       // 1. Autenticação no Supabase Auth
-      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+      const { data: authData, error: authError } = await Promise.race([
+        supabase.auth.signInWithPassword({ email, password }),
+        new Promise((_, rejeitar) => setTimeout(() => rejeitar(new Error('O servidor demorou para responder. Tente de novo.')), 20000)),
+      ]);
 
+      if (authError && /email not confirmed/i.test(authError.message)) {
+        throw new Error('Confirme seu e-mail pelo link que enviamos antes de entrar.');
+      }
       if (authError || !authData.user) {
         throw new Error('E-mail ou senha inválidos.');
       }
@@ -73,17 +183,7 @@ const Login = () => {
       login(userData);
 
       // 3. Redirecionamento por papel
-      if (userData.role === 'DEV') {
-        navigate('/painel-dev');
-      } else if (userData.role === 'MASTER') {
-        navigate('/painel-master');
-      } else if (userData.role === 'SINDICO') {
-        navigate('/painel');
-      } else if (userData.role === 'FUNCIONARIO') {
-        navigate('/painel-funcionario');
-      } else {
-        navigate('/solicitacoes');
-      }
+      navigate(destinoPorPapel(userData.role));
 
     } catch (error) {
       console.error('Erro no login:', error);
@@ -188,6 +288,12 @@ const Login = () => {
               )}
             </button>
           </form>
+
+          <div className="login-divisor login-divisor-google"><span>ou</span></div>
+          <button type="button" className="login-btn-google" onClick={entrarComGoogle} disabled={loading || loadingGoogle}>
+            {loadingGoogle ? <Loader2 size={18} className="login-girando" /> : <LogoGoogle />}
+            {loadingGoogle ? 'Conectando…' : 'Entrar com Google'}
+          </button>
 
           <div className="login-rodape">
             <div className="login-divisor"><span>ainda não tem conta?</span></div>

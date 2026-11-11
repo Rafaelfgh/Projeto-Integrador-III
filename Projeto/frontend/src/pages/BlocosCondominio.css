@@ -64,3 +64,14 @@
   .bc-container { padding: 1rem; }
   .bc-card { padding: 1rem; }
 }
+
+/* Dependências (master): lista das próximas reservas */
+.dc-reservas { margin-top: 1.25rem; }
+.dc-lista { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.dc-lista li { display: grid; grid-template-columns: 96px minmax(0, 1fr) minmax(0, 1fr); align-items: center; gap: 0.85rem; padding: 0.7rem 0; border-top: 1px solid #e2e8f0; }
+.dc-lista li:first-child { border-top: 0; }
+.dc-data { font-weight: 700; font-size: 0.85rem; color: #0f172a; font-variant-numeric: tabular-nums; }
+.dc-texto, .dc-quem { display: flex; flex-direction: column; min-width: 0; }
+.dc-texto strong, .dc-quem strong { font-size: 0.88rem; color: #0f172a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dc-texto small, .dc-quem small { font-size: 0.76rem; color: #64748b; }
+@media (max-width: 560px) { .dc-lista li { grid-template-columns: 86px minmax(0, 1fr); } .dc-quem { grid-column: 2; } }

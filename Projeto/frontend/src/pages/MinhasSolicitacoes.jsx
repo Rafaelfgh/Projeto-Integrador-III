@@ -322,14 +322,25 @@ const MinhasSolicitacoes = () => {
                 <input 
                   type="text" 
                   className="ms-search-input" 
-                  placeholder="Buscar por título ou protocolo" 
+                  placeholder={aba === 'ocorrencias' ? 'Buscar ocorrências por título ou código' : 'Buscar reclamações por título ou código'} 
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
               <FiltroData valor={filtroData} onChange={setFiltroData} anos={anosDe((aba === 'ocorrencias' ? ocorrencias : reclamacoes).map(r => r.createdAt))} />
-              
-              <div style={{ position: 'relative' }} onClick={(e) => e.stopPropagation()}>
+            </div>
+
+            {/* Subtelas + "Nova Solicitação" na mesma linha */}
+            <div className="ms-linha-abas">
+              <div className="ms-abas" role="tablist">
+                <button role="tab" aria-selected={aba === 'ocorrencias'} className={aba === 'ocorrencias' ? 'ativa' : ''} onClick={() => setAba('ocorrencias')}>
+                  Ocorrências <span>{ocorrencias.length}</span>
+                </button>
+                <button role="tab" aria-selected={aba === 'reclamacoes'} className={aba === 'reclamacoes' ? 'ativa' : ''} onClick={() => setAba('reclamacoes')}>
+                  Reclamações <span>{reclamacoes.length}</span>
+                </button>
+              </div>
+              <div className="ms-nova" style={{ position: 'relative' }} onClick={(e) => e.stopPropagation()}>
                 <button className="btn-ms-new" onClick={() => setShowNewDropdown(!showNewDropdown)}>
                   <Plus size={18} strokeWidth={2.5}/> Nova Solicitação
                 </button>
@@ -344,16 +355,6 @@ const MinhasSolicitacoes = () => {
                   </div>
                 )}
               </div>
-            </div>
-
-            {/* Subtelas */}
-            <div className="ms-abas" role="tablist">
-              <button role="tab" aria-selected={aba === 'ocorrencias'} className={aba === 'ocorrencias' ? 'ativa' : ''} onClick={() => setAba('ocorrencias')}>
-                Ocorrências <span>{ocorrencias.length}</span>
-              </button>
-              <button role="tab" aria-selected={aba === 'reclamacoes'} className={aba === 'reclamacoes' ? 'ativa' : ''} onClick={() => setAba('reclamacoes')}>
-                Reclamações <span>{reclamacoes.length}</span>
-              </button>
             </div>
 
             {aba === 'ocorrencias' && (
@@ -448,7 +449,7 @@ const MinhasSolicitacoes = () => {
             ) : (
               <div className="ms-empty">
                 <FolderOpen size={48} className="ms-empty-icon" />
-                <h4 className="ms-empty-title">Nenhum protocolo encontrado</h4>
+                <h4 className="ms-empty-title">{aba === 'ocorrencias' ? 'Nenhuma ocorrência encontrada' : 'Nenhuma reclamação encontrada'}</h4>
                 <p className="ms-empty-desc">Sua busca ou filtro não retornou nenhum registro. Tente usar outros termos.</p>
               </div>
             )}

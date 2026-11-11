@@ -197,7 +197,7 @@ const GerenciarOcorrencia = ({ ocorrenciaId, onFechar, onAtualizada }) => {
                           Os funcionários ficam aguardando até você encaminhar, colocar em andamento ou concluir.
                         </span>
                         <div className="go-botoes" style={{ marginTop: '0.6rem' }}>
-                          <button className="go-btn go-btn-secundario" onClick={() => setConfirmarAnalise(false)}>Cancelar</button>
+                          <button className="go-btn go-btn-secundario btn-cancelar" onClick={() => setConfirmarAnalise(false)}>Cancelar</button>
                           <button className="go-btn go-btn-primario" onClick={colocarEmAnalise} disabled={enviando}>
                             <Lupa size={15} /> Confirmar análise
                           </button>

@@ -562,6 +562,11 @@ button.placa { font: inherit; text-align: left; padding: 0; color: inherit; widt
 /* ════════════════ Perfil ════════════════ */
 :root :is(.banner-master, .banner-sindico, .banner-funcionario, .banner-morador) { background: var(--hab-tinta); }
 .perfil-banner { height: 104px; }
+/* (09/11) A bolinha da foto fica metade para fora da faixa: a faixa não pode cortar o que passa
+   da borda (antes overflow: hidden cortava a metade de baixo da foto). Só o pontilhado é recortado. */
+.perfil-banner { overflow: visible !important; border-radius: calc(var(--hab-raio) - 1px) calc(var(--hab-raio) - 1px) 0 0; }
+.perfil-banner::after { border-radius: inherit; }
+.perfil-avatar-inner { overflow: hidden; }
 :root :is(.perfil-avatar-inner.avatar-master, .perfil-avatar-inner.avatar-sindico, .perfil-avatar-inner.avatar-funcionario, .perfil-avatar-inner.avatar-morador) { color: var(--hab-tinta); background: var(--hab-laranja-claro); font-family: var(--hab-fonte-titulo); }
 .settings-tab.active { background: var(--hab-tinta) !important; color: #fff !important; border-color: var(--hab-tinta) !important; }
 .settings-tab.active svg { color: #fff !important; }
@@ -598,8 +603,41 @@ button.placa { font: inherit; text-align: left; padding: 0; color: inherit; widt
 /* Gestão de Moradores no celular: números em 2x2 e tabela que rola de lado */
 @media (max-width: 760px) {
   .gm-numeros { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 0.6rem !important; }
-  .gm-tabela { overflow-x: auto !important; -webkit-overflow-scrolling: touch; }
-  .gm-tabela table { min-width: 680px; }
+}
+
+/* (09/11) Gestão de Moradores no celular: cada morador vira um cartão em vez de uma
+   tabela que rola de lado (as etiquetas e botões ficavam uns em cima dos outros).
+   Cartão: nome/e-mail · documento/unidade · Perfil | Status · ações em largura cheia */
+@media (max-width: 760px) {
+  .gm-tabela { background: transparent !important; border: 0 !important; overflow: visible !important; }
+  .gm-tabela table, .gm-tabela tbody { display: block; width: 100%; }
+  .gm-tabela colgroup, .gm-tabela thead { display: none; }
+  .gm-tabela tr.gm-linha {
+    display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-areas: "nome nome" "doc doc" "perfil status" "acoes acoes";
+    gap: 0.55rem 0.6rem; padding: 0.9rem; margin-bottom: 0.65rem;
+    border: 1px solid #e2e8f0; border-radius: 12px; background: #fff;
+  }
+  .gm-tabela tr.gm-linha > td { display: block; padding: 0 !important; border: 0 !important; text-align: left !important; min-width: 0; }
+  .gm-tabela .gm-c-nome { grid-area: nome; }
+  .gm-tabela .gm-c-nome p { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .gm-tabela tr.gm-linha > td.gm-c-doc { grid-area: doc; display: flex; align-items: center; flex-wrap: wrap; gap: 0.5rem; }
+  .gm-tabela .gm-c-doc > span { margin-top: 0 !important; }
+  .gm-tabela .gm-c-perfil { grid-area: perfil; }
+  .gm-tabela .gm-c-status { grid-area: status; }
+  .gm-tabela tr.gm-linha > td.gm-c-acoes { grid-area: acoes; padding-top: 0.7rem !important; border-top: 1px solid #eef0f2 !important; }
+  /* rótulo pequeno acima de Perfil e Status */
+  .gm-tabela .gm-c-perfil::before, .gm-tabela .gm-c-status::before {
+    display: block; margin-bottom: 4px; font-size: 10px; font-weight: 700; letter-spacing: 0.06em;
+    text-transform: uppercase; color: #94a3b8;
+  }
+  .gm-tabela .gm-c-perfil::before { content: "Perfil"; }
+  .gm-tabela .gm-c-status::before { content: "Status"; }
+  .gm-tabela .gm-c-perfil > *, .gm-tabela .gm-c-status > * { width: 100%; min-width: 0 !important; }
+  /* ações lado a lado, ocupando a largura toda, com altura boa para o dedo */
+  .gm-tabela .gm-c-acoes > div { flex-direction: row !important; justify-content: stretch !important; gap: 0.5rem !important; }
+  .gm-tabela .gm-c-acoes button { flex: 1 1 0; min-width: 0 !important; min-height: 36px; font-size: 12px !important; }
+  .gm-tabela .gm-c-vazio { display: block; background: #fff; border: 1px solid #e2e8f0 !important; border-radius: 12px; }
 }
 @media (max-width: 640px) {
   .ms-header-actions { padding: 0.7rem !important; border-radius: var(--hab-raio) !important; }
@@ -862,3 +900,49 @@ button.placa { font: inherit; text-align: left; padding: 0; color: inherit; widt
 }
 :root :is(.feed-select, .oc-filtros select, .filtro-data .saas-select, .pm-filtro-select, .pf-select, .feed-search-input, .ms-search-input) { font-family: var(--hab-fonte) !important; font-weight: 500 !important; color: var(--hab-tinta); }
 :root .btn-ms-new:not(.login-page *) { height: 36px !important; min-height: 0 !important; padding: 0 0.9rem !important; font-size: 0.85rem !important; white-space: nowrap; }
+
+/* Minhas Solicitações: abas Ocorrências/Reclamações e "Nova Solicitação" na mesma linha */
+.ms-linha-abas { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap; }
+.ms-linha-abas .ms-nova { margin-left: auto; }
+
+/* "Cancelar" em vermelho em todas as telas (pedido do dono, 29/10): branco com letra e borda
+   vermelhas; vermelho cheio ao passar o mouse, como os outros botões ficam laranja */
+:root .btn-cancelar {
+  background: var(--hab-placa) !important; color: #b91c1c !important; border: 1px solid #fca5a5 !important;
+  box-shadow: none !important;
+  transition: background-color 0.16s var(--hab-ease), border-color 0.16s var(--hab-ease), color 0.16s var(--hab-ease) !important;
+}
+:root .btn-cancelar:hover:not(:disabled) { background: #dc2626 !important; border-color: #b91c1c !important; color: #fff !important; }
+:root .btn-cancelar:disabled { opacity: 0.55; }
+:root .link-cancelar { color: #b91c1c !important; }
+:root .link-cancelar:hover { text-decoration: underline; }
+
+/* Visão Geral: menos espaço entre o topo e as placas (pedido do dono, 29/10) */
+:root .dashboard-content-inner.vg-pagina { padding-top: 0 !important; }
+:root .dashboard-content-scroll:has(> .vg-pagina) { padding-top: 1.5rem !important; }
+
+/* Cadastro com Google: link "Usar outra conta" */
+.nc-link-botao { border: 0; background: none; padding: 0; cursor: pointer; font: inherit; font-weight: 700; color: var(--hab-laranja-texto); text-decoration: underline; text-underline-offset: 3px; }
+
+/* ════════════════ Celular (09/11): topo com altura que cabe título, condomínio e sino ════════════════
+   Antes: altura fixa de 3,75rem + 1rem de espaço em cima e embaixo (regra do Dashboard.css)
+   deixava o nome do condomínio e o sino para fora da faixa preta. */
+@media (max-width: 1023px) {
+  .main-header {
+    height: auto !important;
+    min-height: calc(3.75rem + env(safe-area-inset-top, 0px));
+    padding: calc(env(safe-area-inset-top, 0px) + 0.6rem) 1rem 0.6rem !important;
+    align-items: center;
+  }
+  .main-header .header-breadcrumbs { display: flex; flex-direction: column; gap: 0.1rem; }
+  .main-header .header-title { line-height: 1.25; margin: 0; }
+  .main-header .header-breadcrumbs::after { line-height: 1.2; }
+  .main-header .notification-wrapper { flex-shrink: 0; }
+}
+
+/* Atividades Recentes no celular: a etiqueta de status vai alinhada ao texto (à direita da linha
+   da timeline), em vez de ficar em cima da linha */
+@media (max-width: 639px) {
+  .activity-item { gap: 0.45rem; }
+  .activity-actions { padding-top: 0; padding-left: 3.25rem; }
+}

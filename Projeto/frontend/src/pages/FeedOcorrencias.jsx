@@ -425,7 +425,7 @@ const FeedOcorrencias = () => {
                               placeholder="Escreva um posicionamento oficial sobre esta ocorrência..."
                             />
                             <div className="feed-pron-actions">
-                              <button className="feed-pron-cancel" onClick={() => cancelarPronunciamento(item.id)}>Cancelar</button>
+                              <button className="feed-pron-cancel btn-cancelar" onClick={() => cancelarPronunciamento(item.id)}>Cancelar</button>
                               <button
                                 className="feed-pron-save"
                                 disabled={salvandoPron === item.id}
@@ -497,7 +497,7 @@ const FeedOcorrencias = () => {
                                       }}
                                     />
                                     <div className="feed-comment-edit-actions">
-                                      <button className="feed-pron-cancel" onClick={() => setEditandoCom(null)} disabled={comentando === item.id}>Cancelar</button>
+                                      <button className="feed-pron-cancel btn-cancelar" onClick={() => setEditandoCom(null)} disabled={comentando === item.id}>Cancelar</button>
                                       <button
                                         className="feed-pron-save"
                                         onClick={() => salvarEdicaoComentario(item.id)}

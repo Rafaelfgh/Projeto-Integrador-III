@@ -13,7 +13,7 @@ export const avisarMudancaOcorrencias = () => window.dispatchEvent(new Event(EVE
 // Guardados entre as trocas de tela: o menu mostra o último valor na hora e só
 // busca de novo se já passou um tempinho (ou se alguém avisou que mudou).
 // O cache é de UM usuário: trocou de conta, descarta (senão mostrava o número do anterior).
-const ZERADO = { analise: 0, pessoais: 0, abertas_paradas: 0, reclamacoes_abertas: 0, moradores_pendentes: 0 };
+const ZERADO = { analise: 0, pessoais: 0, abertas_paradas: 0, andamento_parados: 0, reclamacoes_abertas: 0, moradores_pendentes: 0 };
 let cache = { usuario: null, valor: ZERADO, em: 0 };
 const VALIDADE = 30000;
 

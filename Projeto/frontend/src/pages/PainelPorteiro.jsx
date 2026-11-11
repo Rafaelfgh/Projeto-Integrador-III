@@ -597,7 +597,7 @@ const PainelPorteiro = () => {
                            </div>
                         </div>
                         <div className="modal-footer">
-                            <button type="button" className="btn-secondary" onClick={() => setModalVisitanteOpen(false)}>Cancelar</button>
+                            <button type="button" className="btn-secondary btn-cancelar" onClick={() => setModalVisitanteOpen(false)}>Cancelar</button>
                             <button type="submit" className="btn-primary">Registrar e Notificar</button>
                         </div>
                     </form>
@@ -633,7 +633,7 @@ const PainelPorteiro = () => {
                         </div>
                      </div>
                      <div className="modal-footer">
-                         <button type="button" className="btn-secondary" onClick={() => setModalEncomendaOpen(false)}>Cancelar</button>
+                         <button type="button" className="btn-secondary btn-cancelar" onClick={() => setModalEncomendaOpen(false)}>Cancelar</button>
                          <button type="submit" className="btn-primary" style={{ backgroundColor: '#0284c7' }}>Notificar Morador</button>
                      </div>
                  </form>

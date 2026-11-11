@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-  LayoutDashboard, FileEdit, FileWarning, Activity, ClipboardList, Building, BarChart, LogOut, Settings, Users, PenTool, Shield, UserPlus, Package, Clock, ShieldCheck, Map, MessageSquare, Calendar, Star, Vote, CheckSquare, FileText, CheckCircle2, ChevronRight, Home, Hourglass, AlarmClock, Gavel, Megaphone, ScanSearch, Mail, Layers, Menu, Plus
+  LayoutDashboard, FileEdit, FileWarning, Activity, ClipboardList, Building, BarChart, LogOut, Settings, Users, PenTool, Shield, UserPlus, Package, Clock, ShieldCheck, Map, MessageSquare, Calendar, CalendarDays, Star, Vote, CheckSquare, FileText, CheckCircle2, ChevronRight, Home, Hourglass, AlarmClock, Gavel, Megaphone, ScanSearch, Mail, Layers, Menu, Plus, UserX,
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -52,12 +52,21 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
 
   // Barra inferior do celular: os destinos mais usados de cada perfil + "Menu" (abre o menu completo)
   const ITENS_INFERIOR = {
-    MORADOR: [['/dashboard', LayoutDashboard, 'Início'], ['/feed', Activity, 'Mural'], ['/ocorrencia', Plus, 'Nova'], ['/solicitacoes', ClipboardList, 'Minhas']],
-    SINDICO: [['/painel?tab=overview', LayoutDashboard, 'Painel'], ['/feed', Activity, 'Mural'], ['/ocorrencias-analise', ScanSearch, 'Análise', contadores.analise], ['/ocorrencias-pessoais', Home, 'Pessoais', contadores.pessoais]],
+    MORADOR: [['/avisos', Megaphone, 'Avisos'], ['/feed', Activity, 'Mural'], ['/ocorrencia', Plus, 'Nova'], ['/reservas', CalendarDays, 'Reservas']],
+    SINDICO: [['/painel?tab=overview', LayoutDashboard, 'Painel'], ['/feed', Activity, 'Mural'], ['/ocorrencia', Plus, 'Nova'], ['/recados', Mail, 'Recados', recados.total]],
     FUNCIONARIO: [['/painel-funcionario', PenTool, 'Tarefas'], ['/recados', Mail, 'Recados', recados.total], ['/avisos', Megaphone, 'Avisos']],
-    MASTER: [['/painel-master?tab=overview', LayoutDashboard, 'Visão'], ['/feed', Activity, 'Mural'], ['/painel-master?tab=usuarios', Users, 'Moradores', contadores.moradores_pendentes], ['/ocorrencias-analise', ScanSearch, 'Análise', contadores.analise]],
-    DEV: [['/painel-dev', Building, 'Condomínios']],
+    MASTER: [['/painel-master?tab=overview', LayoutDashboard, 'Visão'], ['/feed', Activity, 'Mural'], ['/painel-master?tab=usuarios', Users, 'Moradores', contadores.moradores_pendentes], ['/funcionarios', ShieldCheck, 'Funcionários']],
+    DEV: [['/painel-dev', Building, 'Condomínios'], ['/exclusoes-conta', UserX, 'Exclusões']],
   };
+  // Bolinha do "Menu": soma das pendências que só aparecem no menu completo (as que já têm
+  // botão próprio na barra, como Recados do síndico e Moradores do Master, não entram)
+  const somaN = (...ns) => ns.reduce((t, n) => t + (Number(n) || 0), 0);
+  const PENDENTES_NO_MENU = {
+    SINDICO: somaN(contadores.analise, contadores.pessoais, contadores.reclamacoes_abertas, contadores.abertas_paradas, contadores.andamento_parados),
+    MASTER: somaN(recados.total, contadores.analise, contadores.pessoais, contadores.abertas_paradas, contadores.andamento_parados),
+  };
+  const pendentesMenu = PENDENTES_NO_MENU[visualContext] || 0;
+
   const ativoInferior = (alvo) => {
     const [caminho, busca] = alvo.split('?');
     if (caminho !== currentPath) return false;
@@ -76,9 +85,10 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
             {n > 0 && <span className="nav-inferior-bolinha">{n > 99 ? '99+' : n}</span>}
           </button>
         ))}
-        <button type="button" onClick={() => setSidebarOpen(true)} aria-label="Abrir menu completo">
+        <button type="button" onClick={() => setSidebarOpen(true)} aria-label={pendentesMenu > 0 ? `Abrir menu completo (${pendentesMenu} pendentes)` : 'Abrir menu completo'}>
           <Menu />
           Menu
+          {pendentesMenu > 0 && <span className="nav-inferior-bolinha">{pendentesMenu > 99 ? '99+' : pendentesMenu}</span>}
         </button>
       </nav>
       <aside className={`dashboard-sidebar ${sidebarOpen ? 'sidebar-open' : 'sidebar-closed'}`}>
@@ -96,10 +106,12 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
             <div className="nav-group">
               <p className="nav-section-title">Workspace</p>
               <nav className="nav-list">
-                {navItem('/dashboard', LayoutDashboard, 'Visão Geral', '')}
+                {visualContext === 'SINDICO' && navItem('/dashboard', LayoutDashboard, 'Visão Geral', '')}
+                {visualContext === 'MORADOR' && navItem('/avisos', Megaphone, 'Mural de Avisos')}
                 {navItem('/feed', Activity, 'Mural de Ocorrências', '')}
-                {navItem('/avisos', Megaphone, 'Mural de Avisos')}
+                {visualContext === 'SINDICO' && navItem('/avisos', Megaphone, 'Mural de Avisos')}
                 {navItem('/solicitacoes', ClipboardList, 'Minhas Solicitações')}
+                {navItem('/reservas', CalendarDays, 'Reservas')}
                 {visualContext === 'SINDICO' && navItem('/recados', Mail, 'Recados', null, recados.total)}
               </nav>
             </div>
@@ -140,7 +152,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
                 {navItem('/ocorrencias-pessoais', Home, 'Ocorrências Pessoais', null, contadores.pessoais)}
                 {navItem('/reclamacoes', Gavel, 'Reclamações', null, contadores.reclamacoes_abertas)}
                 {navItem('/abertas-prolongadas', AlarmClock, 'Abertas +2 dias', null, contadores.abertas_paradas)}
-                {navItem('/andamento-prolongado', Hourglass, 'Em andamento +2 dias')}
+                {navItem('/andamento-prolongado', Hourglass, 'Em andamento +2 dias', null, contadores.andamento_parados)}
                 {navItem('/ocorrencias-concluidas', CheckCircle2, 'Ocorrências Concluídas')}
                 {navItem('/funcionarios', ShieldCheck, 'Gestão de Funcionários')}
               </nav>
@@ -153,6 +165,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
               <p className="nav-section-title">Equipe Habitare</p>
               <nav className="nav-list">
                 {navItem('/painel-dev', Building, 'Condomínios')}
+                {navItem('/exclusoes-conta', UserX, 'Exclusões de conta')}
               </nav>
             </div>
           )}
@@ -177,11 +190,12 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
                 </a>
                 {navItem('/funcionarios', ShieldCheck, 'Gestão de Funcionários')}
                 {navItem('/blocos', Layers, 'Blocos do Condomínio')}
+                {navItem('/dependencias', CalendarDays, 'Dependências')}
                 {navItem('/recados', Mail, 'Recados', null, recados.total)}
                 {navItem('/ocorrencias-analise', ScanSearch, 'Ocorrências em análise', null, contadores.analise)}
                 {navItem('/ocorrencias-pessoais', Home, 'Ocorrências Pessoais', null, contadores.pessoais)}
                 {navItem('/abertas-prolongadas', AlarmClock, 'Abertas +2 dias', null, contadores.abertas_paradas)}
-                {navItem('/andamento-prolongado', Hourglass, 'Em andamento +2 dias')}
+                {navItem('/andamento-prolongado', Hourglass, 'Em andamento +2 dias', null, contadores.andamento_parados)}
                 {navItem('/ocorrencias-concluidas', CheckCircle2, 'Ocorrências Concluídas')}
               </nav>
             </div>

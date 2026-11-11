@@ -219,6 +219,15 @@
   margin: 0.25rem 0 0 0;
 }
 
+/* Celular: "Tirar foto" (câmera na hora) e "Galeria" */
+.upload-botoes { display: flex; gap: 0.6rem; justify-content: center; margin-top: 0.9rem; flex-wrap: wrap; }
+.upload-botao {
+  display: inline-flex; align-items: center; gap: 0.4rem; min-height: 40px; padding: 0 1rem;
+  border-radius: 9px; border: 1px solid #e2e8f0; background: #fff; color: #0f172a;
+  font-size: 0.85rem; font-weight: 600; cursor: pointer;
+}
+.upload-botao-camera { background: var(--hab-laranja, #f47920); border-color: transparent; color: var(--hab-tinta, #121417); }
+
 /* Arquivos Anexados Preview List */
 .attached-files-list {
   display: flex;

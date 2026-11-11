@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Fundo das faixas da barra de status e da barra de gestos (mesma cor do topo do site) -->
+    <color name="fundo_barras">#121417</color>
+</resources>

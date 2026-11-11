@@ -19,9 +19,12 @@ import OcorrenciasGestao from './pages/OcorrenciasGestao';
 import ReclamacoesSindico from './pages/ReclamacoesSindico';
 import MuralAvisos from './pages/MuralAvisos';
 import PainelDev from './pages/PainelDev';
+import ExclusoesConta from './pages/ExclusoesConta';
 import GestaoFuncionarios from './pages/GestaoFuncionarios';
 import Recados from './pages/Recados';
 import BlocosCondominio from './pages/BlocosCondominio';
+import DependenciasCondominio from './pages/DependenciasCondominio';
+import Reservas from './pages/Reservas';
 import ProtectedRoute from './components/ProtectedRoute';
 import { AuthProvider } from './contexts/AuthContext';
 import VisualizadorImagemProvider from './components/VisualizadorImagem';
@@ -40,12 +43,21 @@ function App() {
           <Route path="/novo-condominio" element={<NovoCondominio />} />
           
           {/* Rotas de Morador (SINDICO e MASTER herdam) */}
-          <Route element={<ProtectedRoute allowedRoles={['MORADOR', 'SINDICO', 'MASTER']} />}>
+          {/* Visão Geral com métricas: só do síndico (o morador começa nos Avisos) */}
+          <Route element={<ProtectedRoute allowedRoles={['SINDICO', 'MASTER']} />}>
             <Route path="/dashboard" element={<Dashboard />} />
+          </Route>
+
+          <Route element={<ProtectedRoute allowedRoles={['MORADOR', 'SINDICO', 'MASTER']} />}>
             <Route path="/ocorrencia" element={<Ocorrencia />} />
             <Route path="/reclamacao" element={<Reclamacao />} />
             <Route path="/feed" element={<FeedOcorrencias />} />
             <Route path="/solicitacoes" element={<MinhasSolicitacoes />} />
+          </Route>
+
+          {/* Reservas de dependências: morador e síndico */}
+          <Route element={<ProtectedRoute allowedRoles={['MORADOR', 'SINDICO']} />}>
+            <Route path="/reservas" element={<Reservas />} />
           </Route>
           
           {/* Painel de Manutenção/Funcionário */}
@@ -78,11 +90,13 @@ function App() {
           <Route element={<ProtectedRoute allowedRoles={['MASTER']} />}>
             <Route path="/painel-master" element={<PainelMaster />} />
             <Route path="/blocos" element={<BlocosCondominio />} />
+            <Route path="/dependencias" element={<DependenciasCondominio />} />
           </Route>
           
           {/* Equipe Habitare: aprovação de condomínios */}
           <Route element={<ProtectedRoute allowedRoles={['DEV']} />}>
             <Route path="/painel-dev" element={<PainelDev />} />
+            <Route path="/exclusoes-conta" element={<ExclusoesConta />} />
           </Route>
 
           {/* Rota Comum a todos os logados */}

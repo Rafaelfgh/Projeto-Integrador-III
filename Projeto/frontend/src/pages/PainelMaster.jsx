@@ -504,8 +504,8 @@ const PainelMaster = () => {
                         <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
                           <CabecalhoPessoas />
                           <tbody>
-                            <tr style={{ background: '#eef0f2' }}>
-                              <td style={estiloTd(false)}>
+                            <tr className="gm-linha" style={{ background: '#eef0f2' }}>
+                              <td className="gm-c-nome" style={estiloTd(false)}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                                   <div
                                     onClick={() => handleViewDetails(sindico)}
@@ -521,11 +521,11 @@ const PainelMaster = () => {
                                   </div>
                                 </div>
                               </td>
-                              <td style={{ ...estiloTd(true), fontSize: '12px', color: '#64748b' }}>
+                              <td className="gm-c-doc" style={{ ...estiloTd(true), fontSize: '12px', color: '#64748b' }}>
                                 {sindico.cpf}<br />
                                 {sindico.bloco && <span style={{ fontSize: '10px', background: '#f1f5f9', padding: '2px 8px', borderRadius: '4px', display: 'inline-block', marginTop: '4px' }}>{rotuloBloco(sindico.bloco)} · Apto {sindico.apartamento}</span>}
                               </td>
-                              <td style={estiloTd(true)}>
+                              <td className="gm-c-perfil" style={estiloTd(true)}>
                                 <select
                                   value="SINDICO"
                                   onChange={(e) => handleRoleChange(sindico.id, e.target.value)}
@@ -535,10 +535,10 @@ const PainelMaster = () => {
                                   <option value="SINDICO">Síndico</option>
                                 </select>
                               </td>
-                              <td style={estiloTd(true)}>
+                              <td className="gm-c-status" style={estiloTd(true)}>
                                 <span style={{ ...ETIQUETA, fontSize: '11px', fontWeight: 700, color: sc.text, background: sc.bg, padding: '3px 10px', borderRadius: '99px' }}>{sindico.status}</span>
                               </td>
-                              <td style={estiloTd(true)}>
+                              <td className="gm-c-acoes" style={estiloTd(true)}>
                                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
                                   <button disabled style={{ ...BOTAO_ACAO, fontSize: '11px', fontWeight: 700, color: '#94a3b8', background: '#f1f5f9', border: 'none', borderRadius: '99px', padding: '3px 10px', cursor: 'not-allowed', opacity: 0.6 }}>
                                     <X size={11} /> Bloquear
@@ -595,12 +595,12 @@ const PainelMaster = () => {
                           const isBlocked = user.status === 'BLOQUEADO';
                           const canPromote = !hasActiveSindico && moradoresSubTab === 'ativos' && !isBlocked;
                           return (
-                            <tr key={user.id}
+                            <tr key={user.id} className="gm-linha"
                               style={{ background: isBlocked ? '#fffafa' : 'white', transition: 'background 0.1s', opacity: isBlocked ? 0.7 : 1 }}
                               onMouseEnter={e => { if (!isBlocked) e.currentTarget.style.background = '#fafafa'; }}
                               onMouseLeave={e => { e.currentTarget.style.background = isBlocked ? '#fffafa' : 'white'; }}
                             >
-                              <td style={estiloTd(false)}>
+                              <td className="gm-c-nome" style={estiloTd(false)}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                                   <div
                                     onClick={() => handleViewDetails(user)}
@@ -616,11 +616,11 @@ const PainelMaster = () => {
                                   </div>
                                 </div>
                               </td>
-                              <td style={{ ...estiloTd(true), fontSize: '12px', color: '#64748b' }}>
+                              <td className="gm-c-doc" style={{ ...estiloTd(true), fontSize: '12px', color: '#64748b' }}>
                                 {user.cpf}<br />
                                 {user.bloco && <span style={{ fontSize: '10px', background: '#f1f5f9', padding: '2px 8px', borderRadius: '4px', display: 'inline-block', marginTop: '4px' }}>{rotuloBloco(user.bloco)} · Apto {user.apartamento}</span>}
                               </td>
-                              <td style={estiloTd(true)}>
+                              <td className="gm-c-perfil" style={estiloTd(true)}>
                                 {canPromote ? (
                                   <select
                                     value="MORADOR"
@@ -634,10 +634,10 @@ const PainelMaster = () => {
                                   <span style={{ ...ETIQUETA, fontSize: '11px', fontWeight: 700, color: rc, background: `color-mix(in srgb, ${rc} 14%, #fff)`, border: 'none', borderRadius: '99px', padding: '3px 10px' }}>{rl}</span>
                                 )}
                               </td>
-                              <td style={estiloTd(true)}>
+                              <td className="gm-c-status" style={estiloTd(true)}>
                                 <span style={{ ...ETIQUETA, fontSize: '11px', fontWeight: 700, color: sc.text, background: sc.bg, padding: '3px 10px', borderRadius: '99px' }}>{user.status}</span>
                               </td>
-                              <td style={estiloTd(true)}>
+                              <td className="gm-c-acoes" style={estiloTd(true)}>
                                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
                                   {user.status === 'PENDENTE' && (
                                     <button onClick={() => handleApprove(user)} style={{ ...BOTAO_ACAO, fontSize: '11px', fontWeight: 700, color: '#16a34a', background: '#dcfce7', border: 'none', borderRadius: '99px', padding: '3px 10px', cursor: 'pointer' }}><Check size={11} /> Liberar</button>
@@ -656,7 +656,7 @@ const PainelMaster = () => {
                           );
                         })}
                         {moradoresDaAba.length === 0 && (
-                          <tr><td colSpan="5" style={{ padding: '20px', textAlign: 'center', color: '#94a3b8', fontSize: '13px' }}>
+                          <tr><td colSpan="5" className="gm-c-vazio" style={{ padding: '20px', textAlign: 'center', color: '#94a3b8', fontSize: '13px' }}>
                             {filtrando ? 'Nenhum morador nesse bloco, andar ou apartamento.'
                               : moradoresSubTab === 'pendentes' ? 'Nenhum pedido de acesso pendente.'
                               : moradoresSubTab === 'bloqueados' ? 'Nenhum morador bloqueado.'
@@ -691,7 +691,7 @@ const PainelMaster = () => {
             bloqueada={salvandoPapel}
             onFechar={() => setPapelEdit(null)}
             rodape={<>
-              <button type="button" className="janela-btn janela-btn-sec" onClick={() => setPapelEdit(null)} disabled={salvandoPapel}>Cancelar</button>
+              <button type="button" className="janela-btn janela-btn-sec btn-cancelar" onClick={() => setPapelEdit(null)} disabled={salvandoPapel}>Cancelar</button>
               <button type="button" className={`janela-btn ${promover ? 'janela-btn-pri' : 'janela-btn-perigo'}`} onClick={confirmarPapel} disabled={salvandoPapel}>
                 {salvandoPapel ? <><Loader2 size={16} className="janela-girando" /> Salvando...</>
                   : promover ? <><Shield size={16} /> Nomear síndico</> : <><ShieldOff size={16} /> Revogar síndico</>}

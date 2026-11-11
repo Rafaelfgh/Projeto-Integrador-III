@@ -511,3 +511,15 @@
 
 /* Cadastro de morador: texto no preto do painel, borda na cor do pontilhado */
 .login-btn-secundario { border-color: #cfd3da; color: var(--color-slate-950); }
+
+/* Entrar com Google (29/10): botão branco com a logo oficial do Google */
+.login-divisor-google { margin: 1.1rem 0 0.9rem; }
+.login-btn-google {
+  width: 100%; display: inline-flex; align-items: center; justify-content: center; gap: 0.65rem;
+  padding: 0.85rem; border-radius: 0.85rem; border: 1px solid #d6d8dc; background: #ffffff;
+  color: #121417; font: 600 0.95rem 'Poppins', 'Inter', sans-serif; cursor: pointer;
+  transition: border-color 0.2s, background-color 0.2s;
+}
+.login-btn-google:hover:not(:disabled) { border-color: #121417; background: #f6f7f8; }
+.login-btn-google:disabled { opacity: 0.7; cursor: wait; }
+.login-girando { animation: spin 1s linear infinite; }

@@ -17,7 +17,8 @@ import {
   Film,
   CheckCircle2,
   Trash2,
-  Info
+  Info,
+  Camera
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import NotificationMenu from '../components/NotificationMenu';
@@ -39,6 +40,8 @@ const Ocorrencia = () => {
   const [isSuccess, setIsSuccess] = useState(false);
   const [erroEnvio, setErroEnvio] = useState(null);
   const inputRef = useRef(null);
+  const cameraRef = useRef(null); // "Tirar foto": abre a câmera do celular na hora
+  const temCamera = typeof window !== 'undefined' && window.matchMedia?.('(pointer: coarse)').matches;
   const navigate = useNavigate();
   const { categorias } = useCategorias();
   const { currentUser } = useAuth();
@@ -68,6 +71,7 @@ const Ocorrencia = () => {
     if (e.target.files && e.target.files[0]) {
       handleFiles(e.target.files);
     }
+    e.target.value = ''; // permite escolher/tirar outra foto em seguida
   };
 
   const handleFiles = (newFiles) => {
@@ -142,7 +146,7 @@ const Ocorrencia = () => {
       // para o autor) são criadas por trigger no banco.
 
       setIsSuccess(true);
-      setTimeout(() => navigate('/dashboard'), 1400);
+      setTimeout(() => navigate('/solicitacoes'), 1400);
     } catch (err) {
       console.error(err);
       setErroEnvio('Não foi possível registrar a ocorrência: ' + err.message);
@@ -331,11 +335,29 @@ const Ocorrencia = () => {
                             onChange={handleChange} 
                             style={{ display: 'none' }} 
                          />
+                         <input
+                            ref={cameraRef}
+                            type="file"
+                            accept="image/*"
+                            capture="environment"
+                            onChange={handleChange}
+                            style={{ display: 'none' }}
+                         />
                          <div className="upload-icon-circle">
                            <UploadCloud size={28} />
                          </div>
-                         <h4 className="upload-title">Clique para enviar ou arraste os arquivos aqui</h4>
+                         <h4 className="upload-title">{temCamera ? 'Toque para escolher fotos ou vídeos' : 'Clique para enviar ou arraste os arquivos aqui'}</h4>
                          <p className="upload-subtitle">Formatos suportados: JPG, PNG, MP4 (Máx. 50MB)</p>
+                         {temCamera && (
+                           <div className="upload-botoes">
+                             <button type="button" className="upload-botao upload-botao-camera" onClick={(e) => { e.stopPropagation(); cameraRef.current.click(); }}>
+                               <Camera size={16} /> Tirar foto
+                             </button>
+                             <button type="button" className="upload-botao" onClick={(e) => { e.stopPropagation(); inputRef.current.click(); }}>
+                               <ImageIcon size={16} /> Galeria
+                             </button>
+                           </div>
+                         )}
                       </div>
 
                       {files.length > 0 && (
@@ -371,7 +393,7 @@ const Ocorrencia = () => {
                 )}
 
                 <div className="saas-form-footer">
-                  <button type="button" className="btn-cancel-saas" onClick={() => navigate('/dashboard')} disabled={isSubmitting || isSuccess}>
+                  <button type="button" className="btn-cancel-saas btn-cancelar" onClick={() => navigate(-1)} disabled={isSubmitting || isSuccess}>
                     Cancelar
                   </button>
                   <button type="submit" className={`btn-primary-saas${isSuccess ? ' btn-success-state' : ''}`} disabled={isSubmitting || isSuccess}>

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { STATUS_COR, classeStatus } from '../utils/statusOcorrencia';
 import { FaixaStatus, Pictograma } from '../components/Placa';
 import { placaDaOcorrencia } from '../utils/placa';
+import FiltroData, { FILTRO_DATA_VAZIO, temFiltroData, passaFiltroData, anosDe } from '../components/FiltroData';
 import { lerReclamacao, unidadeTexto } from '../utils/reclamacao';
 import DrawerReclamacao from '../components/DrawerReclamacao';
 import ErroCarregamento from '../components/ErroCarregamento';
@@ -37,7 +38,8 @@ const CATEGORIA_LABEL = {
 const iniciais = (nome = '') => nome.trim().split(/\s+/).slice(0, 2).map(p => p.charAt(0).toUpperCase()).join('') || '?';
 
 const heatmapDays  = ['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'];
-const heatmapTimes = ['08h','10h','12h','14h','16h','18h','20h'];
+// 6 faixas de 4 horas cobrindo o dia todo (antes: colunas de 2 em 2 horas que arredondavam o horário e só iam das 8h às 20h)
+const heatmapTimes = ['0–4h','4–8h','8–12h','12–16h','16–20h','20–24h'];
 
 
 // ── Indicadores calculados das ocorrências reais (pendência 16) ──
@@ -72,16 +74,25 @@ const calcularCategorias = (ocs) => {
 
 // Dia da semana × faixa de horário em que as ocorrências foram abertas (nível 0–4)
 const calcularMapaCalor = (ocs) => {
-  const m = Array.from({ length: 7 }, () => Array(7).fill(0));
+  const m = Array.from({ length: 7 }, () => Array(heatmapTimes.length).fill(0));
   ocs.forEach(o => {
     const d = new Date(o.created_at);
     const dia = (d.getDay() + 6) % 7; // segunda = 0
-    const faixa = Math.min(6, Math.max(0, Math.round((d.getHours() - 8) / 2)));
+    const faixa = Math.floor(d.getHours() / 4); // 0h–3h59 → 0, 4h–7h59 → 1, ...
     m[dia][faixa] += 1;
   });
   const max = Math.max(1, ...m.flat());
   return { contagem: m, nivel: m.map(l => l.map(v => (v ? Math.max(1, Math.ceil((v / max) * 4)) : 0))) };
 };
+
+// Abertas há mais de 2 dias: ninguém analisou nem começou a atender (mesma regra da aba "Abertas +2 dias")
+const calcularAbertasParadas = (ocs) => ocs
+  .filter(o => o.status === 'Aberta' && Date.now() - new Date(o.created_at).getTime() > 2 * DIA_MS)
+  .map(o => ({
+    id: o.id, titulo: o.titulo, categoria: o.categoria,
+    dias: Math.floor((Date.now() - new Date(o.created_at).getTime()) / DIA_MS),
+  }))
+  .sort((a, b) => b.dias - a.dias);
 
 // Em andamento há mais de 2 dias (no lugar do "SLA" de exemplo)
 const calcularParadas = (ocs) => ocs
@@ -140,7 +151,53 @@ const Vazio = ({ icone, titulo, texto }) => {
   );
 };
 
+// Ranking da equipe: bloco de altura fixa (lugar para 5 pessoas, mesmo com menos);
+// "Ver todos" expande quando há mais de 5. Barra proporcional ao 1º colocado.
+const RANKING_VISIVEIS = 5;
+const RankingEquipe = ({ titulo, sub, itens, campo, cor }) => {
+  const [todos, setTodos] = useState(false);
+  const lista = itens.filter(i => i[campo] > 0).sort((a, b) => b[campo] - a[campo] || a.nome.localeCompare(b.nome));
+  const visiveis = todos ? lista : lista.slice(0, RANKING_VISIVEIS);
+  return (
+    <Cartao
+      className="sd-ranking-card"
+      titulo={titulo}
+      sub={sub}
+      extra={<span className="sd-contador">{lista.length}</span>}
+      pe={lista.length > RANKING_VISIVEIS && (
+        <>
+          <span className="sd-pe-info">{todos ? '' : `Mostrando ${RANKING_VISIVEIS} de ${lista.length}`}</span>
+          <button type="button" className="sd-link" onClick={() => setTodos(v => !v)}>
+            {todos ? 'Mostrar menos' : 'Ver todos'} <ChevronRight size={15} className={todos ? 'sd-sobe' : 'sd-desce'} />
+          </button>
+        </>
+      )}
+    >
+      <ol className="sd-ranking">
+        {visiveis.map((i, pos) => (
+          <li key={i.funcionario_id}>
+            <span className="sd-ranking-pos">{pos + 1}º</span>
+            <span className="sd-ranking-nome" title={i.nome}>{i.nome}</span>
+            <span className="sd-barra-trilho"><span className="sd-barra" style={{ width: `${(i[campo] / lista[0][campo]) * 100}%`, background: cor }} /></span>
+            <span className="sd-barra-valor">{i[campo]}</span>
+          </li>
+        ))}
+        {/* Posições ainda sem ninguém: só o número e a barra vazia, até completar 5 */}
+        {Array.from({ length: Math.max(0, RANKING_VISIVEIS - visiveis.length) }, (_, k) => (
+          <li key={`vaga-${k}`} className="sd-ranking-vaga" aria-hidden="true">
+            <span className="sd-ranking-pos">{visiveis.length + k + 1}º</span>
+            <span className="sd-ranking-nome">—</span>
+            <span className="sd-barra-trilho" />
+            <span className="sd-barra-valor">—</span>
+          </li>
+        ))}
+      </ol>
+    </Cartao>
+  );
+};
+
 const LIMITE_LISTA = 5;   // linhas nos cartões de atenção (iguais nos dois, para alinhar)
+const LIMITE_EQUIPE = 6;  // carga da equipe em 2 colunas: número par
 const PASSO_REGISTROS = 8;
 
 // ---------------------------------------------------------------------------
@@ -279,15 +336,23 @@ const PainelSindico = () => {
   const [ocorrenciasLista, setOcorrenciasLista] = useState([]);
   const [funcionarios,    setFuncionarios]    = useState([]);
   const [ocsReais,        setOcsReais]        = useState([]);
+  const [ranking,         setRanking]         = useState([]); // desempenho da equipe (RPC ranking_funcionarios)
   const [gerenciando,     setGerenciando]     = useState(null);
   const [equipeToda,      setEquipeToda]      = useState(false);
 
   const [carga, setCarga] = useState('carregando'); // 'carregando' | 'ok' | 'erro'
   const evolucao        = React.useMemo(() => calcularEvolucao(ocsReais), [ocsReais]);
-  const categoriasReais = React.useMemo(() => calcularCategorias(ocsReais), [ocsReais]);
-  const mapaCalor       = React.useMemo(() => calcularMapaCalor(ocsReais), [ocsReais]);
+  // Filtro por data (veio da Visão Geral, 29/10): vale para placas, registros recentes,
+  // "Por categoria" e mapa de calor. "Precisa de atenção", carga e evolução mostram a situação atual.
+  const [filtroData, setFiltroData] = useState(FILTRO_DATA_VAZIO);
+  const temFiltro = temFiltroData(filtroData);
+  const ocsFiltradas = React.useMemo(() => ocsReais.filter(o => passaFiltroData(o.created_at, filtroData)), [ocsReais, filtroData]);
+  const categoriasReais = React.useMemo(() => calcularCategorias(ocsFiltradas), [ocsFiltradas]);
+  const mapaCalor       = React.useMemo(() => calcularMapaCalor(ocsFiltradas), [ocsFiltradas]);
   const paradas         = React.useMemo(() => calcularParadas(ocsReais), [ocsReais]);
   const emAndamento     = ocsReais.filter(o => o.status === 'Em Andamento').length;
+  const abertasParadas  = React.useMemo(() => calcularAbertasParadas(ocsReais), [ocsReais]);
+  const abertas         = ocsReais.filter(o => o.status === 'Aberta').length;
 
   const fetchDados = React.useCallback(async () => {
     if (!currentUser?.condominio_id) return;
@@ -305,6 +370,7 @@ const PainelSindico = () => {
         .select('*, Moradores(nome, bloco, apartamento)')
         .eq('condominio_id', currentUser.condominio_id)
         .order('created_at', { ascending: false }),
+      supabase.rpc('ranking_funcionarios', { p_condominio: currentUser.condominio_id }),
     ]);
     const falha = resultados.find(res => res.error);
     if (falha) {
@@ -312,8 +378,9 @@ const PainelSindico = () => {
       setCarga('erro');
       return;
     }
-    const [{ data: funcs }, { data: esp }, { data: occ }, { data: rec }] = resultados;
+    const [{ data: funcs }, { data: esp }, { data: occ }, { data: rec }, { data: rank }] = resultados;
     setOcsReais(occ || []);
+    setRanking(rank || []);
 
     // Carga real da equipe: especialidades e tarefas abertas por funcionário
     const espPorFunc = {};
@@ -338,6 +405,7 @@ const PainelSindico = () => {
       status:        o.status || 'Aberta',
       pessoal:       o.privacidade === 'pessoal',
       data:          dataBR(o.created_at),
+      criado_em:     o.created_at,
       responsible:   o.Funcionarios?.nome || null,
     })));
 
@@ -412,22 +480,64 @@ const PainelSindico = () => {
 
             {/* 1. Situação geral: as 4 etapas, como na Visão Geral */}
             <section className="sd-secao">
-              <h3 className="sd-secao-titulo">Ocorrências do condomínio</h3>
+              <div className="sd-secao-topo">
+                <h3 className="sd-secao-titulo">Ocorrências do condomínio</h3>
+                <FiltroData valor={filtroData} onChange={setFiltroData} anos={anosDe(ocsReais.map(o => o.created_at))} />
+              </div>
               <div className="painel-placas sd-placas">
                 {['Aberta', 'Em Análise', 'Em Andamento', 'Resolvida'].map(st => (
                   <div key={st} className="placa placa-status">
-                    <span className="placa-status-numero">{ocsReais.filter(o => o.status === st).length}</span>
-                    <span className="placa-status-sub">de {ocsReais.length} ocorrências</span>
+                    <span className="placa-status-numero">{ocsFiltradas.filter(o => o.status === st).length}</span>
+                    <span className="placa-status-sub">de {ocsFiltradas.length} ocorrências{temFiltro ? ' no período' : ''}</span>
                     <FaixaStatus status={st} />
                   </div>
                 ))}
               </div>
             </section>
 
-            {/* 2. O que precisa do síndico agora: dois cartões de mesma altura, linhas alinhadas */}
+            {/* 2. O que precisa do síndico agora: as duas filas paradas lado a lado (linhas alinhadas)
+                 e a carga da equipe embaixo, em largura inteira */}
             <section className="sd-secao">
               <h3 className="sd-secao-titulo">Precisa de atenção</h3>
               <div className="sd-duas">
+                <Cartao
+                  titulo="Abertas há mais de 2 dias"
+                  sub="Ninguém analisou nem começou a atender"
+                  extra={<span className={`sd-contador${abertasParadas.length ? ' sd-contador-alerta' : ''}`}>{abertasParadas.length}</span>}
+                  pe={abertasParadas.length > 0 && (
+                    <>
+                      <span className="sd-pe-info">{abertasParadas.length > LIMITE_LISTA ? `Mostrando ${LIMITE_LISTA} de ${abertasParadas.length}` : ''}</span>
+                      <button type="button" className="sd-link" onClick={() => navigate('/abertas-prolongadas')}>Ver todas <ChevronRight size={15} /></button>
+                    </>
+                  )}
+                >
+                  {abertasParadas.length === 0 ? (
+                    <Vazio icone={CheckCircle2} titulo="Nada esperando" texto="Nenhuma ocorrência aberta há mais de 2 dias sem atendimento." />
+                  ) : (
+                    <ul className="sd-lista">
+                      {abertasParadas.slice(0, LIMITE_LISTA).map(p => (
+                        <li key={p.id}>
+                          <button type="button" className="sd-linha sd-linha-botao" onClick={() => setGerenciando(p.id)}>
+                            <Pictograma categoria={p.categoria} tamanho={16} titulo={CATEGORIA_LABEL[p.categoria] || 'Outros'} />
+                            <span className="sd-texto">
+                              <span className="sd-nome" title={p.titulo}>{p.titulo}</span>
+                              <span className="sd-detalhe">Sem análise nem atendimento · {CATEGORIA_LABEL[p.categoria] || 'Outros'}</span>
+                            </span>
+                            <span className={`sd-dias${p.dias >= 5 ? ' sd-dias-grave' : ''}`}>{p.dias} dias</span>
+                          </button>
+                        </li>
+                      ))}
+                      {abertasParadas.length < LIMITE_LISTA && (
+                        <li className="sd-nota">
+                          {abertas - abertasParadas.length > 0
+                            ? `As outras ${abertas - abertasParadas.length} abertas estão dentro do prazo.`
+                            : 'Não há outras ocorrências abertas.'}
+                        </li>
+                      )}
+                    </ul>
+                  )}
+                </Cartao>
+
                 <Cartao
                   titulo="Em andamento há mais de 2 dias"
                   sub="Começaram e ainda não foram concluídas"
@@ -467,14 +577,16 @@ const PainelSindico = () => {
                     </ul>
                   )}
                 </Cartao>
+              </div>
 
+              <div className="sd-carga-larga">
                 <Cartao
                   titulo="Carga da equipe"
                   sub="Tarefas em aberto atribuídas a cada funcionário"
                   extra={<span className="sd-contador">{funcionarios.length}</span>}
-                  pe={funcionarios.length > LIMITE_LISTA && (
+                  pe={funcionarios.length > LIMITE_EQUIPE && (
                     <>
-                      <span className="sd-pe-info">{equipeToda ? '' : `Mostrando ${LIMITE_LISTA} de ${funcionarios.length}`}</span>
+                      <span className="sd-pe-info">{equipeToda ? '' : `Mostrando ${LIMITE_EQUIPE} de ${funcionarios.length}`}</span>
                       <button type="button" className="sd-link" onClick={() => setEquipeToda(v => !v)}>
                         {equipeToda ? 'Mostrar menos' : 'Ver equipe toda'} <ChevronRight size={15} className={equipeToda ? 'sd-sobe' : 'sd-desce'} />
                       </button>
@@ -487,7 +599,7 @@ const PainelSindico = () => {
                     <ul className="sd-lista">
                       {[...funcionarios]
                         .sort((a, b) => b.abertas - a.abertas || a.nome.localeCompare(b.nome))
-                        .slice(0, equipeToda ? undefined : LIMITE_LISTA)
+                        .slice(0, equipeToda ? undefined : LIMITE_EQUIPE)
                         .map(emp => {
                           const esp = emp.especialidades.length ? emp.especialidades.map(c => CATEGORIA_LABEL[c] || c).join(' · ') : 'Sem especialidade';
                           return (
@@ -514,8 +626,8 @@ const PainelSindico = () => {
             <section className="sd-secao">
               <h3 className="sd-secao-titulo">Registros recentes</h3>
               <RegistrosRecentes
-                ocorrencias={ocorrenciasLista}
-                reclamacoes={todasReclamacoes}
+                ocorrencias={ocorrenciasLista.filter(o => passaFiltroData(o.criado_em, filtroData))}
+                reclamacoes={todasReclamacoes.filter(r => passaFiltroData(r.created_at, filtroData))}
                 onGerenciar={setGerenciando}
                 onAbrirReclamacao={setReclamacaoAberta}
                 respondidas={respondidas}
@@ -587,6 +699,28 @@ const PainelSindico = () => {
                   </div>
                 </div>
               </Cartao>
+            </section>
+
+            {/* 5. Rankings da equipe: quem mais põe em andamento, quem mais conclui e quem começa e não termina */}
+            <section className="sd-secao">
+              <h3 className="sd-secao-titulo">Rankings de Funcionários</h3>
+              <div className="sd-rankings">
+                <RankingEquipe
+                  titulo="Mais deram andamento"
+                  sub="Vezes que o próprio funcionário pôs uma ocorrência em andamento"
+                  itens={ranking} campo="andamentos" cor={STATUS_COR['Em Andamento']}
+                />
+                <RankingEquipe
+                  titulo="Mais concluíram"
+                  sub="Ocorrências concluídas por cada funcionário"
+                  itens={ranking} campo="conclusoes" cor={STATUS_COR['Resolvida']}
+                />
+                <RankingEquipe
+                  titulo="Deram andamento e não concluíram"
+                  sub="Puseram em andamento e não terminaram (ainda abertas ou concluídas por outra pessoa)"
+                  itens={ranking} campo="sem_concluir" cor={STATUS_COR['Aberta']}
+                />
+              </div>
             </section>
           </div>
           )}

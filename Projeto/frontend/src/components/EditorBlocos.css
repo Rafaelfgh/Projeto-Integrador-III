@@ -157,3 +157,34 @@
   .eb-campos { grid-template-columns: 1fr 1fr; }
   .eb-campo-nome { grid-column: 1 / -1; }
 }
+
+/* ── Editor de dependências (mesmo formato do de blocos) ── */
+.ed-horarios { font-variant-numeric: tabular-nums; }
+.ed-grupo { display: flex; flex-direction: column; gap: 0.45rem; margin-top: 0.85rem; }
+.ed-rotulo { font-size: 0.78rem; font-weight: 600; color: #475569; }
+.ed-ajuda { font-size: 0.74rem; color: #64748b; }
+.ed-tipos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.5rem; }
+.ed-tipos button {
+  display: flex; align-items: center; gap: 0.6rem; text-align: left; padding: 0.65rem 0.8rem;
+  border: 1px solid #e2e8f0; border-radius: 10px; background: #fff; cursor: pointer; color: #0f172a; font: inherit;
+}
+.ed-tipos button span { display: flex; flex-direction: column; min-width: 0; }
+.ed-tipos button strong { font-size: 0.86rem; }
+.ed-tipos button small { font-size: 0.72rem; color: #64748b; }
+.ed-tipos button.ativo { border-color: #121417; box-shadow: inset 0 0 0 1px #121417; }
+.ed-dias { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+.ed-dias button {
+  min-width: 48px; height: 36px; padding: 0 0.6rem; border-radius: 999px; border: 1px solid #e2e8f0;
+  background: #fff; color: #475569; font-family: inherit; font-size: 0.8rem; font-weight: 600; cursor: pointer;
+}
+.ed-dias button.ativo { background: #121417; border-color: #121417; color: #fff; }
+.ed-lista-horarios { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.ed-lista-horarios li {
+  display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.2rem 0.25rem 0.2rem 0.6rem;
+  border: 1px solid #e2e8f0; border-radius: 999px; background: #fff; font-size: 0.82rem; color: #0f172a; font-variant-numeric: tabular-nums;
+}
+.ed-lista-horarios .eb-remover { width: 24px; height: 24px; }
+.ed-novo-horario { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 0.5rem; }
+.ed-novo-horario .eb-campo { flex: 0 0 auto; min-width: 120px; }
+.ed-novo-horario .eb-btn { height: 40px; }
+@media (max-width: 480px) { .ed-tipos { grid-template-columns: 1fr; } }

@@ -132,7 +132,7 @@ const Reclamacao = () => {
 
       // Mesmo retorno visual da ocorrência: botão verde "Registrado!" e volta ao painel
       setIsSuccess(true);
-      setTimeout(() => navigate('/dashboard'), 1400);
+      setTimeout(() => navigate('/solicitacoes'), 1400);
     } catch (err) {
       console.error(err);
       setErroEnvio('Não foi possível registrar a reclamação: ' + err.message);
@@ -328,7 +328,7 @@ const Reclamacao = () => {
                 )}
 
                 <div className="saas-form-footer">
-                  <button type="button" className="btn-cancel-saas" onClick={() => navigate('/dashboard')} disabled={isSubmitting || isSuccess}>
+                  <button type="button" className="btn-cancel-saas btn-cancelar" onClick={() => navigate(-1)} disabled={isSubmitting || isSuccess}>
                     Cancelar
                   </button>
                   <button type="submit" className={`btn-primary-saas${isSuccess ? ' btn-success-state' : ''}`} disabled={isSubmitting || isSuccess}>
