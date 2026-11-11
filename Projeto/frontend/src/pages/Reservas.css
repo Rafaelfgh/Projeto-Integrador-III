@@ -4,6 +4,7 @@
 .rv-vazio { text-align: center; padding: 3rem 1rem; color: var(--hab-texto-3); border: 1px dashed var(--hab-linha); border-radius: var(--hab-raio); background: var(--hab-placa); }
 .rv-vazio h4 { margin: 0.6rem 0 0.25rem; color: var(--hab-tinta); font: 600 1rem var(--hab-fonte-titulo); }
 .rv-vazio p { margin: 0; font-size: 0.85rem; }
+.rv-vazio > svg { display: block; margin: 0 auto; } /* ícone centralizado acima do texto */
 
 /* Cartões das dependências: todos do mesmo tamanho */
 .rv-grade { display: grid; gap: 0.85rem; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }

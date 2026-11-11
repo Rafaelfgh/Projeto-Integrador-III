@@ -155,3 +155,16 @@ mural, reclamações, reservas de áreas comuns, avisos, recados e notificaçõe
 5. **Avançar → Salvar → Enviar para revisão** (em "Visão geral da publicação" → **Enviar alterações para revisão**).
 6. Revisão do Google: de algumas horas a alguns dias. Depois de aprovada, copiar o **link de participação**
    (aba Testadores) e mandar aos testadores.
+
+## 15. Notas da versão ("Novidades") — formato
+
+Sempre: **um título curto** e depois as novidades **em tópicos** (até 500 caracteres por idioma).
+
+```
+<pt-BR>
+Habitare 2.0.2 — fotos na hora
+• Tire a foto com a câmera direto na nova ocorrência
+• Botão "Galeria" para escolher fotos e vídeos do celular
+• Ajustes visuais na tela de Reservas
+</pt-BR>
+```

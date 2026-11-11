@@ -322,7 +322,7 @@ const MinhasSolicitacoes = () => {
                 <input 
                   type="text" 
                   className="ms-search-input" 
-                  placeholder="Buscar por título ou protocolo" 
+                  placeholder={aba === 'ocorrencias' ? 'Buscar ocorrências por título ou código' : 'Buscar reclamações por título ou código'} 
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
@@ -449,7 +449,7 @@ const MinhasSolicitacoes = () => {
             ) : (
               <div className="ms-empty">
                 <FolderOpen size={48} className="ms-empty-icon" />
-                <h4 className="ms-empty-title">Nenhum protocolo encontrado</h4>
+                <h4 className="ms-empty-title">{aba === 'ocorrencias' ? 'Nenhuma ocorrência encontrada' : 'Nenhuma reclamação encontrada'}</h4>
                 <p className="ms-empty-desc">Sua busca ou filtro não retornou nenhum registro. Tente usar outros termos.</p>
               </div>
             )}

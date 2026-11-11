@@ -41,7 +41,7 @@ const FAISCAS = Array.from({ length: 6 }, () => {
 // Tela inicial de cada perfil depois do login
 const destinoPorPapel = (papel) => ({
   DEV: '/painel-dev', MASTER: '/painel-master', SINDICO: '/painel', FUNCIONARIO: '/painel-funcionario',
-}[papel] || '/solicitacoes');
+}[papel] || '/avisos');
 
 // Logo oficial do Google (4 cores), exigida no botão "Entrar com Google"
 const LogoGoogle = () => (
@@ -76,13 +76,18 @@ const Login = () => {
   // sem perfil (1º acesso) vai completar o cadastro de morador com o e-mail do Google.
   useEffect(() => {
     let ativo = true;
+    // Se a sessão salva não responder em 10 s, destrava a tela (não fica girando para sempre)
+    const limite = (promessa) => Promise.race([
+      promessa,
+      new Promise((_, rejeitar) => setTimeout(() => rejeitar(new Error('tempo esgotado')), 10000)),
+    ]);
 
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
+    limite(supabase.auth.getSession()).then(async ({ data: { session } }) => {
       if (!ativo || !session) return;
       const viaGoogle = (session.user.app_metadata?.providers || []).includes('google');
       setLoadingGoogle(true);
       try {
-        const perfil = await carregarPerfil();
+        const perfil = await limite(carregarPerfil());
         if (!ativo) return;
         if (perfil) {
           loginRef.current(perfil);
@@ -96,16 +101,31 @@ const Login = () => {
       } catch (err) {
         console.error('Erro ao entrar com o Google:', err);
         if (ativo) {
-          setErrorMsg('Não foi possível entrar com o Google. Tente novamente.');
+          setErrorMsg('Não foi possível entrar. Tente novamente.');
           setLoadingGoogle(false);
+          supabase.auth.signOut({ scope: 'local' }).catch(() => {});
         }
       }
+    }).catch((err) => {
+      console.error('Sessão salva não respondeu:', err);
+      if (ativo) setLoadingGoogle(false);
     });
     return () => { ativo = false; };
   }, [navigate]);
 
   // No app: se a pessoa fechar a aba do Chrome sem entrar, o botão volta ao normal
   useEffect(() => aoFecharNavegador(() => setLoadingGoogle(false)), []);
+
+  // Login com Google demorando demais: cancela e deixa tentar de novo (a volta do Google,
+  // se ainda chegar, continua funcionando normalmente)
+  useEffect(() => {
+    if (!loadingGoogle) return undefined;
+    const t = setTimeout(() => {
+      setLoadingGoogle(false);
+      setErrorMsg('O login com Google demorou demais. Toque em "Entrar com Google" de novo.');
+    }, 30000);
+    return () => clearTimeout(t);
+  }, [loadingGoogle]);
 
   const entrarComGoogle = async () => {
     setErrorMsg(null);
@@ -141,10 +161,10 @@ const Login = () => {
 
     try {
       // 1. Autenticação no Supabase Auth
-      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+      const { data: authData, error: authError } = await Promise.race([
+        supabase.auth.signInWithPassword({ email, password }),
+        new Promise((_, rejeitar) => setTimeout(() => rejeitar(new Error('O servidor demorou para responder. Tente de novo.')), 20000)),
+      ]);
 
       if (authError && /email not confirmed/i.test(authError.message)) {
         throw new Error('Confirme seu e-mail pelo link que enviamos antes de entrar.');

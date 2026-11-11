@@ -43,8 +43,12 @@ function App() {
           <Route path="/novo-condominio" element={<NovoCondominio />} />
           
           {/* Rotas de Morador (SINDICO e MASTER herdam) */}
-          <Route element={<ProtectedRoute allowedRoles={['MORADOR', 'SINDICO', 'MASTER']} />}>
+          {/* Visão Geral com métricas: só do síndico (o morador começa nos Avisos) */}
+          <Route element={<ProtectedRoute allowedRoles={['SINDICO', 'MASTER']} />}>
             <Route path="/dashboard" element={<Dashboard />} />
+          </Route>
+
+          <Route element={<ProtectedRoute allowedRoles={['MORADOR', 'SINDICO', 'MASTER']} />}>
             <Route path="/ocorrencia" element={<Ocorrencia />} />
             <Route path="/reclamacao" element={<Reclamacao />} />
             <Route path="/feed" element={<FeedOcorrencias />} />

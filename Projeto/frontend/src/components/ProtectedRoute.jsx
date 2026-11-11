@@ -7,6 +7,7 @@ const INICIO_POR_PAPEL = {
   MASTER: '/painel-master',
   SINDICO: '/painel',
   FUNCIONARIO: '/painel-funcionario',
+  MORADOR: '/avisos',
 };
 
 // Texto da tela de espera/bloqueio conforme papel e situação
@@ -88,7 +89,7 @@ const ProtectedRoute = ({ allowedRoles }) => {
   }
 
   if (allowedRoles && !allowedRoles.includes(currentUser.role)) {
-    return <Navigate to={INICIO_POR_PAPEL[currentUser.role] || '/dashboard'} replace />;
+    return <Navigate to={INICIO_POR_PAPEL[currentUser.role] || '/avisos'} replace />;
   }
 
   return <Outlet />;

@@ -7,7 +7,7 @@ import { supabase } from '../backend/supabaseClient';
 
 const INICIO = {
   DEV: '/painel-dev', MASTER: '/painel-master', SINDICO: '/painel',
-  FUNCIONARIO: '/painel-funcionario', MORADOR: '/dashboard',
+  FUNCIONARIO: '/painel-funcionario', MORADOR: '/avisos',
 };
 
 // Avisos que falam com o autor da ocorrência (ele acompanha em Minhas Solicitações)
@@ -55,12 +55,12 @@ export const destinoDaNotificacao = async (notificacao, papel) => {
     case 'perfil':
       return tipo === 'TROCAR_SENHA' ? '/primeiro-acesso' : '/perfil';
     case 'sindico':
-      return tipo === 'SINDICO_PROMOVIDO' ? '/painel' : '/dashboard';
+      return tipo === 'SINDICO_PROMOVIDO' ? '/painel' : '/avisos';
     case 'morador':
     case 'funcionario':
       if (tipo === 'NOVO_CADASTRO') return '/painel-master?tab=usuarios&sub=pendentes';
       if (tipo === 'CADASTRO_BLOQUEADO') return null; // a própria tela de bloqueio já aparece
-      return INICIO[papel] || '/dashboard';
+      return INICIO[papel] || '/avisos';
     default:
       return null;
   }
