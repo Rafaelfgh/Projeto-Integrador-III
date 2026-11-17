@@ -3,7 +3,7 @@ import FiltroData, { FILTRO_DATA_VAZIO, passaFiltroData, anosDe } from '../compo
 import { combinaBusca } from '../utils/busca';
 import ErroCarregamento from '../components/ErroCarregamento';
 import {
-  Menu, Search, Building2, MapPin, CalendarDays, User, Mail, Phone, IdCard, X, Check, Ban, RefreshCw, Inbox, Users, Layers,
+  Menu, Search, Building2, MapPin, CalendarDays, User, Mail, Phone, IdCard, X, Check, Ban, Trash2, RefreshCw, Inbox, Users, Layers,
 } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
@@ -36,7 +36,7 @@ const tipoDocumento = (doc) => (String(doc || '').replace(/\D/g, '').length > 11
 // Ficha do condomínio (dados do condomínio + de quem está cadastrando)
 // ---------------------------------------------------------------------------
 const FichaCondominio = ({ condominio, onFechar, onDecidido }) => {
-  const [acao, setAcao]         = useState(null); // 'aprovar' | 'recusar'
+  const [acao, setAcao]         = useState(null); // 'aprovar' | 'recusar' | 'excluir'
   const [motivo, setMotivo]     = useState('');
   const [enviando, setEnviando] = useState(false);
   const [erro, setErro]         = useState(null);
@@ -63,6 +63,18 @@ const FichaCondominio = ({ condominio, onFechar, onDecidido }) => {
       p_aprovar: aprovar,
       p_motivo: aprovar ? null : motivo.trim(),
     });
+    setEnviando(false);
+    if (error) {
+      setErro(error.message);
+      return;
+    }
+    onDecidido();
+  };
+
+  const excluir = async () => {
+    setEnviando(true);
+    setErro(null);
+    const { error } = await supabase.rpc('excluir_condominio', { p_condominio_id: condominio.id });
     setEnviando(false);
     if (error) {
       setErro(error.message);
@@ -174,9 +186,26 @@ const FichaCondominio = ({ condominio, onFechar, onDecidido }) => {
                 </div>
               )}
 
-              {erro && <p className="dev-erro" role="alert">{erro}</p>}
+              {erro && acao !== 'excluir' && <p className="dev-erro" role="alert">{erro}</p>}
             </section>
           )}
+
+          <section className="dev-acoes">
+            {acao !== 'excluir' ? (
+              <button className="dev-btn dev-btn-recusar" onClick={() => setAcao('excluir')}><Trash2 size={15} /> Excluir condomínio</button>
+            ) : (
+              <div className="dev-confirmar">
+                <p>Apaga <strong>{condominio.nome}</strong> e tudo o que é dele: moradores, funcionários e Master (inclusive as contas de login), ocorrências, reclamações, reservas, avisos, recados e notificações. <strong>Não dá para desfazer.</strong></p>
+                <div className="dev-botoes">
+                  <button className="dev-btn dev-btn-sec btn-cancelar" onClick={() => setAcao(null)} disabled={enviando}>Cancelar</button>
+                  <button className="dev-btn dev-btn-recusar" onClick={excluir} disabled={enviando}>
+                    <Trash2 size={15} /> {enviando ? 'Excluindo...' : 'Confirmar exclusão'}
+                  </button>
+                </div>
+              </div>
+            )}
+            {erro && acao === 'excluir' && <p className="dev-erro" role="alert">{erro}</p>}
+          </section>
         </div>
       </aside>
     </>
