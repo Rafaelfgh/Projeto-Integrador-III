@@ -32,3 +32,5 @@ dist-ssr
 .impeccable/decision-payload.json
 # página temporária de teste de celular
 public/__celular.html
+.vercel
+.env*
