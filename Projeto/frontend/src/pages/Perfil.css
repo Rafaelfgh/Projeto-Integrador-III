@@ -554,7 +554,12 @@ input:checked + .saas-slider:before { transform: translateX(20px); }
 
 /* (18/11) Troca de senha: campos travados até "Alterar"; Alterar/Cancelar ao lado do Salvar */
 .senha-campos { border: 0; margin: 0; padding: 0; min-width: 0; }
-.senha-acoes { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+.senha-acoes { display: flex; gap: 0.75rem; flex-wrap: nowrap; }
+.senha-acoes button { white-space: nowrap; }
+/* Celular: Alterar/Criar senha à esquerda e Salvar à direita, sempre na mesma linha */
+@media (max-width: 640px) {
+  .senha-acoes button { flex: 1 1 0; min-width: 0; padding-left: 0.75rem; padding-right: 0.75rem; }
+}
 .btn-saas-secondary {
   display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
   padding: 0.75rem 1.5rem; border-radius: var(--hab-raio-p); border: 1px solid var(--hab-linha);

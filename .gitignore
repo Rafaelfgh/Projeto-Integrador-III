@@ -8,3 +8,6 @@ CLAUDE/
 
 # Cache do Vite
 .vite/
+
+# Mapa do código gerado pelo graphify (local)
+graphify-out/

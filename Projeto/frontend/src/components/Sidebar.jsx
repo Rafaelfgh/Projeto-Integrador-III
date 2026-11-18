@@ -74,13 +74,14 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
     MASTER: [['/painel-master?tab=overview', LayoutDashboard, 'Visão'], ['/feed', Activity, 'Mural'], ['/painel-master?tab=usuarios', Users, 'Moradores', contadores.moradores_pendentes], ['/funcionarios', ShieldCheck, 'Funcionários']],
     DEV: [['/painel-dev', Building, 'Condomínios'], ['/exclusoes-conta', UserX, 'Exclusões']],
   };
-  // Bolinha do "Menu": soma das pendências que só aparecem no menu completo (as que já têm
-  // botão próprio na barra, como Recados do síndico e Moradores do Master, não entram)
+  // Bolinha do "Menu": soma de TODAS as bolinhas do menu completo daquele perfil
+  // (mesmo as que também aparecem na barra de baixo, como Recados e Moradores)
   const somaN = (...ns) => ns.reduce((t, n) => t + (Number(n) || 0), 0);
   const PENDENTES_NO_MENU = {
     MORADOR: encomendas,
-    SINDICO: somaN(encomendas, contadores.analise, contadores.pessoais, contadores.reclamacoes_abertas, contadores.abertas_paradas, contadores.andamento_parados),
-    MASTER: somaN(recados.total, contadores.analise, contadores.pessoais, contadores.abertas_paradas, contadores.andamento_parados),
+    SINDICO: somaN(encomendas, recados.total, contadores.analise, contadores.pessoais, contadores.reclamacoes_abertas, contadores.abertas_paradas, contadores.andamento_parados),
+    MASTER: somaN(contadores.moradores_pendentes, recados.total, contadores.analise, contadores.pessoais, contadores.abertas_paradas, contadores.andamento_parados),
+    FUNCIONARIO: recados.total,
   };
   const pendentesMenu = PENDENTES_NO_MENU[visualContext] || 0;
 
