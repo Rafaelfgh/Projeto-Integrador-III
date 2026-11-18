@@ -572,7 +572,7 @@ button.placa { font: inherit; text-align: left; padding: 0; color: inherit; widt
 .settings-tab.active svg { color: #fff !important; }
 
 /* Cartões do mural com tamanho padronizado: mesma altura na linha, texto limitado */
-.feed-ticket-list.lista-placas { align-items: stretch; }
+.feed-ticket-list.lista-placas { align-items: start; } /* cartão expandido não estica os vizinhos */
 .placa-titulo-limitado { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .placa-texto-limitado { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 .feed-placa .placa-texto { min-height: 4.5em; }
@@ -946,3 +946,34 @@ button.placa { font: inherit; text-align: left; padding: 0; color: inherit; widt
   .activity-item { gap: 0.45rem; }
   .activity-actions { padding-top: 0; padding-left: 3.25rem; }
 }
+
+/* (17/11) Mural: letras maiores e cartão mais cheio, mantendo a altura padronizada.
+   As alturas fixas dos espaços (andamento) crescem só o necessário para a letra maior. */
+:root .feed-placa .placa-rotulo { font-size: 0.7rem; }
+:root .feed-placa .placa-titulo { font-size: 1.15rem; }
+:root .feed-placa .feed-descricao { font-size: 0.97rem; }
+:root .feed-placa .placa-corpo .feed-descricao + .placa-meta { margin-top: 0.35rem; }
+:root .feed-placa .placa-meta { font-size: 0.86rem; }
+:root .feed-placa .feed-atribuicao { font-size: 0.88rem; height: 1.5rem; }
+:root .feed-placa .feed-anexos { height: 88px; }
+:root .feed-placa .feed-anexo-thumb { width: 88px; height: 88px; }
+:root .feed-placa .feed-anexos-vazio { font-size: 0.88rem; }
+:root .feed-placa :is(.feed-pron-label, .atu-rotulo) { font-size: 0.78rem; }
+:root .feed-placa :is(.feed-pron-texto, .atu-texto) { font-size: 0.95rem; }
+:root .feed-placa .feed-slot-atu { height: 6.1rem; }
+/* Pronunciamento vazio mostra a frase em vez de uma caixa em branco */
+:root .feed-placa .feed-pronunciamento:not(.tem-texto) .feed-pron-vazio,
+:root .feed-placa .atu-vazio .atu-texto { display: block; font-size: 0.92rem; color: var(--hab-texto-3); margin: 0.2rem 0 0; }
+:root .feed-placa .feed-comments-toggle { font-size: 0.9rem; }
+
+/* (17/11) Mural resumido: local maior que o título; andamento e pronunciamento atrás de um botão */
+:root .feed-placa .placa-valor, :root .feed-placa .placa-valor-longo { font-size: 1.45rem; }
+:root .feed-placa .feed-pronunciamento:not(.tem-texto) .feed-pron-vazio,
+:root .feed-placa .atu-vazio .atu-texto { font-style: italic; }
+.feed-acomp-toggle {
+  display: flex; align-items: center; gap: 0.45rem; margin: 0 0.95rem 0.75rem; padding: 0.55rem 0.75rem; min-height: 40px;
+  border: 1px solid var(--hab-linha); border-radius: var(--hab-raio-p); background: var(--hab-placa);
+  font: 600 0.88rem var(--hab-fonte-titulo); color: var(--hab-tinta); cursor: pointer; text-align: left;
+}
+.feed-acomp-toggle > svg:last-child { margin-left: auto; }
+.feed-acomp-toggle:disabled { opacity: 0.6; cursor: default; }
