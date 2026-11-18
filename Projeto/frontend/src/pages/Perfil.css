@@ -424,6 +424,7 @@
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
+  display: inline-flex; align-items: center; gap: 0.4rem;
 }
 .btn-end-session:hover { background-color: #fef2f2; border-color: #fca5a5; }
 
@@ -550,3 +551,14 @@ input:checked + .saas-slider:before { transform: translateX(20px); }
   background: #f0fdf4; color: #16a34a; border: 1px solid #dcfce7;
   padding: 0.75rem; border-radius: 8px; font-size: 0.85rem; margin-bottom: 1rem;
 }
+
+/* (18/11) Troca de senha: campos travados até "Alterar"; Alterar/Cancelar ao lado do Salvar */
+.senha-campos { border: 0; margin: 0; padding: 0; min-width: 0; }
+.senha-acoes { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+.btn-saas-secondary {
+  display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
+  padding: 0.75rem 1.5rem; border-radius: var(--hab-raio-p); border: 1px solid var(--hab-linha);
+  background: transparent; color: var(--hab-tinta); font: 600 0.875rem var(--hab-fonte-titulo); cursor: pointer;
+}
+.btn-saas-secondary:disabled { opacity: 0.55; cursor: not-allowed; }
+:root fieldset.senha-campos:disabled input.saas-input { background: #f1f5f9 !important; color: #64748b !important; cursor: not-allowed; }

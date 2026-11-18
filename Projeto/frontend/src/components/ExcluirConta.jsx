@@ -66,7 +66,7 @@ export default function ExcluirConta({ userId }) {
             reservas e notificações). Não dá para desfazer depois de concluída.
           </p>
           <button type="button" className="btn-end-session" onClick={() => setAberta(true)}>
-            <Trash2 size={14} style={{ verticalAlign: '-2px' }} /> Pedir exclusão da conta
+            <Trash2 size={14} /> Pedir exclusão da conta
           </button>
         </>
       )}

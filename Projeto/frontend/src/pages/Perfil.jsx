@@ -25,6 +25,8 @@ const Perfil = () => {
   const [passForm, setPassForm] = useState({ current: '', newPass: '', confirmPass: '' });
   const [passStrength, setPassStrength] = useState(0);
   const [passFeedback, setPassFeedback] = useState(null); // { type: 'error'|'success', msg: '' }
+  // Campos ficam travados até clicar em "Alterar"; Salvar só libera depois de digitar algo
+  const [editandoSenha, setEditandoSenha] = useState(false);
 
 
   // --- LOGIC: Identificar Tabela e Condomínio ---
@@ -103,9 +105,17 @@ const Perfil = () => {
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
       const provedores = data?.user?.app_metadata?.providers || [];
-      setTemSenha(provedores.includes('email'));
+      // Conta Google que já criou senha aqui fica marcada em user_metadata (o Supabase não muda 'providers')
+      setTemSenha(provedores.includes('email') || !!data?.user?.user_metadata?.tem_senha);
     });
   }, []);
+
+  const senhaMexida = Object.values(passForm).some(v => v !== '');
+  const alternarEdicaoSenha = () => {
+    if (editandoSenha) { setPassForm({ current: '', newPass: '', confirmPass: '' }); setPassStrength(0); }
+    setPassFeedback(null);
+    setEditandoSenha(!editandoSenha);
+  };
 
   const handlePasswordSubmit = async (e) => {
     e.preventDefault();
@@ -128,7 +138,7 @@ const Perfil = () => {
         return;
       }
     }
-    const { error } = await supabase.auth.updateUser({ password: passForm.newPass });
+    const { error } = await supabase.auth.updateUser({ password: passForm.newPass, data: { tem_senha: true } });
     setSalvandoSenha(false);
     if (error) {
       setPassFeedback({ type: 'error', msg: error.message?.includes('different') ? 'A nova senha precisa ser diferente da atual.' : 'Não foi possível salvar a senha. Tente de novo.' });
@@ -136,6 +146,7 @@ const Perfil = () => {
     }
     setPassForm({ current: '', newPass: '', confirmPass: '' });
     setPassStrength(0);
+    setEditandoSenha(false);
     setTemSenha(true);
     setPassFeedback({ type: 'success', msg: temSenha ? 'Senha alterada com sucesso!' : 'Senha criada! Agora você também pode entrar com e-mail e senha.' });
   };
@@ -313,6 +324,7 @@ const Perfil = () => {
                       <p className="settings-section-desc">Sua conta entra pelo Google e ainda não tem senha. Crie uma para também entrar com e-mail e senha.</p>
                     )}
                     <form onSubmit={handlePasswordSubmit}>
+                      <fieldset disabled={!editandoSenha || salvandoSenha} className="senha-campos">
                       {temSenha && (
                       <div className="saas-form-group" style={{ maxWidth: '400px' }}>
                         <label className="saas-label">Senha Atual</label>
@@ -362,9 +374,14 @@ const Perfil = () => {
                         </div>
                       </div>
 
-                      <div className="saas-form-actions" style={{marginTop:'1rem'}}>
-                        <button type="submit" className="btn-saas-primary" disabled={salvandoSenha} style={{backgroundColor: roleVars.mainColor}}>
-                          <Shield size={16} /> {salvandoSenha ? 'Salvando...' : temSenha ? 'Atualizar Senha' : 'Criar Senha'}
+                      </fieldset>
+
+                      <div className="saas-form-actions senha-acoes" style={{marginTop:'1rem'}}>
+                        <button type="button" className="btn-saas-secondary" onClick={alternarEdicaoSenha} disabled={salvandoSenha}>
+                          {editandoSenha ? <><X size={16} /> Cancelar</> : <><Lock size={16} /> {temSenha ? 'Alterar' : 'Criar senha'}</>}
+                        </button>
+                        <button type="submit" className="btn-saas-primary" disabled={!editandoSenha || !senhaMexida || salvandoSenha} style={{backgroundColor: roleVars.mainColor}}>
+                          <Shield size={16} /> {salvandoSenha ? 'Salvando...' : 'Salvar'}
                         </button>
                       </div>
                     </form>
