@@ -29,12 +29,14 @@ import Encomendas from './pages/Encomendas';
 import ProtectedRoute from './components/ProtectedRoute';
 import { AuthProvider } from './contexts/AuthContext';
 import VisualizadorImagemProvider from './components/VisualizadorImagem';
+import NotificacoesPush from './components/NotificacoesPush';
 
 function App() {
   return (
     <AuthProvider>
       <VisualizadorImagemProvider>
       <BrowserRouter>
+        <NotificacoesPush />
         <Routes>
           {/* Rotas Públicas */}
           <Route path="/" element={<Navigate to="/login" replace />} />

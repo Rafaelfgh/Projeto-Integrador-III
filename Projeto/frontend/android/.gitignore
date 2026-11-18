@@ -103,3 +103,6 @@ app/src/main/res/xml/config.xml
 # Assinatura de release (senhas): nunca commitar
 keystore.properties
 *.jks
+
+# Configuração do Firebase (notificações): fica só na máquina que gera o app
+app/google-services.json
