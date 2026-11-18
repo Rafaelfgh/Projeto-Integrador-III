@@ -6,3 +6,4 @@ const formatar = (prefixo, id, criadoEm) => {
 
 export const protocoloOcorrencia = (id, criadoEm) => formatar('OCO', id, criadoEm);
 export const protocoloReclamacao = (id, criadoEm) => formatar('REC', id, criadoEm);
+export const protocoloEncomenda = (id, criadoEm) => formatar('ENC', id, criadoEm);

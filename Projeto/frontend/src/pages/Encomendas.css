@@ -1,0 +1,47 @@
+/* Livro de encomendas: mesma placa dos murais; foto do pacote ao lado das informações */
+.enc-placa { display: flex; flex-direction: column; }
+.enc-destaque { outline: 2px solid var(--hab-laranja); outline-offset: 2px; }
+
+.enc-corpo { display: flex; gap: 0.9rem; align-items: flex-start; }
+.enc-info { min-width: 0; flex: 1; }
+.enc-info .placa-titulo { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.enc-meta { flex-direction: column; align-items: flex-start; gap: 0.3rem; }
+.enc-obs { margin-top: 0.4rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+.enc-foto {
+  flex: 0 0 96px; width: 96px; height: 96px; padding: 0; border: 1px solid var(--hab-linha);
+  border-radius: var(--hab-raio-p); overflow: hidden; background: #f1f5f9; cursor: zoom-in;
+  display: flex; align-items: center; justify-content: center; color: var(--hab-texto-3);
+}
+.enc-foto img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.enc-foto-vazia { cursor: default; }
+
+/* Assinatura de quem retirou */
+.enc-assinatura {
+  display: flex; align-items: flex-start; gap: 0.5rem; margin: 0 0.95rem 0.85rem; padding: 0.6rem 0.75rem;
+  border-radius: var(--hab-raio-p); background: #ecfdf5; color: #065f46; font-size: 0.88rem; line-height: 1.35;
+}
+.enc-assinatura svg { flex-shrink: 0; margin-top: 0.1rem; }
+.enc-acoes { margin-top: auto; }
+.enc-acoes .btn-hab { display: inline-flex; align-items: center; gap: 0.45rem; padding: 0.6rem 1rem; min-height: 40px; width: 100%; justify-content: center; }
+
+/* Janela de registro */
+.enc-rotulo { display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 0.4rem; color: var(--hab-tinta); }
+.enc-foto-escolha { display: flex; align-items: center; gap: 0.9rem; flex-wrap: wrap; }
+.enc-foto-escolha img { width: 96px; height: 96px; object-fit: cover; border-radius: var(--hab-raio-p); border: 1px solid var(--hab-linha); }
+.enc-foto-botoes { display: flex; gap: 0.6rem; flex-wrap: wrap; }
+.enc-botao {
+  display: inline-flex; align-items: center; gap: 0.45rem; min-height: 40px; padding: 0.55rem 1rem;
+  border: 1px solid var(--hab-linha); border-radius: var(--hab-raio-p); background: var(--hab-placa);
+  font: 600 0.875rem var(--hab-fonte-titulo); color: var(--hab-tinta); cursor: pointer;
+}
+.enc-botao:disabled { opacity: 0.55; cursor: not-allowed; }
+.enc-aviso { display: flex; gap: 0.45rem; align-items: flex-start; font-size: 0.85rem; color: var(--hab-texto-3); }
+.enc-aviso svg { flex-shrink: 0; margin-top: 0.15rem; }
+
+/* Tag "Porteiro" na Gestão de Funcionários */
+.gf-tag-porteiro { display: inline-flex; align-items: center; gap: 0.25rem; background: var(--hab-laranja); color: var(--hab-tinta); }
+
+@media (max-width: 760px) {
+  .enc-foto { flex-basis: 80px; width: 80px; height: 80px; }
+}
