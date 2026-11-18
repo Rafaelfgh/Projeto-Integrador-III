@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import BotaoCamera from './CameraFoto';
 import { MessageCircle, RefreshCw, Send, Camera, Trash2, X, Loader2 } from 'lucide-react';
 import { supabase } from '../backend/supabaseClient';
 import { useAuth } from '../contexts/AuthContext';
@@ -59,12 +60,15 @@ export default function ConversaOcorrencia({ ocorrencia }) {
   useEffect(() => () => fotosRef.current.forEach(f => URL.revokeObjectURL(f.preview)), []);
 
   const escolherFotos = (e) => {
-    const novas = Array.from(e.target.files || [])
+    adicionarFotos(e.target.files);
+    e.target.value = '';
+  };
+  const adicionarFotos = (arquivos) => {
+    const novas = Array.from(arquivos || [])
       .filter(f => f.type.startsWith('image/'))
       .slice(0, MAX_FOTOS - fotos.length)
       .map(file => ({ file, preview: URL.createObjectURL(file) }));
     setFotos(prev => [...prev, ...novas]);
-    e.target.value = '';
   };
 
   const tirarFoto = (i) => setFotos(prev => {
@@ -188,6 +192,9 @@ export default function ConversaOcorrencia({ ocorrencia }) {
               <Camera size={15} /> Foto {fotos.length > 0 && `(${fotos.length}/${MAX_FOTOS})`}
             </button>
             <input ref={fileRef} type="file" accept="image/*" multiple hidden onChange={escolherFotos} />
+            <BotaoCamera className="conv-btn-foto" disabled={enviando || fotos.length >= MAX_FOTOS} onFoto={(f) => adicionarFotos([f])}>
+              <Camera size={15} /> Tirar foto
+            </BotaoCamera>
             <button
               type="button"
               className="conv-btn-enviar"

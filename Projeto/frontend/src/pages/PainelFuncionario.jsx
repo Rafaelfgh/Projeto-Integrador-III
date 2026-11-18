@@ -1,4 +1,5 @@
 import React, { useState, useRef, useMemo, useEffect, useCallback } from 'react';
+import BotaoCamera from '../components/CameraFoto';
 import { PlacaLocal, FaixaStatus, Pictograma } from '../components/Placa';
 import { separarLocal } from '../utils/placa';
 import FiltroData, { FILTRO_DATA_VAZIO, passaFiltroData, anosDe } from '../components/FiltroData';
@@ -343,6 +344,7 @@ const OcorrenciaDrawer = ({ ocorrencia, onFechar, onAtualizada, currentUser, nom
                     <span style={{ fontSize:12, color:'#94a3b8' }}>JPG ou PNG</span>
                   </div>
                   <input ref={fileRef} type="file" multiple accept="image/*" style={{ display:'none' }} onChange={(e) => adicionarArquivos(e.target.files)} />
+                  <BotaoCamera className="upload-botao upload-botao-camera pf-tirar-foto" onFoto={(f) => adicionarArquivos([f])} />
 
                   {evidencias.length > 0 && (
                     <div style={{ display:'flex', flexWrap:'wrap', gap:'0.5rem', marginTop:'0.75rem' }}>

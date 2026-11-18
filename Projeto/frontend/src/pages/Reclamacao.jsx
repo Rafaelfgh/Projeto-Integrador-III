@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import BotaoCamera from '../components/CameraFoto';
 import { 
   FileText,
   Settings,
@@ -275,6 +276,9 @@ const Reclamacao = () => {
                       <div className="upload-icon-circle"><UploadCloud size={28} /></div>
                       <h4 className="upload-title">Clique para anexar ou arraste arquivos</h4>
                       <p className="upload-subtitle">Grave vídeos curtos ou tire fotos. (Máx. 50MB)</p>
+                      <div className="upload-botoes">
+                        <BotaoCamera className="upload-botao upload-botao-camera" onFoto={(f) => handleFiles([f])} />
+                      </div>
                     </div>
 
                     {files.length > 0 && (
