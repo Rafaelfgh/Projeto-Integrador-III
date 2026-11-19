@@ -43,6 +43,8 @@ export const destinoDaNotificacao = async (notificacao, papel) => {
       return papel === 'SINDICO' && tipo === 'NOVA_RECLAMACAO' ? `/reclamacoes?reclamacao=${id}` : `/solicitacoes?reclamacaoId=${id}`;
     case 'aviso':
       return id ? `/avisos?aviso=${id}` : '/avisos';
+    case 'encomenda': // chegou pacote para o apartamento (o síndico também mora no prédio)
+      return id ? `/minhas-encomendas?encomenda=${id}` : '/minhas-encomendas';
     case 'exclusao': // pedido de exclusão de conta (Equipe Habitare)
       return '/exclusoes-conta';
     case 'reserva': // reserva cancelada porque a dependência foi removida

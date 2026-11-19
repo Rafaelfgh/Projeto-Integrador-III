@@ -6,7 +6,7 @@ import { combinaBusca } from '../utils/busca';
 import ErroCarregamento from '../components/ErroCarregamento';
 import {
   Menu, Search, BellOff, Clock, Send, Trash2, MessageCircle, Loader2,
-  RefreshCw, ChevronDown, ChevronUp, UserCog, CheckCircle2, Pin, Pencil, Maximize2, ImageOff
+  RefreshCw, ChevronDown, ChevronUp, UserCog, CheckCircle2, Pin, Pencil, Maximize2, ImageOff, ClipboardList
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import NotificationMenu from '../components/NotificationMenu';
@@ -57,6 +57,7 @@ const FeedOcorrencias = () => {
   const [filtroData,     setFiltroData]     = useState(FILTRO_DATA_VAZIO);
   const [statusFilter,   setStatusFilter]   = useState('Todos');
   const [expandido,      setExpandido]      = useState({});
+  const [acompanhamento, setAcompanhamento] = useState({}); // andamento + pronunciamento abertos no cartão
   // Cartão de tamanho fixo: texto longo termina em "…"; "Detalhes" abre tudo numa janela
   const [detalhe,        setDetalhe]        = useState(null);
   const [novoComentario, setNovoComentario] = useState({});
@@ -137,6 +138,7 @@ const FeedOcorrencias = () => {
   }, [fetchTudo]);
 
   const toggleExpandido = (id) => setExpandido(prev => ({ ...prev, [id]: !prev[id] }));
+  const toggleAcompanhamento = (id) => setAcompanhamento(prev => ({ ...prev, [id]: !prev[id] }));
 
   const enviarComentario = async (ocorrenciaId) => {
     const texto = (novoComentario[ocorrenciaId] || '').trim();
@@ -350,6 +352,7 @@ const FeedOcorrencias = () => {
                   const estaExpandido = !!expandido[item.id];
                   const isResolvida   = item.status === 'Resolvida';
                   const editando      = editandoPron[item.id] !== undefined;
+                  const acompAberto   = !!acompanhamento[item.id] || editando;
                   const ehMinha       = item.morador_id === currentUser?.id;
 
                   const { texto: descricao } = separarLocal(item.descricao);
@@ -396,6 +399,13 @@ const FeedOcorrencias = () => {
                         </div>
                       </div>
 
+                      {/* Andamento e pronunciamento: recolhidos para o cartão ficar resumido */}
+                      <button type="button" className="feed-acomp-toggle" aria-expanded={acompAberto} onClick={() => toggleAcompanhamento(item.id)} disabled={editando}>
+                        <ClipboardList size={15} /> Andamento e pronunciamento
+                        {acompAberto ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                      </button>
+
+                      {acompAberto && (<>
                       {/* Andamento / conclusão: espaço fixo, vazio quando ainda não há */}
                       <div className="feed-slot-atu">
                         <AtualizacaoOcorrencia ocorrencia={item} nomes={nomes} fotos={fotos} compacto />
@@ -445,6 +455,7 @@ const FeedOcorrencias = () => {
                           <p className="feed-pron-vazio">O síndico ainda não se pronunciou sobre esta ocorrência.</p>
                         )}
                       </div>
+                      </>)}
 
                       {/* Ações: sempre no mesmo lugar do cartão */}
                       <div className="placa-acoes feed-placa-acoes">

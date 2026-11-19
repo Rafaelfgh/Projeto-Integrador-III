@@ -14,6 +14,13 @@
     "SystemBars": {
       "insetsHandling": "css",
       "style": "DARK"
+    },
+    "PushNotifications": {
+      "presentationOptions": [
+        "badge",
+        "sound",
+        "alert"
+      ]
     }
   }
 }

@@ -18,6 +18,7 @@ const perfilParaUsuario = (perfil) => ({
   cpf: perfil.cpf || '',
   especialidades: perfil.especialidades || [],
   precisaTrocarSenha: !!perfil.precisa_trocar_senha,
+  porteiro: !!perfil.porteiro, // funcionário da portaria: registra encomendas
   foto: perfil.foto || null, // funcionário: caminho da foto na pasta privada "funcionarios"
   motivoRecusa: perfil.motivo_recusa || '',
 });

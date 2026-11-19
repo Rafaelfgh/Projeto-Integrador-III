@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import BotaoCamera from './CameraFoto';
 import { separarLocal } from '../utils/placa';
 import { X, User, Home, Camera, Search as Lupa, Send, CheckCircle2, UserCog, Clock, Lock } from 'lucide-react';
 import { supabase } from '../backend/supabaseClient';
@@ -256,6 +257,7 @@ const GerenciarOcorrencia = ({ ocorrenciaId, onFechar, onAtualizada }) => {
                       <button type="button" className="go-upload" onClick={() => fileRef.current?.click()}>
                         <Camera size={16} /> Adicionar fotos da prova (obrigatório)
                       </button>
+                      <BotaoCamera className="go-upload" onFoto={(f) => setArquivos(prev => [...prev, f])} />
                       <input ref={fileRef} type="file" accept="image/*" multiple hidden onChange={(e) => setArquivos(prev => [...prev, ...Array.from(e.target.files)])} />
                       <p className="go-ajuda">
                         {arquivos.length > 0 ? `${arquivos.length} foto(s) selecionada(s)` : 'Anexe ao menos uma foto para concluir.'}

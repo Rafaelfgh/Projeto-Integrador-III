@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import BotaoCamera from '../components/CameraFoto';
 import { 
   FileText,
   Settings,
@@ -17,8 +18,7 @@ import {
   Film,
   CheckCircle2,
   Trash2,
-  Info,
-  Camera
+  Info
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import NotificationMenu from '../components/NotificationMenu';
@@ -40,8 +40,6 @@ const Ocorrencia = () => {
   const [isSuccess, setIsSuccess] = useState(false);
   const [erroEnvio, setErroEnvio] = useState(null);
   const inputRef = useRef(null);
-  const cameraRef = useRef(null); // "Tirar foto": abre a câmera do celular na hora
-  const temCamera = typeof window !== 'undefined' && window.matchMedia?.('(pointer: coarse)').matches;
   const navigate = useNavigate();
   const { categorias } = useCategorias();
   const { currentUser } = useAuth();
@@ -335,24 +333,14 @@ const Ocorrencia = () => {
                             onChange={handleChange} 
                             style={{ display: 'none' }} 
                          />
-                         <input
-                            ref={cameraRef}
-                            type="file"
-                            accept="image/*"
-                            capture="environment"
-                            onChange={handleChange}
-                            style={{ display: 'none' }}
-                         />
                          <div className="upload-icon-circle">
                            <UploadCloud size={28} />
                          </div>
-                         <h4 className="upload-title">{temCamera ? 'Toque para escolher fotos ou vídeos' : 'Clique para enviar ou arraste os arquivos aqui'}</h4>
+                         <h4 className="upload-title">Tire uma foto agora ou escolha fotos e vídeos</h4>
                          <p className="upload-subtitle">Formatos suportados: JPG, PNG, MP4 (Máx. 50MB)</p>
-                         {temCamera && (
+                         {(
                            <div className="upload-botoes">
-                             <button type="button" className="upload-botao upload-botao-camera" onClick={(e) => { e.stopPropagation(); cameraRef.current.click(); }}>
-                               <Camera size={16} /> Tirar foto
-                             </button>
+                             <BotaoCamera className="upload-botao upload-botao-camera" onFoto={(f) => handleFiles([f])} />
                              <button type="button" className="upload-botao" onClick={(e) => { e.stopPropagation(); inputRef.current.click(); }}>
                                <ImageIcon size={16} /> Galeria
                              </button>

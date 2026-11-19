@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import BotaoCamera from '../components/CameraFoto';
 import { combinaBusca } from '../utils/busca';
 import ErroCarregamento from '../components/ErroCarregamento';
-import { Menu, UserPlus, Check, Wrench, Trash2, Loader2, Eye, Camera, AlertCircle, Search, Users } from 'lucide-react';
+import { Menu, UserPlus, Check, Wrench, Trash2, Loader2, Eye, Camera, AlertCircle, Search, Users, Package, Image as ImageIcon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import NotificationMenu from '../components/NotificationMenu';
@@ -45,9 +46,12 @@ const EscolherFoto = ({ valor, onEscolher, desativado }) => {
   const inputRef = useRef(null);
   const [erro, setErro] = useState(null);
 
-  const escolher = async (e) => {
+  const escolher = (e) => {
     const arquivo = e.target.files?.[0];
     e.target.value = '';
+    usar(arquivo);
+  };
+  const usar = async (arquivo) => {
     if (!arquivo) return;
     setErro(null);
     try {
@@ -64,10 +68,11 @@ const EscolherFoto = ({ valor, onEscolher, desativado }) => {
       </div>
       <div className="gf-foto-acoes">
         <button type="button" className="janela-btn janela-btn-sec" onClick={() => inputRef.current?.click()} disabled={desativado}>
-          <Camera size={15} /> {valor ? 'Trocar foto' : 'Escolher foto'}
+          <ImageIcon size={15} /> {valor ? 'Trocar foto' : 'Escolher foto'}
         </button>
+        <BotaoCamera className="janela-btn janela-btn-sec" disabled={desativado} onFoto={usar}><Camera size={15} /> Tirar foto</BotaoCamera>
         {valor && (
-          <button type="button" className="gf-link" onClick={() => onEscolher(null)} disabled={desativado}>Tirar foto</button>
+          <button type="button" className="gf-link" onClick={() => onEscolher(null)} disabled={desativado}>Remover foto</button>
         )}
         <p className="janela-ajuda">Opcional. A foto é ajustada no formato 3x4.</p>
         {erro && <p className="janela-ajuda" style={{ color: '#b91c1c' }}>{erro}</p>}
@@ -118,7 +123,7 @@ const GestaoFuncionarios = () => {
     setCarregando(true);
     setErroCarga(false);
     const [{ data: funcs, error }, { data: esp, error: erroEsp }, { data: emails, error: erroEmails }] = await Promise.all([
-      supabase.from('Funcionarios').select('id, nome, status, foto, created_at').eq('condominio_id', condominioId).order('nome'),
+      supabase.from('Funcionarios').select('id, nome, status, foto, porteiro, created_at').eq('condominio_id', condominioId).order('nome'),
       supabase.from('funcionario_especialidades').select('funcionario_id, categoria'),
       supabase.rpc('emails_do_condominio', { p_condominio_id: condominioId }),
     ]);
@@ -189,6 +194,16 @@ const GestaoFuncionarios = () => {
     } finally {
       setEnviando(false);
     }
+  };
+
+  // ---------- Portaria: porteiro registra encomendas ----------
+  const alternarPorteiro = async (funcionario) => {
+    if (ocupado) return;
+    setOcupado(true);
+    const { error } = await supabase.rpc('definir_porteiro', { p_funcionario_id: funcionario.id, p_porteiro: !funcionario.porteiro });
+    setOcupado(false);
+    if (error) return setAviso({ tipo: 'erro', titulo: 'Não foi possível mudar a portaria', mensagem: error.message });
+    setFuncionarios(prev => prev.map(f => (f.id === funcionario.id ? { ...f, porteiro: !f.porteiro } : f)));
   };
 
   // ---------- Especialidades ----------
@@ -321,6 +336,7 @@ const GestaoFuncionarios = () => {
                       </span>
                     </button>
                     <div className="esp-tags gf-card-esp">
+                      {f.porteiro && <span className="esp-tag gf-tag-porteiro"><Package size={12} /> Porteiro</span>}
                       {f.especialidades.length > 0
                         ? f.especialidades.map(c => <span key={c} className="esp-tag">{rotulo(c)}</span>)
                         : <span className="gf-sem">Sem especialidade</span>}
@@ -329,6 +345,10 @@ const GestaoFuncionarios = () => {
                       <button type="button" className="gf-acao" onClick={() => setFicha(f)}><Eye size={14} /> Ficha</button>
                       <button type="button" className="gf-acao" onClick={() => setEspEdit({ funcionario: f, selecionadas: f.especialidades })}>
                         <Wrench size={14} /> Especialidades
+                      </button>
+                      <button type="button" className="gf-acao" onClick={() => alternarPorteiro(f)} disabled={ocupado} aria-pressed={!!f.porteiro}
+                        title={f.porteiro ? 'Tirar da portaria' : 'Tornar porteiro: registra encomendas'}>
+                        <Package size={14} /> {f.porteiro ? 'Tirar da portaria' : 'Tornar porteiro'}
                       </button>
                       {ehMaster && (
                         <button type="button" className="gf-acao gf-acao-perigo" onClick={() => setRemover(f)}><Trash2 size={14} /> Remover</button>
@@ -547,9 +567,12 @@ const GestaoFuncionarios = () => {
 // Botão "Adicionar/Trocar foto" da ficha (gestão)
 const TrocarFotoBotao = ({ temFoto, ocupado, onEscolher }) => {
   const inputRef = useRef(null);
-  const escolher = async (e) => {
+  const escolher = (e) => {
     const arquivo = e.target.files?.[0];
     e.target.value = '';
+    usar(arquivo);
+  };
+  const usar = async (arquivo) => {
     if (!arquivo) return;
     try {
       onEscolher(await fotoRetrato(arquivo));
@@ -562,6 +585,7 @@ const TrocarFotoBotao = ({ temFoto, ocupado, onEscolher }) => {
       <button type="button" className="janela-btn janela-btn-sec" onClick={() => inputRef.current?.click()} disabled={ocupado} style={{ width: '100%', padding: '0 8px', fontSize: 13, whiteSpace: 'nowrap' }}>
         {ocupado ? <><Loader2 size={15} className="janela-girando" /> Salvando...</> : <><Camera size={15} /> {temFoto ? 'Trocar foto' : 'Adicionar foto'}</>}
       </button>
+      <BotaoCamera className="janela-btn janela-btn-sec" disabled={ocupado} onFoto={usar}><Camera size={15} /> Tirar foto</BotaoCamera>
       <input ref={inputRef} type="file" accept="image/*" hidden onChange={escolher} />
     </>
   );

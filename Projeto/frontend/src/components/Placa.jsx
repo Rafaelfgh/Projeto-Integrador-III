@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-  Droplets, Zap, Wrench, SprayCan, Sprout, Shield, Building2, HardHat, SquareParking, Volume2, CircleHelp, Gavel,
+  Droplets, Zap, Wrench, SprayCan, Sprout, Shield, Building2, HardHat, SquareParking, Volume2, CircleHelp, Gavel, Package,
 } from 'lucide-react';
 import { placaDaOcorrencia } from '../utils/placa';
 import { classeStatus } from '../utils/statusOcorrencia';
@@ -9,7 +9,7 @@ import { classeStatus } from '../utils/statusOcorrencia';
 const PICTOGRAMA = {
   hidraulica: Droplets, eletrica: Zap, manutencao: Wrench, limpeza: SprayCan, jardinagem: Sprout,
   seguranca: Shield, areas_comuns: Building2, estrutural: HardHat, garagem: SquareParking,
-  barulho: Volume2, reclamacao: Gavel,
+  barulho: Volume2, reclamacao: Gavel, encomenda: Package,
 };
 
 export const Pictograma = ({ categoria, tamanho = 20, titulo }) => {

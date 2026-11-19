@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { supabase } from '../backend/supabaseClient';
 import {
   LayoutDashboard, FileEdit, FileWarning, Activity, ClipboardList, Building, BarChart, LogOut, Settings, Users, PenTool, Shield, UserPlus, Package, Clock, ShieldCheck, Map, MessageSquare, Calendar, CalendarDays, Star, Vote, CheckSquare, FileText, CheckCircle2, ChevronRight, Home, Hourglass, AlarmClock, Gavel, Megaphone, ScanSearch, Mail, Layers, Menu, Plus, UserX,
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { useContadoresGestao } from '../hooks/useContadoresGestao';
+import { useContadoresGestao, EVENTO_CONTADORES } from '../hooks/useContadoresGestao';
 import { useRecadosNaoLidos } from '../hooks/useRecadosNaoLidos';
 import ContextBanner from './ContextBanner';
 import AvatarUsuario from './AvatarUsuario';
@@ -19,6 +20,21 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
   const ehGestao = visualContext === 'SINDICO' || visualContext === 'MASTER';
   const contadores = useContadoresGestao(ehGestao);
   const recados = useRecadosNaoLidos(ehGestao || visualContext === 'FUNCIONARIO');
+  const ehPorteiro = visualContext === 'FUNCIONARIO' && currentUser?.porteiro;
+
+  // Encomendas do meu apartamento ainda na portaria (morador e síndico, que também mora)
+  const moraNoPredio = (visualContext === 'MORADOR' || visualContext === 'SINDICO') && !!currentUser?.apartamento;
+  const [encomendas, setEncomendas] = useState(0);
+  useEffect(() => {
+    if (!moraNoPredio) return undefined;
+    const contar = () => supabase.from('encomendas').select('id', { count: 'exact', head: true })
+      .eq('condominio_id', currentUser.condominio_id).is('retirada_em', null)
+      .ilike('bloco', (currentUser.bloco || '').trim()).ilike('apartamento', currentUser.apartamento.trim())
+      .then(({ count }) => setEncomendas(count || 0));
+    contar();
+    window.addEventListener(EVENTO_CONTADORES, contar);
+    return () => window.removeEventListener(EVENTO_CONTADORES, contar);
+  }, [moraNoPredio, currentUser?.condominio_id, currentUser?.bloco, currentUser?.apartamento]);
 
   const handleLogout = () => {
     logout();
@@ -54,16 +70,18 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
   const ITENS_INFERIOR = {
     MORADOR: [['/avisos', Megaphone, 'Avisos'], ['/feed', Activity, 'Mural'], ['/ocorrencia', Plus, 'Nova'], ['/reservas', CalendarDays, 'Reservas']],
     SINDICO: [['/painel?tab=overview', LayoutDashboard, 'Painel'], ['/feed', Activity, 'Mural'], ['/ocorrencia', Plus, 'Nova'], ['/recados', Mail, 'Recados', recados.total]],
-    FUNCIONARIO: [['/painel-funcionario', PenTool, 'Tarefas'], ['/recados', Mail, 'Recados', recados.total], ['/avisos', Megaphone, 'Avisos']],
+    FUNCIONARIO: [...(ehPorteiro ? [['/encomendas', Package, 'Encomendas']] : []), ['/painel-funcionario', PenTool, 'Tarefas'], ['/recados', Mail, 'Recados', recados.total], ['/avisos', Megaphone, 'Avisos']],
     MASTER: [['/painel-master?tab=overview', LayoutDashboard, 'Visão'], ['/feed', Activity, 'Mural'], ['/painel-master?tab=usuarios', Users, 'Moradores', contadores.moradores_pendentes], ['/funcionarios', ShieldCheck, 'Funcionários']],
     DEV: [['/painel-dev', Building, 'Condomínios'], ['/exclusoes-conta', UserX, 'Exclusões']],
   };
-  // Bolinha do "Menu": soma das pendências que só aparecem no menu completo (as que já têm
-  // botão próprio na barra, como Recados do síndico e Moradores do Master, não entram)
+  // Bolinha do "Menu": soma de TODAS as bolinhas do menu completo daquele perfil
+  // (mesmo as que também aparecem na barra de baixo, como Recados e Moradores)
   const somaN = (...ns) => ns.reduce((t, n) => t + (Number(n) || 0), 0);
   const PENDENTES_NO_MENU = {
-    SINDICO: somaN(contadores.analise, contadores.pessoais, contadores.reclamacoes_abertas, contadores.abertas_paradas, contadores.andamento_parados),
-    MASTER: somaN(recados.total, contadores.analise, contadores.pessoais, contadores.abertas_paradas, contadores.andamento_parados),
+    MORADOR: encomendas,
+    SINDICO: somaN(encomendas, recados.total, contadores.analise, contadores.pessoais, contadores.reclamacoes_abertas, contadores.abertas_paradas, contadores.andamento_parados),
+    MASTER: somaN(contadores.moradores_pendentes, recados.total, contadores.analise, contadores.pessoais, contadores.abertas_paradas, contadores.andamento_parados),
+    FUNCIONARIO: recados.total,
   };
   const pendentesMenu = PENDENTES_NO_MENU[visualContext] || 0;
 
@@ -112,6 +130,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
                 {visualContext === 'SINDICO' && navItem('/avisos', Megaphone, 'Mural de Avisos')}
                 {navItem('/solicitacoes', ClipboardList, 'Minhas Solicitações')}
                 {navItem('/reservas', CalendarDays, 'Reservas')}
+                {moraNoPredio && navItem('/minhas-encomendas', Package, 'Minhas Encomendas', null, encomendas)}
                 {visualContext === 'SINDICO' && navItem('/recados', Mail, 'Recados', null, recados.total)}
               </nav>
             </div>
@@ -133,6 +152,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
             <div className="nav-group">
               <p className="nav-section-title">Operações</p>
               <nav className="nav-list">
+                {ehPorteiro && navItem('/encomendas', Package, 'Livro de Encomendas')}
                 {navItem('/painel-funcionario', PenTool, 'Minhas Tarefas Técnicas')}
                 {navItem('/recados', Mail, 'Recados', null, recados.total)}
                 {navItem('/avisos', Megaphone, 'Mural de Avisos')}
@@ -155,6 +175,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
                 {navItem('/andamento-prolongado', Hourglass, 'Em andamento +2 dias', null, contadores.andamento_parados)}
                 {navItem('/ocorrencias-concluidas', CheckCircle2, 'Ocorrências Concluídas')}
                 {navItem('/funcionarios', ShieldCheck, 'Gestão de Funcionários')}
+                {navItem('/encomendas', Package, 'Livro de Encomendas')}
               </nav>
             </div>
           )}
@@ -189,6 +210,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }) => {
                   )}
                 </a>
                 {navItem('/funcionarios', ShieldCheck, 'Gestão de Funcionários')}
+                {navItem('/encomendas', Package, 'Livro de Encomendas')}
                 {navItem('/blocos', Layers, 'Blocos do Condomínio')}
                 {navItem('/dependencias', CalendarDays, 'Dependências')}
                 {navItem('/recados', Mail, 'Recados', null, recados.total)}

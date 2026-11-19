@@ -1,0 +1,7 @@
+# Nunca enviar para a Vercel: chaves locais e o projeto Android
+.env
+.env.*
+android
+node_modules
+dist
+.impeccable

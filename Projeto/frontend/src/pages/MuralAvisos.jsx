@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import BotaoCamera from '../components/CameraFoto';
 import ErroCarregamento from '../components/ErroCarregamento';
 import {
-  Menu, Megaphone, CalendarDays, Clock, Plus, X, ImagePlus, Trash2, TimerOff, RefreshCw, Inbox, Loader2,
+  Menu, Megaphone, CalendarDays, Clock, Plus, X, ImagePlus, Trash2, TimerOff, RefreshCw, Inbox, Loader2, Camera,
 } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
@@ -209,6 +210,12 @@ const NovoAviso = ({ condominioId, onPublicado, onCancelar }) => {
               <ImagePlus size={20} />
               <span>Adicionar</span>
             </button>
+          )}
+          {imagens.length < MAX_IMAGENS && (
+            <BotaoCamera className="av-add-imagem" disabled={enviando} onFoto={(f) => adicionarImagens([f])}>
+              <Camera size={20} />
+              <span>Tirar foto</span>
+            </BotaoCamera>
           )}
           <input ref={fileRef} type="file" accept="image/*" multiple hidden onChange={(e) => { adicionarImagens(e.target.files); e.target.value = ''; }} />
         </div>

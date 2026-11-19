@@ -1,4 +1,5 @@
 import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
+import { esquecerAparelhoPush } from '../services/pushNativo';
 import { supabase } from '../backend/supabaseClient';
 import { carregarPerfil } from '../services/perfilService';
 
@@ -93,8 +94,10 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const logout = () => {
+    // App: tira este aparelho das notificações do celular antes de encerrar a sessão
+    const esquecer = esquecerAparelhoPush();
     limparSessaoLocal();
-    supabase.auth.signOut();
+    esquecer.finally(() => supabase.auth.signOut());
   };
 
   // Recarrega o perfil do banco (papel, status, condomínio). O localStorage

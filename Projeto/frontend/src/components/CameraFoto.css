@@ -1,0 +1,54 @@
+/* Câmera na hora: tela escura por cima de tudo (inclusive das janelas) */
+.cam-fundo {
+  position: fixed; inset: 0; z-index: 2000; background: rgba(10, 11, 13, 0.82);
+  display: flex; align-items: center; justify-content: center; padding: 16px;
+  padding-top: calc(16px + env(safe-area-inset-top)); padding-bottom: calc(16px + env(safe-area-inset-bottom));
+}
+.cam-caixa {
+  width: min(720px, 100%); max-height: 100%; display: flex; flex-direction: column;
+  background: #121417; color: #fff; border-radius: 14px; overflow: hidden;
+}
+.cam-topo { display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 1rem; }
+.cam-topo strong { display: flex; align-items: center; gap: 0.5rem; font-family: var(--hab-fonte-titulo); }
+.cam-fechar { background: none; border: 0; color: #fff; cursor: pointer; padding: 0.35rem; display: flex; }
+
+.cam-visor {
+  position: relative; flex: 1; min-height: 240px; aspect-ratio: 4 / 3; max-height: 70vh;
+  background: #000; display: flex; align-items: center; justify-content: center;
+}
+.cam-visor video, .cam-visor img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.cam-espelho { transform: scaleX(-1); }
+.cam-aviso {
+  position: absolute; inset: auto 1rem; display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+  text-align: center; color: #e5e7eb; font-size: 0.95rem; margin: 0;
+}
+.cam-erro { color: #fecaca; line-height: 1.4; }
+.cam-girando { animation: cam-gira 1s linear infinite; }
+@keyframes cam-gira { to { transform: rotate(360deg); } }
+
+.cam-acoes { display: flex; align-items: center; justify-content: center; gap: 1rem; padding: 1rem; position: relative; min-height: 88px; }
+.cam-btn {
+  display: inline-flex; align-items: center; gap: 0.45rem; min-height: 44px; padding: 0.6rem 1.1rem;
+  border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.25); background: transparent; color: #fff;
+  font: 600 0.9rem var(--hab-fonte-titulo); cursor: pointer;
+}
+.cam-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.cam-btn-pri { background: var(--hab-laranja); border-color: var(--hab-laranja); color: var(--hab-tinta); }
+.cam-acoes .cam-btn:first-child:not(:only-child) { position: absolute; left: 1rem; }
+.cam-acoes:has(.cam-btn-pri) .cam-btn:first-child { position: static; }
+.cam-disparo {
+  width: 64px; height: 64px; border-radius: 50%; border: 4px solid #fff; background: var(--hab-laranja);
+  cursor: pointer; box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.35);
+}
+.cam-disparo:active:not(:disabled) { transform: scale(0.94); }
+.cam-disparo:disabled { opacity: 0.45; cursor: not-allowed; }
+
+@media (max-width: 520px) {
+  .cam-acoes .cam-btn:first-child:not(:only-child) { position: static; }
+  .cam-acoes { justify-content: space-between; }
+}
+
+/* Encaixe do botão "Tirar foto" nas telas que já tinham o "escolher foto" */
+.pf-tirar-foto { margin-top: 0.6rem; }
+.conv-botoes { justify-content: flex-start; flex-wrap: wrap; }
+.conv-botoes .conv-btn-enviar { margin-left: auto; }

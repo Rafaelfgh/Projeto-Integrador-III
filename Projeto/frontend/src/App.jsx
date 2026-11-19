@@ -25,15 +25,18 @@ import Recados from './pages/Recados';
 import BlocosCondominio from './pages/BlocosCondominio';
 import DependenciasCondominio from './pages/DependenciasCondominio';
 import Reservas from './pages/Reservas';
+import Encomendas from './pages/Encomendas';
 import ProtectedRoute from './components/ProtectedRoute';
 import { AuthProvider } from './contexts/AuthContext';
 import VisualizadorImagemProvider from './components/VisualizadorImagem';
+import NotificacoesPush from './components/NotificacoesPush';
 
 function App() {
   return (
     <AuthProvider>
       <VisualizadorImagemProvider>
       <BrowserRouter>
+        <NotificacoesPush />
         <Routes>
           {/* Rotas Públicas */}
           <Route path="/" element={<Navigate to="/login" replace />} />
@@ -53,6 +56,14 @@ function App() {
             <Route path="/reclamacao" element={<Reclamacao />} />
             <Route path="/feed" element={<FeedOcorrencias />} />
             <Route path="/solicitacoes" element={<MinhasSolicitacoes />} />
+          </Route>
+
+          {/* Encomendas: o morador (e o síndico, que também mora) vê as do apartamento; o livro é da portaria e da gestão */}
+          <Route element={<ProtectedRoute allowedRoles={['MORADOR', 'SINDICO']} />}>
+            <Route path="/minhas-encomendas" element={<Encomendas key="minhas" modo="minhas" />} />
+          </Route>
+          <Route element={<ProtectedRoute allowedRoles={['FUNCIONARIO', 'SINDICO', 'MASTER']} />}>
+            <Route path="/encomendas" element={<Encomendas key="livro" modo="livro" />} />
           </Route>
 
           {/* Reservas de dependências: morador e síndico */}
