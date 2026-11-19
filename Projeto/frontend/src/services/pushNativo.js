@@ -4,10 +4,16 @@ import { ehApp } from './appNativo';
 
 let tokenAtual = null;
 
+const CHAVE_TOKEN = 'habitare:push-token';
+
 export const lembrarTokenPush = async (token) => {
   tokenAtual = token;
   const { error } = await supabase.rpc('registrar_dispositivo_push', { p_token: token, p_plataforma: 'android' });
-  if (error) console.error('Push: não foi possível registrar o aparelho', error);
+  if (error) return console.error('Push: não foi possível registrar o aparelho', error);
+  // O Firebase às vezes troca o token do aparelho: tira o antigo para não mandar o aviso em dobro
+  let anterior = null;
+  try { anterior = localStorage.getItem(CHAVE_TOKEN); localStorage.setItem(CHAVE_TOKEN, token); } catch { /* sem armazenamento */ }
+  if (anterior && anterior !== token) await supabase.rpc('remover_dispositivo_push', { p_token: anterior });
 };
 
 // Chamado no "Sair" ANTES do signOut (depois dele o banco já não sabe quem é o dono do token)

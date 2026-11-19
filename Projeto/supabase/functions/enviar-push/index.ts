@@ -85,7 +85,8 @@ Deno.serve(async (req) => {
             notificacao_id: n.id, tipo: n.tipo ?? '', referencia_tipo: n.referencia_tipo ?? '', referencia_id: n.referencia_id ?? '',
           },
           android: {
-            priority: n.prioridade === 'urgente' ? 'HIGH' : 'NORMAL',
+            // HIGH: o Android entrega na hora (com NORMAL ele segura até o celular "acordar")
+            priority: 'HIGH',
             notification: { channel_id: 'habitare', icon: 'ic_notificacao', color: '#F47920' },
           },
         },
