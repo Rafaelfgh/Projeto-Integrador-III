@@ -61,7 +61,11 @@ const JanelaCamera = ({ onFoto, onFechar }) => {
     const canvas = document.createElement('canvas');
     canvas.width = v.videoWidth;
     canvas.height = v.videoHeight;
-    canvas.getContext('2d').drawImage(v, 0, 0);
+    const ctx = canvas.getContext('2d');
+    // Salva igual ao que a pessoa viu no visor (espelhado, como na webcam)
+    ctx.translate(canvas.width, 0);
+    ctx.scale(-1, 1);
+    ctx.drawImage(v, 0, 0);
     canvas.toBlob((blob) => {
       if (!blob) return;
       const file = new File([blob], `foto-${Date.now()}.jpg`, { type: 'image/jpeg' });
