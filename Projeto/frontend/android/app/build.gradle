@@ -40,8 +40,11 @@ android {
             if (keystorePropertiesFile.exists()) {
                 signingConfig signingConfigs.release
             }
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            // R8: tira do app o código e os recursos das bibliotecas (Firebase, AndroidX) que nunca são usados.
+            // As regras do Capacitor (plugins) e do Firebase vêm junto com as bibliotecas.
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
 }
