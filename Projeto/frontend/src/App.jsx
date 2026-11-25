@@ -1,31 +1,30 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './pages/Login';
-import Dashboard from './pages/Dashboard';
-import PrimeiroAcesso from './pages/PrimeiroAcesso';
-import CadastroAdmin from './pages/CadastroAdmin';
-import Ocorrencia from './pages/Ocorrencia';
-import Reclamacao from './pages/Reclamacao';
-import FeedOcorrencias from './pages/FeedOcorrencias';
-import MinhasSolicitacoes from './pages/MinhasSolicitacoes';
-import PainelSindico from './pages/PainelSindico';
-import PainelFuncionario from './pages/PainelFuncionario';
-import PainelMaster from './pages/PainelMaster';
-import NovoCondominio from './pages/NovoCondominio';
-import CadastroMorador from './pages/CadastroMorador';
-import Perfil from './pages/Perfil';
-import OcorrenciasConcluidas from './pages/OcorrenciasConcluidas';
-import OcorrenciasGestao from './pages/OcorrenciasGestao';
-import ReclamacoesSindico from './pages/ReclamacoesSindico';
-import MuralAvisos from './pages/MuralAvisos';
-import PainelDev from './pages/PainelDev';
-import ExclusoesConta from './pages/ExclusoesConta';
-import GestaoFuncionarios from './pages/GestaoFuncionarios';
-import Recados from './pages/Recados';
-import BlocosCondominio from './pages/BlocosCondominio';
-import DependenciasCondominio from './pages/DependenciasCondominio';
-import Reservas from './pages/Reservas';
-import Encomendas from './pages/Encomendas';
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const PrimeiroAcesso = lazy(() => import('./pages/PrimeiroAcesso'));
+const Ocorrencia = lazy(() => import('./pages/Ocorrencia'));
+const Reclamacao = lazy(() => import('./pages/Reclamacao'));
+const FeedOcorrencias = lazy(() => import('./pages/FeedOcorrencias'));
+const MinhasSolicitacoes = lazy(() => import('./pages/MinhasSolicitacoes'));
+const PainelSindico = lazy(() => import('./pages/PainelSindico'));
+const PainelFuncionario = lazy(() => import('./pages/PainelFuncionario'));
+const PainelMaster = lazy(() => import('./pages/PainelMaster'));
+const NovoCondominio = lazy(() => import('./pages/NovoCondominio'));
+const CadastroMorador = lazy(() => import('./pages/CadastroMorador'));
+const Perfil = lazy(() => import('./pages/Perfil'));
+const OcorrenciasConcluidas = lazy(() => import('./pages/OcorrenciasConcluidas'));
+const OcorrenciasGestao = lazy(() => import('./pages/OcorrenciasGestao'));
+const ReclamacoesSindico = lazy(() => import('./pages/ReclamacoesSindico'));
+const MuralAvisos = lazy(() => import('./pages/MuralAvisos'));
+const PainelDev = lazy(() => import('./pages/PainelDev'));
+const ExclusoesConta = lazy(() => import('./pages/ExclusoesConta'));
+const GestaoFuncionarios = lazy(() => import('./pages/GestaoFuncionarios'));
+const Recados = lazy(() => import('./pages/Recados'));
+const BlocosCondominio = lazy(() => import('./pages/BlocosCondominio'));
+const DependenciasCondominio = lazy(() => import('./pages/DependenciasCondominio'));
+const Reservas = lazy(() => import('./pages/Reservas'));
+const Encomendas = lazy(() => import('./pages/Encomendas'));
 import ProtectedRoute from './components/ProtectedRoute';
 import { AuthProvider } from './contexts/AuthContext';
 import VisualizadorImagemProvider from './components/VisualizadorImagem';
@@ -37,12 +36,12 @@ function App() {
       <VisualizadorImagemProvider>
       <BrowserRouter>
         <NotificacoesPush />
+        <Suspense fallback={<div className="tela-carregando" role="status" aria-label="Carregando" />}>
         <Routes>
           {/* Rotas Públicas */}
           <Route path="/" element={<Navigate to="/login" replace />} />
           <Route path="/login" element={<Login />} />
           <Route path="/cadastro" element={<CadastroMorador />} />
-          <Route path="/cadastro-admin" element={<CadastroAdmin />} />
           <Route path="/novo-condominio" element={<NovoCondominio />} />
           
           {/* Rotas de Morador (SINDICO e MASTER herdam) */}
@@ -117,6 +116,7 @@ function App() {
              <Route path="/avisos" element={<MuralAvisos />} />
           </Route>
         </Routes>
+        </Suspense>
       </BrowserRouter>
       </VisualizadorImagemProvider>
     </AuthProvider>

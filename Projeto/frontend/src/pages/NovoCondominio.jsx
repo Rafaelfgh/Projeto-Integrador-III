@@ -51,6 +51,7 @@ const NovoCondominio = () => {
     masterTelefone: "",
     masterEmail: "",
     masterSenha: "",
+    masterConfirmarSenha: "",
   });
 
   const handleChange = (e) => {
@@ -76,6 +77,7 @@ const NovoCondominio = () => {
       !documentoOk                               ? (formData.tipoDocumento === "CPF" ? "O CPF precisa ter 11 números." : "O CNPJ precisa ter 14 números.") :
       !emailValido(formData.masterEmail)         ? "Informe um e-mail válido (ex.: nome@gmail.com)." :
       formData.masterSenha.length < 6            ? "A senha precisa ter pelo menos 6 caracteres." :
+      formData.masterSenha !== formData.masterConfirmarSenha ? "As senhas não coincidem. Digite a mesma senha nos dois campos." :
       !telefoneCompleto(formData.masterTelefone) ? "O telefone precisa ter DDD + 9 números." :
       null
     );
@@ -233,8 +235,9 @@ const NovoCondominio = () => {
                       placeholder: formData.tipoDocumento === "CPF" ? "000.000.000-00" : "00.000.000/0000-00",
                     })}
 
-                    {campo("E-mail de acesso *", { name: "masterEmail", type: "email", maxLength: TAMANHO.email, placeholder: "exemplo@email.com", autoComplete: "email" })}
+                    {campo("E-mail de acesso *", { name: "masterEmail", type: "email", maxLength: TAMANHO.email, placeholder: "exemplo@email.com", autoComplete: "email" }, "full-width")}
                     {campo("Senha *", { name: "masterSenha", type: "password", placeholder: "Mínimo 6 caracteres", autoComplete: "new-password" })}
+                    {campo("Confirmar senha *", { name: "masterConfirmarSenha", type: "password", placeholder: "Repita a senha", autoComplete: "new-password" })}
 
                     {campo("Telefone *", { name: "masterTelefone", type: "text", inputMode: "numeric", maxLength: TAMANHO.telefone, placeholder: "(00) 00000-0000", autoComplete: "tel" }, "full-width")}
                   </div>

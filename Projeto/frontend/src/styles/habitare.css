@@ -938,3 +938,13 @@ button.placa { font: inherit; text-align: left; padding: 0; color: inherit; widt
 }
 .feed-acomp-toggle > svg:last-child { margin-left: auto; }
 .feed-acomp-toggle:disabled { opacity: 0.6; cursor: default; }
+
+/* Enquanto o pedaço da tela é baixado (carregamento sob demanda): fundo do app + roda discreta */
+.tela-carregando { min-height: 100vh; background: var(--hab-aluminio, #edeef0); display: flex; align-items: center; justify-content: center; }
+.tela-carregando::after {
+  content: ""; width: 28px; height: 28px; border-radius: 50%;
+  border: 3px solid var(--hab-linha); border-top-color: var(--hab-laranja);
+  animation: tela-carregando-gira 0.8s linear infinite;
+}
+@keyframes tela-carregando-gira { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .tela-carregando::after { animation: none; } }

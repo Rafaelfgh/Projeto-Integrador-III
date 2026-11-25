@@ -256,7 +256,7 @@ const Ocorrencia = () => {
                          <div className="visibility-card-content">
                             <span className="visibility-radio-custom"></span>
                             <div className="visibility-text">
-                               <h5>Problema no meu apartamento</h5>
+                               <h5>Problema estrutural que afeta meu apartamento</h5>
                                <p>Ocorrência pessoal (ex.: infiltração ou rachadura dentro da sua unidade). Vai direto para análise do síndico, que encaminha a um funcionário. Não aparece no mural.</p>
                             </div>
                          </div>
