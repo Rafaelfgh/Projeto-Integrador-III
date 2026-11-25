@@ -30,6 +30,7 @@ const CadastroMorador = () => {
     telefone: '',
     email: '',
     senha: '',
+    confirmarSenha: '',
     condominio_id: '',
   });
   const [todosCondominios, setTodosCondominios] = useState([]); // { id, nome, cidade, estado }
@@ -124,6 +125,7 @@ const CadastroMorador = () => {
       !apartamentoEscolhido(unidade)       ? 'Escolha o bloco, o andar e o apartamento.' :
       !contaGoogle && !emailValido(formData.email) ? 'Informe um e-mail válido (ex.: nome@gmail.com).' :
       !contaGoogle && formData.senha.length < 6    ? 'A senha precisa ter pelo menos 6 caracteres.' :
+      !contaGoogle && formData.senha !== formData.confirmarSenha ? 'As senhas não coincidem. Digite a mesma senha nos dois campos.' :
       null;
     if (problema) {
       setErrorMsg(problema);
@@ -325,8 +327,9 @@ const CadastroMorador = () => {
                 </div>
               ) : (
                 <div className="nc-form-grid">
-                  {campo('E-mail (login) *', { id: 'email', type: 'email', maxLength: TAMANHO.email, autoComplete: 'email', placeholder: 'seu@email.com' })}
+                  {campo('E-mail (login) *', { id: 'email', type: 'email', maxLength: TAMANHO.email, autoComplete: 'email', placeholder: 'seu@email.com' }, 'full-width')}
                   {campo('Senha *', { id: 'senha', type: 'password', autoComplete: 'new-password', placeholder: 'Mínimo 6 caracteres' })}
+                  {campo('Confirmar senha *', { id: 'confirmarSenha', type: 'password', autoComplete: 'new-password', placeholder: 'Repita a senha' })}
                 </div>
               )}
 
