@@ -1,0 +1,48 @@
+# Verificação automática do Habitare (CI).
+# A cada push na teste/melhorias e a cada PR para a main, o GitHub baixa o projeto
+# numa máquina limpa e confere: verificador de código (lint), testes e compilação.
+# Se qualquer passo falhar, o commit/PR fica com ❌ e a main não recebe o código.
+name: Verificação
+
+on:
+  push:
+    branches: [teste/melhorias, main]
+  pull_request:
+    branches: [main]
+
+# Um push novo cancela a verificação antiga da mesma branch (economiza minutos)
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  site:
+    name: Lint, testes e build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: Projeto/frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: Projeto/frontend/package-lock.json
+
+      - name: Instalar dependências (versões exatas do package-lock)
+        run: npm ci
+
+      - name: Verificador de código (lint)
+        run: npm run lint
+
+      - name: Testes automatizados
+        run: npm test
+
+      - name: Compilar o site
+        run: npm run build
