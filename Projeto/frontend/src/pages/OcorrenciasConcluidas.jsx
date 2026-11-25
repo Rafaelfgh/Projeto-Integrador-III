@@ -56,6 +56,7 @@ const OcorrenciasConcluidas = () => {
   const [loading,     setLoading]     = useState(true);
   const [erroCarga,   setErroCarga]   = useState(false);
   const [filtroData,  setFiltroData]  = useState(FILTRO_DATA_VAZIO);
+  const [agora] = useState(Date.now); // hora de abertura da tela (filtro "últimos N dias")
   const [itens,       setItens]       = useState([]);
   const [fotos,       setFotos]       = useState({});
   const [aberto,      setAberto]      = useState({});
@@ -139,7 +140,7 @@ const OcorrenciasConcluidas = () => {
   );
 
   const filtrados = useMemo(() => {
-    const limite = periodo === 'todas' ? null : Date.now() - Number(periodo) * 864e5;
+    const limite = periodo === 'todas' ? null : agora - Number(periodo) * 864e5;
     return itens.filter(i =>
       combinaBusca(busca, [i.titulo, i.descricao, i.moradorNome, i.funcionarioNome, rotulo(i.categoria), protocoloOcorrencia(i.id, i.created_at)]) &&
       passaFiltroData(i.concluida_em, filtroData) &&
@@ -147,7 +148,7 @@ const OcorrenciasConcluidas = () => {
       (funcionario === 'todos' || i.funcionarioNome === funcionario) &&
       (!limite || (i.concluida_em && new Date(i.concluida_em).getTime() >= limite))
     );
-  }, [itens, busca, categoria, funcionario, periodo, filtroData, rotulo]);
+  }, [itens, busca, categoria, funcionario, periodo, filtroData, rotulo, agora]);
 
   const totalPaginas = Math.max(1, Math.ceil(filtrados.length / POR_PAGINA));
   const paginaAtual  = Math.min(pagina, totalPaginas);

@@ -32,8 +32,7 @@ const PainelMaster = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const { currentUser, changeVisualContext, visualContext } = useAuth();
-  const [ctxOpen, setCtxOpen] = useState(false);
+  const { currentUser } = useAuth();
 
   const searchParams = new URLSearchParams(location.search);
   const activeTab = searchParams.get('tab') || 'overview';
@@ -95,9 +94,7 @@ const PainelMaster = () => {
 
   // User Stats
   const totalUsers = users.length;
-  const activeUsers = users.filter(u => u.status === 'ATIVO').length;
   const pendingUsers = users.filter(u => u.status === 'PENDENTE').length;
-  const blockedUsers = users.filter(u => u.status === 'BLOQUEADO').length;
 
   useEffect(() => {
     if (!currentUser || currentUser.role !== 'MASTER') return;

@@ -57,6 +57,7 @@ const FeedOcorrencias = () => {
   const [filtroData,     setFiltroData]     = useState(FILTRO_DATA_VAZIO);
   const [statusFilter,   setStatusFilter]   = useState('Todos');
   const [expandido,      setExpandido]      = useState({});
+  const [agora] = useState(Date.now); // hora de abertura da tela (janela das concluídas)
   const [acompanhamento, setAcompanhamento] = useState({}); // andamento + pronunciamento abertos no cartão
   // Cartão de tamanho fixo: texto longo termina em "…"; "Detalhes" abre tudo numa janela
   const [detalhe,        setDetalhe]        = useState(null);
@@ -247,7 +248,7 @@ const FeedOcorrencias = () => {
     cancelarPronunciamento(id);
   };
 
-  const limiteConcluidas = Date.now() - DIAS_CONCLUIDAS * 24 * 60 * 60 * 1000;
+  const limiteConcluidas = agora - DIAS_CONCLUIDAS * 24 * 60 * 60 * 1000;
   const abertas    = ocorrencias.filter(o => o.status !== 'Resolvida');
   const concluidas = ocorrencias.filter(o =>
     o.status === 'Resolvida' && o.concluida_em && new Date(o.concluida_em).getTime() >= limiteConcluidas

@@ -72,7 +72,7 @@ export const useNotifications = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [currentUser?.id, fetchNotifications]);
+  }, [currentUser?.id, fetchNotifications, setNotifications]);
 
   const markAsRead = async (id) => {
     try {

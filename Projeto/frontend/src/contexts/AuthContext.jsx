@@ -76,7 +76,7 @@ export const AuthProvider = ({ children }) => {
     } else {
       setVisualContext(null);
     }
-  }, [currentUser]);
+  }, [currentUser, visualContext]);
 
   const login = (userData) => {
     setCurrentUser(userData);
