@@ -5,7 +5,8 @@ import reactRefresh from 'eslint-plugin-react-refresh'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
 export default defineConfig([
-  globalIgnores(['dist']),
+  // android/ guarda uma cópia já compilada do site (gerada pelo Capacitor)
+  globalIgnores(['dist', 'android', 'coverage']),
   {
     files: ['**/*.{js,jsx}'],
     extends: [
@@ -23,7 +24,17 @@ export default defineConfig([
       },
     },
     rules: {
-      'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]' }],
+      // Maiúscula = componente usado no JSX (ex.: ícone recebido como parâmetro)
+      'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]', argsIgnorePattern: '^[A-Z_]' }],
+      // Regras do React Compiler: o projeto não usa o compilador (ver vite.config.js).
+      // set-state-in-effect acusaria o padrão de carregar dados ao abrir a tela, usado em todo o app.
+      'react-hooks/set-state-in-effect': 'off',
+      'react-hooks/preserve-manual-memoization': 'off',
+      // Recarga rápida no desenvolvimento: estes arquivos exportam, junto do componente,
+      // o hook ou as funções que só fazem sentido com ele
+      'react-refresh/only-export-components': ['error', {
+        allowExportNames: ['useAuth', 'FILTRO_DATA_VAZIO', 'temFiltroData', 'passaFiltroData', 'anosDe'],
+      }],
     },
   },
 ])

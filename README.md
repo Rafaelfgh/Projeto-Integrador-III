@@ -17,6 +17,7 @@ reservas de áreas comuns, avisos, recados da equipe e painéis com indicadores,
 </p>
 
 <p>
+  <a href="https://github.com/Rafaelfgh/Projeto-Integrador-III/actions/workflows/ci.yml"><img alt="Verificação (lint, testes e build)" src="https://github.com/Rafaelfgh/Projeto-Integrador-III/actions/workflows/ci.yml/badge.svg?branch=main" /></a>
   <img alt="Status" src="https://img.shields.io/badge/status-teste_fechado_na_Google_Play-F47920?style=flat-square" />
   <img alt="Versão" src="https://img.shields.io/badge/versão-2.0.2-121417?style=flat-square" />
   <img alt="Projeto" src="https://img.shields.io/badge/Projeto_Integrador-CEUB-7A1E48?style=flat-square" />

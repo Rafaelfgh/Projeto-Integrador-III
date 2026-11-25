@@ -190,7 +190,7 @@ const MinhasSolicitacoes = () => {
       }
     }
     fetchMyRequests();
-  }, [currentUser?.id, searchParams, tentativa]);
+  }, [currentUser?.id, currentUser?.name, searchParams, tentativa]);
 
   // Fecha o detalhe e tira do endereço o link da notificação (para poder abrir de novo)
   const fecharDetalhe = () => {
